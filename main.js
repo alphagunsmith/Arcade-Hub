@@ -2,7 +2,7 @@
 /**
  * Arcade Hub — processo principal do Electron
  */
-const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const lib = require('./src/lib');
 
@@ -20,6 +20,7 @@ if (!gotLock) {
 if (process.platform === 'win32') app.setAppUserModelId('com.arcadehub.launcher');
 
 let win = null;
+let hub = null;                 // o que o lib.register devolve (estado, sessões, varredura)
 const store = new lib.Store(app.getPath('userData'));
 
 // lembra tamanho/posição da janela entre execuções (e não abre fora da tela)
@@ -90,7 +91,9 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  const state = lib.register(ipcMain, { shell, dialog, BrowserWindow, app, store });
+  hub = lib.register(ipcMain, { shell, dialog, BrowserWindow, app, store });
+  ligarBandejaDuranteOJogo();
+  registrarIpcDeAtualizacao();
 
   // atalhos de janela vindos do renderer
   ipcMain.handle('win:action', (e, action) => {
@@ -110,9 +113,85 @@ app.whenReady().then(() => {
   });
 
   // A primeira varredura (quando não existe lastScan) é feita pelo renderer, que já
-  // mostra o botão girando e atualiza a tela sozinho — nada de escanear aqui em paralelo.
-  void state;
+  // mostra o botão girando e atualiza a tela sozinho. Com a biblioteca já montada,
+  // o lib.register confere sozinho em segundo plano alguns segundos depois de abrir.
 });
+
+/* ------------------------------------------------------------------ */
+/* Bandeja: o launcher sai da frente enquanto o jogo roda              */
+/* ------------------------------------------------------------------ */
+let tray = null;
+let escondidoPeloJogo = false;
+
+function mostrarJanela() {
+  if (!win || win.isDestroyed()) return;
+  if (win.isMinimized()) win.restore();
+  win.show();
+  win.focus();
+}
+
+function criarBandeja(titulo) {
+  if (!tray) {
+    const icone = nativeImage.createFromPath(path.join(__dirname, 'assets', 'icon.png')).resize({ width: 16, height: 16 });
+    tray = new Tray(icone);
+    tray.on('click', mostrarJanela);
+    tray.on('double-click', mostrarJanela);
+  }
+  tray.setToolTip(`Arcade Hub — jogando ${titulo}`);
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: `Jogando: ${titulo}`, enabled: false },
+    { type: 'separator' },
+    { label: 'Abrir o Arcade Hub', click: mostrarJanela },
+    { label: 'Sair', click: () => app.quit() }
+  ]));
+}
+
+function ligarBandejaDuranteOJogo() {
+  lib.eventos.on('sessao:inicio', ({ title }) => {
+    if (store.settings.minimizarAoJogar === false || !win || win.isDestroyed()) return;
+    try {
+      criarBandeja(title);
+      escondidoPeloJogo = true;
+      win.hide();
+    } catch (e) { console.warn('[arcade-hub] bandeja indisponível:', e && e.message); }
+  });
+  lib.eventos.on('sessao:fim', ({ ativas }) => {
+    if (ativas > 0) return;                       // ainda tem outro jogo aberto
+    if (escondidoPeloJogo) { escondidoPeloJogo = false; mostrarJanela(); }
+    if (tray) { tray.destroy(); tray = null; }
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Atualização: estado vai para a interface (faixa "Reiniciar agora")  */
+/* ------------------------------------------------------------------ */
+let autoUpdater = null;
+let estadoAtualizacao = { estado: 'parado' };
+
+function avisarAtualizacao(e) {
+  estadoAtualizacao = { ...e, at: Date.now() };
+  for (const w of BrowserWindow.getAllWindows()) {
+    try { if (!w.isDestroyed()) w.webContents.send('update:status', estadoAtualizacao); } catch { /* fechando */ }
+  }
+}
+
+function registrarIpcDeAtualizacao() {
+  ipcMain.handle('update:get', () => ({
+    ok: true,
+    data: { ...estadoAtualizacao, suportado: !!autoUpdater, versaoAtual: app.getVersion() }
+  }));
+  ipcMain.handle('update:check', async () => {
+    if (!autoUpdater) return { ok: false, error: 'A atualização automática só funciona na versão instalada pelo instalador.' };
+    try { await autoUpdater.checkForUpdates(); } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
+    return { ok: true, data: estadoAtualizacao };
+  });
+  ipcMain.handle('update:install', () => {
+    if (!autoUpdater || estadoAtualizacao.estado !== 'pronto') return { ok: false, error: 'Nenhuma atualização pronta para instalar.' };
+    try { if (hub) hub.fecharSessoes(); store.flush(); } catch { /* segue */ }
+    setImmediate(() => autoUpdater.quitAndInstall(false, true));
+    return { ok: true };
+  });
+}
 
 /**
  * Atualização automática pelo GitHub Releases (alphagunsmith/Arcade-Hub).
@@ -121,17 +200,31 @@ app.whenReady().then(() => {
  */
 function iniciarAtualizacoes() {
   if (!app.isPackaged || process.env.PORTABLE_EXECUTABLE_DIR) return;
-  let autoUpdater;
   try { ({ autoUpdater } = require('electron-updater')); } catch (e) {
     console.warn('[arcade-hub] atualizador indisponível:', e && e.message);
+    autoUpdater = null;
     return;
   }
   autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
-  autoUpdater.on('error', err => console.warn('[arcade-hub] falha ao procurar atualização:', err && err.message));
-  autoUpdater.checkForUpdatesAndNotify().catch(() => { /* sem internet: tenta na próxima vez */ });
+  autoUpdater.autoInstallOnAppQuit = true;      // se o usuário não clicar em "Reiniciar", instala ao fechar
+  let ultimoPct = -1;
+  autoUpdater.on('checking-for-update', () => avisarAtualizacao({ estado: 'procurando' }));
+  autoUpdater.on('update-not-available', () => avisarAtualizacao({ estado: 'atualizado' }));
+  autoUpdater.on('update-available', info => avisarAtualizacao({ estado: 'baixando', versao: info && info.version, progresso: 0 }));
+  autoUpdater.on('download-progress', p => {
+    const pct = Math.floor((p && p.percent) || 0);
+    if (pct === ultimoPct) return;
+    ultimoPct = pct;
+    avisarAtualizacao({ ...estadoAtualizacao, estado: 'baixando', progresso: pct });
+  });
+  autoUpdater.on('update-downloaded', info => avisarAtualizacao({ estado: 'pronto', versao: info && info.version }));
+  autoUpdater.on('error', err => {
+    console.warn('[arcade-hub] falha ao procurar atualização:', err && err.message);
+    avisarAtualizacao({ estado: 'erro', mensagem: String((err && err.message) || err) });
+  });
+  autoUpdater.checkForUpdates().catch(() => { /* sem internet: tenta na próxima vez */ });
   // app aberto o dia todo: confere de novo a cada 6 horas
-  setInterval(() => autoUpdater.checkForUpdatesAndNotify().catch(() => {}), 6 * 60 * 60 * 1000).unref();
+  setInterval(() => autoUpdater.checkForUpdates().catch(() => {}), 6 * 60 * 60 * 1000).unref();
 }
 
 process.on('uncaughtException', err => {
@@ -140,6 +233,9 @@ process.on('uncaughtException', err => {
 process.on('unhandledRejection', err => {
   console.error('[arcade-hub] promise rejeitada:', err);
 });
+
+// sessões ainda abertas (jogo rodando quando o launcher fecha) entram no tempo de jogo
+app.on('before-quit', () => { try { if (hub) hub.fecharSessoes(); } catch (e) { console.error('[arcade-hub] falha ao gravar sessões:', e); } });
 
 // grava o que ainda estiver pendente (o store junta gravações em lote)
 app.on('will-quit', () => { try { store.flush(); } catch (e) { console.error('[arcade-hub] falha ao gravar a biblioteca:', e); } });

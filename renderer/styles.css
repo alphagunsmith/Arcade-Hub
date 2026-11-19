@@ -247,7 +247,7 @@ code { font-family: "Cascadia Mono", Consolas, monospace; background: rgba(255,2
 /* grade de jogos */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min, 168px), 1fr));
   gap: 16px 14px;
 }
 .card {
@@ -489,7 +489,7 @@ input[type=range] { accent-color: var(--accent); }
   .sidebar { display: none; }
   .detail-card { flex-direction: column; }
   .detail-art { flex: 0 0 190px; min-height: 190px; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(min(var(--card-min, 168px), 140px), 1fr)); }
 }
 
 /* ---------- capas ---------- */
@@ -1219,7 +1219,7 @@ body[data-layout="rondel"] #hero { display: none; }
 }
 
 /* com a barra lateral fora, a grade pode respirar mais */
-body[data-layout="grade"] .grid { grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); }
+body[data-layout="grade"] .grid { grid-template-columns: repeat(auto-fill, minmax(var(--card-min, 158px), 1fr)); }
 
 @media (max-width: 640px) {
   .busca-flutuante { right: 12px; top: 52px; width: calc(100vw - 24px); }
@@ -1551,3 +1551,72 @@ body[data-layout="grade"] .grid { grid-template-columns: repeat(auto-fill, minma
   margin-left: 6px; padding: 1px 5px; border-radius: 4px;
   background: rgba(255,255,255,.18); color: #fff; opacity: .9;
 }
+
+
+/* ================= 1.0.2 ================= */
+
+/* tamanho dos cards (menu) */
+.tamanho-cards { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 11.5px; color: var(--muted); }
+.tamanho-cards input { flex: 1; accent-color: var(--accent); }
+
+/* "jogando agora" no card */
+.card-jogando {
+  position: absolute; left: 8px; bottom: 8px; z-index: 3;
+  padding: 3px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 600;
+  background: rgba(10, 12, 17, .82); color: var(--good); border: 1px solid color-mix(in srgb, var(--good) 45%, transparent);
+}
+.card-jogando::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--good); margin-right: 6px; vertical-align: 1px; animation: pulsar 1.4s ease-in-out infinite; }
+@keyframes pulsar { 50% { opacity: .35; } }
+
+/* faixa de atualização */
+.update-bar {
+  position: fixed; left: 18px; bottom: 18px; z-index: 95;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 8px 8px 14px; border-radius: 12px;
+  background: var(--panel-2); border: 1px solid var(--accent-50); box-shadow: var(--shadow);
+  font-size: 12.5px; color: var(--txt);
+  animation: fadeUp .25s ease both;
+}
+.update-bar .primary-btn { padding: 6px 12px; font-size: 12px; }
+.update-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-16); }
+.update-x { background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; padding: 2px 6px; cursor: pointer; border-radius: 6px; }
+.update-x:hover { color: var(--txt); background: var(--accent-10); }
+.atualizacao-sobre { display: flex; align-items: center; gap: 10px; margin: 6px 0 12px; }
+
+/* diagnóstico: jogos com arquivo faltando */
+.diag-fix { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.diag-fix-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--line); }
+.diag-fix-item b { font-size: 12px; white-space: nowrap; }
+.diag-fix-item .path { flex: 1; min-width: 0; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.diag-fix-item button { flex: none; padding: 5px 10px; font-size: 11.5px; }
+.detail-warn-acao { margin-left: 10px; padding: 4px 10px; font-size: 11.5px; }
+
+/* ---------- estatísticas ---------- */
+.stats { display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; animation: fadeUp .25s ease both; }
+.stats-head h2 { font-size: 24px; }
+.stats-head p { margin-top: 4px; }
+.stats-totais { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.stats-tile { padding: 16px 18px; border-radius: var(--radius); background: var(--panel); border: 1px solid var(--line); }
+.stats-tile b { display: block; font-size: 26px; font-weight: 700; letter-spacing: -.01em; }
+.stats-tile span { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; }
+.stats-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 860px) { .stats-cols { grid-template-columns: 1fr; } }
+.stats-card { padding: 16px 18px; border-radius: var(--radius); background: var(--panel); border: 1px solid var(--line); min-width: 0; }
+.stats-card h3 { font-size: 13px; margin-bottom: 12px; color: var(--txt); }
+.stats-vazio { color: var(--muted); font-size: 12px; }
+.barras { display: flex; flex-direction: column; gap: 8px; }
+.barra { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; font-size: 12px; background: none; border: 0; color: inherit; text-align: left; padding: 0; }
+button.barra { cursor: pointer; }
+button.barra:hover .barra-nome { color: var(--accent); }
+.barra-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barra-valor { color: var(--muted); font-variant-numeric: tabular-nums; }
+.barra-trilho { grid-column: 1 / -1; height: 6px; border-radius: 999px; background: var(--input-bg); overflow: hidden; }
+.barra-trilho i { display: block; height: 100%; border-radius: 999px; background: var(--accent-grad); }
+.meses { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; align-items: end; height: 150px; }
+.mes { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; min-width: 0; }
+.mes i { width: 100%; max-width: 26px; min-height: 2px; border-radius: 5px 5px 2px 2px; background: var(--accent-grad); }
+.mes i.zero { background: var(--input-bg); }
+.mes span { font-size: 10px; color: var(--muted); text-transform: capitalize; }
+.stats-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.stats-chips button { padding: 5px 10px; border-radius: 999px; font-size: 11.5px; background: var(--input-bg); border: 1px solid var(--line); color: var(--txt); cursor: pointer; }
+.stats-chips button:hover { border-color: var(--accent-50); }

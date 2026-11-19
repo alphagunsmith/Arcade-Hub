@@ -67,6 +67,28 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
     ipcRenderer.on('game:sessionEnd', handler);
     return () => ipcRenderer.removeListener('game:sessionEnd', handler);
   },
+  onSessionStart: cb => {
+    const handler = (_e, p) => cb(p);
+    ipcRenderer.on('game:sessionStart', handler);
+    return () => ipcRenderer.removeListener('game:sessionStart', handler);
+  },
+
+  // biblioteca mudou sozinha (varredura automática)
+  onLibraryChanged: cb => {
+    const handler = (_e, p) => cb(p);
+    ipcRenderer.on('library:changed', handler);
+    return () => ipcRenderer.removeListener('library:changed', handler);
+  },
+
+  // atualização do app
+  updateStatus: () => call('update:get'),
+  checkUpdates: () => call('update:check'),
+  installUpdate: () => call('update:install'),
+  onUpdateStatus: cb => {
+    const handler = (_e, p) => cb(p);
+    ipcRenderer.on('update:status', handler);
+    return () => ipcRenderer.removeListener('update:status', handler);
+  },
 
   // backup
   exportLibrary: () => call('library:export'),

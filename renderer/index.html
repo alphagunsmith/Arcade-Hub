@@ -47,6 +47,7 @@
           <button class="nav-item" data-view="recent"><span>Jogados recentemente</span></button>
           <button class="nav-item" data-view="pc"><span>Jogos de PC</span><em id="count-pc">0</em></button>
           <button class="nav-item" data-view="emulator"><span>Emuladores</span><em id="count-rom">0</em></button>
+          <button class="nav-item" data-view="stats"><span>Estatísticas</span></button>
         </div>
       </div>
 
@@ -64,6 +65,10 @@
           <button class="menu-acao toggle" id="btn-installed" title="Mostrar só jogos instalados">Instalados</button>
           <button class="menu-acao" id="btn-score-min" title="Mostrar só jogos com nota alta"><span id="score-min-label">Nota mín.</span></button>
         </div>
+        <label class="tamanho-cards">
+          <span>Tamanho dos cards</span>
+          <input type="range" id="card-size" min="120" max="280" step="2" value="158" aria-label="Tamanho dos cards" />
+        </label>
       </div>
 
       <div class="menu-bloco">
@@ -138,6 +143,7 @@
       <!-- palco dos temas de dashboard (XMB, blades, canais, coverflow, tiles) -->
       <section id="dashboard" class="dashboard" hidden aria-label="Dashboard do console"></section>
 
+      <section id="stats" class="stats" hidden aria-label="Estatísticas"></section>
       <div id="grid" class="grid"></div>
       <div id="empty" class="empty" hidden>
         <div class="empty-art">
@@ -408,6 +414,12 @@
         <div class="field row-inline">
           <label class="switch"><input type="checkbox" id="opt-launchers" /><span></span>Incluir Steam, Epic e GOG na varredura</label>
         </div>
+        <div class="field row-inline">
+          <label class="switch"><input type="checkbox" id="opt-autoscan" /><span></span>Procurar jogos novos sozinho (ao abrir e quando as pastas mudam)</label>
+        </div>
+        <div class="field row-inline">
+          <label class="switch"><input type="checkbox" id="opt-tray" /><span></span>Esconder o Arcade Hub perto do relógio enquanto um jogo está aberto</label>
+        </div>
         <div class="field">
           <label>Profundidade da varredura de pastas: <strong id="depth-val">4</strong></label>
           <input type="range" id="opt-depth" min="1" max="8" step="1" value="4" />
@@ -453,7 +465,7 @@
         <div class="panel-head tight">
           <div>
             <h3>Backup da biblioteca</h3>
-            <p class="muted small">Exporta jogos, favoritos, capas escolhidas, notas e tempo de jogo em um único .json.</p>
+            <p class="muted small">Exporta jogos, favoritos, capas, notas e tempo de jogo num único .zip — as imagens das capas vão junto, então funciona em outro PC. Backups .json antigos também podem ser importados.</p>
           </div>
           <div class="row">
             <button class="ghost-btn" id="btn-export">Exportar…</button>
@@ -465,6 +477,10 @@
       <div class="tab-panel" data-panel="about" hidden>
         <h3>Arcade Hub <span class="muted small" id="ver-app"></span></h3>
         <p class="muted small" id="ver-env"></p>
+        <div class="row atualizacao-sobre">
+          <button class="ghost-btn" id="btn-check-update">Procurar atualizações</button>
+          <span class="muted small" id="update-about"></span>
+        </div>
         <ul class="bullets muted small">
           <li><strong>/</strong> foca a busca, <strong>Enter</strong> abre o primeiro resultado, <strong>Esc</strong> fecha janelas.</li>
           <li>Para gerar um instalador: <code>npm install</code> e depois <code>npm run dist</code>.</li>
@@ -480,6 +496,12 @@
   </div>
 
   <div id="toasts" class="toasts"></div>
+  <div id="update-bar" class="update-bar" hidden role="status">
+    <span class="update-dot" aria-hidden="true"></span>
+    <span id="update-text">Atualização</span>
+    <button id="update-go" class="primary-btn" hidden>Reiniciar agora</button>
+    <button id="update-x" class="update-x" title="Depois" aria-label="Fechar aviso">×</button>
+  </div>
   <div id="batch-bar" class="batch-bar" hidden>
     <span id="batch-label">Buscando…</span>
     <div class="bar"><i id="batch-progress"></i></div>

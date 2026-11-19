@@ -27,7 +27,10 @@ const api = (() => {
   ].map(([title, source, platform, kind, playedAt, genres], i) => ({
     id: 'demo' + i, title, source, platform, kind, genres,
     installed: i !== 12,                                  // Castlevania "não instalado" na demo
-    playtime: [i % 4 === 0 ? { totalMs: (i + 1) * 3.5 * 36e5, sessions: i + 2, lastAt: playedAt } : null][0],
+    playtime: [i % 4 === 0 || i % 5 === 1 ? {
+      totalMs: (i + 1) * 3.5 * 36e5, sessions: i + 2, lastAt: playedAt,
+      history: Array.from({ length: i + 2 }, (_, k) => ({ at: now - k * 864e5 * (9 + i), ms: ((i + 1) * 3.5 * 36e5) / (i + 2) }))
+    } : null][0],
     platformKey: platform.toLowerCase(),
     launch: { type: source === 'emulator' ? 'rom' : 'url', rom: 'C:/Roms/Game.sfc' },
     installDir: 'C:/Games/' + title,
@@ -181,6 +184,12 @@ const api = (() => {
     launch: notElectron,
     openPath: notElectron,
     reveal: notElectron,
+    updateStatus: () => reply({ estado: 'parado', suportado: false, versaoAtual: '1.0.2' }),
+    checkUpdates: notElectron,
+    installUpdate: notElectron,
+    onUpdateStatus: () => () => {},
+    onSessionStart: () => () => {},
+    onLibraryChanged: () => () => {},
     win: () => {}
   };
 })();
@@ -203,6 +212,9 @@ const ui = {
   type: 'exe',
   coverGame: null,
   jogoNaFicha: null,       // jogo aberto na ficha (o controle X inicia ele)
+  jogando: new Set(),      // jogos com sessão aberta agora
+  atualizacao: null,       // último estado do atualizador
+  avisoAtualizacaoFechado: false,
   pickPaths: { exe: '', rom: '', art: '' }
 };
 
@@ -416,7 +428,7 @@ function render() {
 
   const titles = {
     all: 'Todos os jogos', favorites: 'Favoritos', recent: 'Jogados recentemente',
-    pc: 'Jogos de PC', emulator: 'Emuladores'
+    pc: 'Jogos de PC', emulator: 'Emuladores', stats: 'Estatísticas'
   };
   $('#view-title').textContent = titles[ui.view] || 'Jogos';
   const totalSize = s.games.reduce((a, g) => a + (g.sizeOnDisk || 0), 0);
@@ -430,6 +442,21 @@ function render() {
     : `${games.length} de ${s.games.length} jogos`);
 
   renderNav();
+
+  // ---- estatísticas: uma página própria, no lugar da grade ----
+  const statsBox = $('#stats');
+  if (ui.view === 'stats') {
+    document.body.dataset.layout = 'stats';
+    statsBox.hidden = false;
+    $('#grid').hidden = true; $('#rondel').hidden = true; $('#dashboard').hidden = true;
+    $('#empty').hidden = true;
+    renderHero([]);
+    Rondel.pausar();
+    Dashboards.ativar(null);
+    renderStats();
+    return;
+  }
+  statsBox.hidden = true;
 
   // ---- TEMA DE DASHBOARD tem prioridade: ele já É um layout ----
   const tema = temaAtual();
@@ -609,6 +636,7 @@ function paintArt(box, game, opts) {
     const img = el('img');
     img.alt = game.title || '';
     img.decoding = 'async';
+    img.loading = 'lazy';                  // só decodifica as capas que aparecem na tela
     img.onload = () => {
       box.classList.remove('art-carregando');
       const w = img.naturalWidth || 1, h = img.naturalHeight || 1;
@@ -735,7 +763,8 @@ function renderCardsInto(grid, games, favs) {
       art.appendChild(prob);
     }
     const pt = g.playtime && g.playtime.totalMs;
-    if (pt) art.appendChild(el('div', 'card-playtime', fmtPlaytime(pt)));
+    if (ui.jogando.has(g.id)) art.appendChild(el('div', 'card-jogando', 'jogando agora'));
+    else if (pt) art.appendChild(el('div', 'card-playtime', fmtPlaytime(pt)));
 
     // atalho discreto: refazer capa/informações sem abrir nada
     const refresh = el('button', 'card-refresh');
@@ -901,11 +930,40 @@ async function launch(game) {
     toast(r.error || 'Não consegui abrir esse jogo', 'err');
     return;
   }
-  toast(`Abrindo ${game.title}…`, 'ok');
+  toast(r.data && r.data.timed === 'pasta'
+    ? `Abrindo ${game.title}… o tempo começa a contar quando o jogo abrir`
+    : `Abrindo ${game.title}…`, 'ok');
   // atualiza "última vez jogado"
   game.playedAt = Date.now();
   render();
 }
+
+/* ---------- corrigir caminho de um jogo cujo arquivo sumiu ---------- */
+const EXT_ROMS = ['nes', 'sfc', 'smc', 'n64', 'z64', 'v64', 'gb', 'gbc', 'gba', 'nds', '3ds', 'cia', 'iso', 'cue', 'bin', 'chd', 'pbp', 'm3u', 'gdi', 'cdi', 'cso',
+  'md', 'gen', 'smd', 'sms', 'gg', 'pce', 'zip', '7z', 'rvz', 'wbfs', 'gcm', 'gcz', 'wud', 'wux', 'rpx', 'nsp', 'xci', 'a26', 'a78', 'd64', 'ws', 'wsc', 'ngp', 'vb'];
+
+async function corrigirCaminho(game) {
+  const launchInfo = game.launch || {};
+  const rom = game.kind === 'rom' || launchInfo.type === 'rom';
+  const r = await api.pickFile({
+    title: rom ? `Onde está a ROM de ${game.title}?` : `Onde está o executável de ${game.title}?`,
+    filters: rom ? [{ name: 'ROMs', extensions: EXT_ROMS }] : [{ name: 'Executáveis', extensions: ['exe', 'bat', 'cmd', 'lnk'] }]
+  });
+  if (!r.ok || !r.data || !r.data[0]) return false;
+  const novo = r.data[0];
+  const launch = rom ? { ...launchInfo, type: 'rom', rom: novo }
+    : launchInfo.type === 'gog' ? { ...launchInfo, exe: novo }
+      : { ...launchInfo, type: 'exe', exe: novo };
+  const pasta = novo.replace(/[\\/][^\\/]+$/, '');
+  const up = await api.updateGame({ id: game.id, patch: { launch, installDir: pasta } });
+  if (!up.ok) { toast(up.error || 'Não consegui salvar o caminho', 'err'); return false; }
+  const st = await api.getState();
+  if (st.ok) ui.state = st.data;
+  render();
+  toast(`${game.title}: caminho corrigido`, 'ok');
+  return true;
+}
+const problemaDeArquivo = g => !!(g && g.problem && /não encontrad/i.test(g.problem) && !/emulador/i.test(g.problem));
 
 function hasEmulator(game) {
   const s = ui.state.settings;
@@ -954,6 +1012,19 @@ function openDetail(game) {
   } else if (game.kind === 'rom' && !hasEmulator(game)) {
     warn.hidden = false;
     warn.textContent = `Nenhum emulador configurado para ${game.platform}. Abra Ajustes › Emuladores e aponte o executável (ou o RetroArch).`;
+  } else if (problemaDeArquivo(game)) {
+    warn.hidden = false;
+    warn.textContent = game.kind === 'rom'
+      ? 'O arquivo desta ROM não está mais no caminho salvo (foi movido ou apagado?).'
+      : 'O executável deste jogo não está mais no caminho salvo (foi movido ou desinstalado?).';
+    const fix = el('button', 'ghost-btn detail-warn-acao', 'Apontar o arquivo');
+    fix.onclick = async () => {
+      if (await corrigirCaminho(game)) {
+        const novo = ui.state.games.find(g => g.id === game.id);
+        if (novo) openDetail(novo);
+      }
+    };
+    warn.appendChild(fix);
   } else {
     warn.hidden = true;
   }
@@ -1740,15 +1811,40 @@ async function renderDiagnostics() {
   });
   linhas.forEach(l => box.appendChild(l));
 
-  if (d.missing && d.missing.length) {
+  // arquivos que sumiram: cada jogo com o caminho antigo e um botão para apontar o novo
+  const faltando = [...(d.missing || []), ...(d.missingRoms || [])];
+  if (faltando.length) {
     const w = el('div', 'diag-warn');
-    w.textContent = `${d.missing.length} jogo(s) apontam para um .exe que não existe mais no disco.`;
+    const nExe = (d.missing || []).length, nRom = (d.missingRoms || []).length;
+    w.textContent = [
+      nExe ? `${nExe} jogo(s) apontam para um .exe que não existe mais no disco` : '',
+      nRom ? `${nRom} ROM(s) não estão mais no caminho salvo` : ''
+    ].filter(Boolean).join(' · ') + '. Aponte o arquivo novo ou remova da biblioteca:';
     box.appendChild(w);
-  }
-  if (d.missingRoms && d.missingRoms.length) {
-    const w = el('div', 'diag-warn');
-    w.textContent = `${d.missingRoms.length} ROM(s) não encontradas no caminho salvo.`;
-    box.appendChild(w);
+    const lista = el('div', 'diag-fix');
+    for (const item of faltando) {
+      const game = ui.state.games.find(g => g.id === item.id);
+      if (!game) continue;
+      const linha = el('div', 'diag-fix-item');
+      linha.appendChild(el('b', null, item.title));
+      const caminho = el('span', 'path mono', item.path);
+      caminho.title = item.path;
+      linha.appendChild(caminho);
+      const apontar = el('button', 'ghost-btn', 'Apontar arquivo');
+      apontar.onclick = async () => { if (await corrigirCaminho(game)) renderDiagnostics(); };
+      const remover = el('button', 'ghost-btn', 'Remover');
+      remover.onclick = async () => {
+        if (!confirm(`Remover "${game.title}" do Arcade Hub?\n\nIsso só tira o jogo do launcher.`)) return;
+        const rr = await api.removeGame(game.id);
+        if (!rr.ok) return toast(rr.error, 'err');
+        ui.state.games = ui.state.games.filter(g => g.id !== game.id);
+        render();
+        renderDiagnostics();
+      };
+      linha.append(apontar, remover);
+      lista.appendChild(linha);
+    }
+    box.appendChild(lista);
   }
   if (d.noEmulator && d.noEmulator.length) {
     const w = el('div', 'diag-warn');
@@ -1770,7 +1866,8 @@ async function exportLibrary() {
   const r = await api.exportLibrary();
   if (!r.ok) return toast(r.error || 'Falha ao exportar', 'err');
   if (r.data && r.data.canceled) return;
-  toast(`Backup salvo: ${r.data.games} jogos (${Math.round(r.data.bytes / 1024)} KB)`, 'ok');
+  const tam = r.data.bytes > 1024 * 1024 ? `${(r.data.bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.round(r.data.bytes / 1024)} KB`;
+  toast(`Backup salvo: ${r.data.games} jogos${r.data.capas ? ` e ${r.data.capas} capas` : ''} (${tam})`, 'ok');
 }
 
 async function importLibrary() {
@@ -1780,7 +1877,7 @@ async function importLibrary() {
   if (r.data && r.data.canceled) return;
   if (r.data.state) ui.state = r.data.state;
   render();
-  toast(`Importado: ${r.data.added} novo(s), ${r.data.updated} atualizado(s)`, 'ok');
+  toast(`Importado: ${r.data.added} novo(s), ${r.data.updated} atualizado(s)${r.data.capas ? `, ${r.data.capas} capas` : ''}`, 'ok');
 }
 
 /* ---------- modal de capas ---------- */
@@ -2163,6 +2260,22 @@ function openSettings() {
   };
   $('#opt-sgdb').value = s.sgdbKey || '';
   $('#opt-launchers').checked = s.includeStoreLaunchers !== false;
+  $('#opt-autoscan').checked = s.autoScan !== false;
+  $('#opt-tray').checked = s.minimizarAoJogar !== false;
+  const salvarInterruptor = (chave, msgLiga, msgDesliga) => async e => {
+    const r = await api.saveSettings({ [chave]: e.target.checked });
+    if (r.ok) { ui.state = r.data; toast(e.target.checked ? msgLiga : msgDesliga, 'ok'); }
+  };
+  $('#opt-autoscan').onchange = salvarInterruptor('autoScan', 'Jogos novos vão aparecer sozinhos', 'Varredura automática desligada');
+  $('#opt-tray').onchange = salvarInterruptor('minimizarAoJogar', 'O launcher sai da frente enquanto você joga', 'O launcher fica aberto durante o jogo');
+  $('#update-about').textContent = textoAtualizacao(ui.atualizacao);
+  $('#btn-check-update').onclick = async () => {
+    if (!api.checkUpdates) return;
+    $('#update-about').textContent = 'Procurando…';
+    const r = await api.checkUpdates();
+    if (!r.ok) { $('#update-about').textContent = r.error || 'Não consegui procurar agora'; return; }
+    mostrarAtualizacao(r.data);
+  };
   $('#opt-depth').value = s.scanDepth || 4;
   $('#depth-val').textContent = s.scanDepth || 4;
   $('#opt-depth').oninput = e => { $('#depth-val').textContent = e.target.value; };
@@ -2808,6 +2921,202 @@ function startGamepadLoop() {
   });
 }
 
+/* ---------- tamanho dos cards ---------- */
+function aplicarTamanhoCards(px) {
+  const v = Math.max(120, Math.min(280, Number(px) || 158));
+  document.documentElement.style.setProperty('--card-min', v + 'px');
+  const r = $('#card-size');
+  if (r && Number(r.value) !== v) r.value = v;
+  return v;
+}
+let salvarTamanhoTimer = null;
+function ligarTamanhoCards() {
+  const r = $('#card-size');
+  if (!r) return;
+  r.oninput = () => aplicarTamanhoCards(r.value);
+  r.onchange = () => {
+    clearTimeout(salvarTamanhoTimer);
+    salvarTamanhoTimer = setTimeout(async () => {
+      const rr = await api.saveSettings({ cardSize: Number(r.value) });
+      if (rr.ok) ui.state.settings = rr.data.settings;
+    }, 250);
+  };
+}
+
+/* ---------- atualização do app ---------- */
+function textoAtualizacao(st) {
+  if (!st) return '';
+  if (st.suportado === false && st.estado === 'parado') return 'A atualização automática funciona na versão instalada pelo instalador.';
+  return ({
+    parado: '', procurando: 'Procurando…', atualizado: 'Você está na versão mais recente.',
+    baixando: `Baixando a versão ${st.versao || 'nova'}… ${st.progresso || 0}%`,
+    pronto: `Versão ${st.versao || 'nova'} pronta — reinicie para instalar.`,
+    erro: 'Não consegui procurar atualizações agora (sem internet?).'
+  })[st.estado] || '';
+}
+function mostrarAtualizacao(st) {
+  if (!st) return;
+  const anterior = ui.atualizacao;
+  ui.atualizacao = { ...(anterior || {}), ...st };
+  const bar = $('#update-bar');
+  const about = $('#update-about');
+  if (about) about.textContent = textoAtualizacao(ui.atualizacao);
+  if (st.estado === 'pronto') {
+    $('#update-text').textContent = `Versão ${st.versao || 'nova'} do Arcade Hub pronta`;
+    $('#update-go').hidden = false;
+    bar.hidden = ui.avisoAtualizacaoFechado;
+  } else if (st.estado === 'baixando') {
+    $('#update-text').textContent = `Baixando a versão ${st.versao || 'nova'}… ${st.progresso || 0}%`;
+    $('#update-go').hidden = true;
+    bar.hidden = ui.avisoAtualizacaoFechado;
+  } else {
+    bar.hidden = true;
+  }
+}
+function ligarAtualizacao() {
+  $('#update-go').onclick = async () => {
+    const r = await api.installUpdate();
+    if (!r.ok) toast(r.error || 'Não consegui instalar agora', 'err');
+    else toast('Reiniciando para instalar…', 'ok');
+  };
+  $('#update-x').onclick = () => {
+    ui.avisoAtualizacaoFechado = true;
+    $('#update-bar').hidden = true;
+    if (ui.atualizacao && ui.atualizacao.estado === 'pronto') toast('Tudo bem: a atualização instala quando você fechar o Arcade Hub', 'ok');
+  };
+  if (api.onUpdateStatus) api.onUpdateStatus(mostrarAtualizacao);
+  if (api.updateStatus) api.updateStatus().then(r => { if (r && r.ok) mostrarAtualizacao(r.data); });
+}
+
+/* ---------- estatísticas ---------- */
+const horasTexto = ms => {
+  const h = (ms || 0) / 36e5;
+  if (h >= 10) return `${Math.round(h)} h`;
+  if (h >= 1) return `${h.toFixed(1).replace('.', ',')} h`;
+  if ((ms || 0) > 0 && ms < 6e4) return '< 1 min';
+  return `${Math.max(0, Math.round((ms || 0) / 6e4))} min`;
+};
+
+function barras(itens, opts) {
+  const o = opts || {};
+  const box = el('div', 'barras');
+  const max = Math.max(1, ...itens.map(i => i.valor));
+  for (const it of itens) {
+    const linha = el(it.onclick ? 'button' : 'div', 'barra');
+    if (it.onclick) { linha.type = 'button'; linha.onclick = it.onclick; }
+    linha.appendChild(el('span', 'barra-nome', it.nome));
+    linha.appendChild(el('span', 'barra-valor', o.formato ? o.formato(it.valor) : String(it.valor)));
+    const trilho = el('span', 'barra-trilho');
+    const i = el('i');
+    i.style.width = Math.max(2, Math.round((it.valor / max) * 100)) + '%';
+    trilho.appendChild(i);
+    linha.appendChild(trilho);
+    box.appendChild(linha);
+  }
+  return box;
+}
+
+function cartao(titulo, conteudo) {
+  const c = el('div', 'stats-card');
+  c.appendChild(el('h3', null, titulo));
+  c.appendChild(conteudo);
+  return c;
+}
+
+function renderStats() {
+  const box = $('#stats');
+  box.innerHTML = '';
+  const hidden = new Set(ui.state.hidden || []);
+  const jogos = ui.state.games.filter(g => !hidden.has(g.id));
+  const ms = g => (g.playtime && g.playtime.totalMs) || 0;
+  const jogados = jogos.filter(g => ms(g) > 0);
+  const total = jogados.reduce((a, g) => a + ms(g), 0);
+  const sessoes = jogados.reduce((a, g) => a + ((g.playtime && g.playtime.sessions) || 0), 0);
+
+  const head = el('div', 'stats-head');
+  head.appendChild(el('h2', null, 'Estatísticas'));
+  head.appendChild(el('p', 'muted small', 'Tempo contado pelo Arcade Hub. Jogos da Steam, Epic e GOG passaram a ser contados a partir da versão 1.0.2.'));
+  box.appendChild(head);
+
+  const tiles = el('div', 'stats-totais');
+  const tile = (valor, rotulo) => { const t = el('div', 'stats-tile'); t.append(el('b', null, valor), el('span', null, rotulo)); tiles.appendChild(t); };
+  tile(horasTexto(total), 'tempo total');
+  tile(String(sessoes), sessoes === 1 ? 'sessão' : 'sessões');
+  tile(`${jogados.length} de ${jogos.length}`, 'jogos com tempo');
+  tile(sessoes ? horasTexto(total / sessoes) : '—', 'média por sessão');
+  box.appendChild(tiles);
+
+  const cols = el('div', 'stats-cols');
+
+  // mais jogados
+  const top = [...jogados].sort((a, b) => ms(b) - ms(a)).slice(0, 10);
+  cols.appendChild(cartao('Mais jogados', top.length
+    ? barras(top.map(g => ({ nome: g.title, valor: ms(g), onclick: () => openDetail(g) })), { formato: horasTexto })
+    : el('p', 'stats-vazio', 'Ainda não há tempo de jogo contado. Abra um jogo pelo Arcade Hub e ele aparece aqui.')));
+
+  // por mês (últimos 12)
+  const agora = new Date();
+  const meses = [];
+  for (let k = 11; k >= 0; k--) {
+    const d = new Date(agora.getFullYear(), agora.getMonth() - k, 1);
+    meses.push({ chave: `${d.getFullYear()}-${d.getMonth()}`, rotulo: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''), ms: 0 });
+  }
+  const porChave = new Map(meses.map(m => [m.chave, m]));
+  let temHistorico = false;
+  for (const g of jogos) {
+    for (const h of (g.playtime && Array.isArray(g.playtime.history) ? g.playtime.history : [])) {
+      const d = new Date(h.at);
+      const m = porChave.get(`${d.getFullYear()}-${d.getMonth()}`);
+      if (m) { m.ms += h.ms || 0; temHistorico = true; }
+    }
+  }
+  const grafico = el('div');
+  if (temHistorico) {
+    const maxMes = Math.max(1, ...meses.map(m => m.ms));
+    const linha = el('div', 'meses');
+    for (const m of meses) {
+      const col = el('div', 'mes');
+      col.title = `${m.rotulo}: ${horasTexto(m.ms)}`;
+      const barra = el('i', m.ms ? '' : 'zero');
+      barra.style.height = m.ms ? Math.max(4, Math.round((m.ms / maxMes) * 120)) + 'px' : '2px';
+      col.append(barra, el('span', null, m.rotulo));
+      linha.appendChild(col);
+    }
+    grafico.appendChild(linha);
+  } else {
+    grafico.appendChild(el('p', 'stats-vazio', 'O histórico por mês começa a ser registrado a partir desta versão: cada sessão nova entra aqui.'));
+  }
+  cols.appendChild(cartao('Por mês (últimos 12)', grafico));
+
+  // por plataforma e por origem
+  const somar = chaveDe => {
+    const m = new Map();
+    for (const g of jogados) { const k = chaveDe(g); m.set(k, (m.get(k) || 0) + ms(g)); }
+    return [...m].sort((a, b) => b[1] - a[1]);
+  };
+  const plat = somar(g => g.platform || 'PC');
+  cols.appendChild(cartao('Por plataforma', plat.length
+    ? barras(plat.map(([nome, valor]) => ({ nome, valor })), { formato: horasTexto })
+    : el('p', 'stats-vazio', '—')));
+  const orig = somar(g => (SOURCE_META[g.source] || { label: g.source }).label);
+  cols.appendChild(cartao('Por origem', orig.length
+    ? barras(orig.map(([nome, valor]) => ({ nome, valor })), { formato: horasTexto })
+    : el('p', 'stats-vazio', '—')));
+  box.appendChild(cols);
+
+  // instalados e ainda sem tempo
+  const parados = jogos.filter(g => g.installed !== false && !ms(g)).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+  const chips = el('div', 'stats-chips');
+  for (const g of parados.slice(0, 60)) {
+    const b = el('button', null, g.title);
+    b.type = 'button';
+    b.onclick = () => openDetail(g);
+    chips.appendChild(b);
+  }
+  if (parados.length > 60) chips.appendChild(el('span', 'muted small', `… e mais ${parados.length - 60}`));
+  box.appendChild(cartao(`Instalados e ainda sem tempo de jogo (${parados.length})`, parados.length ? chips : el('p', 'stats-vazio', 'Você já jogou tudo o que está instalado. 🎉')));
+}
+
 /* ---------- boot ---------- */
 (async function boot() {
   wire();
@@ -2823,15 +3132,44 @@ function startGamepadLoop() {
   }
   ui.sort = (ui.state.settings && ui.state.settings.sort) || 'recent';
   ui.groupBy = (ui.state.settings && ui.state.settings.groupBy) || 'none';
+  ui.jogando = new Set((ui.state.sessoes || []).map(x => x.id));
+  aplicarTamanhoCards(ui.state.settings && ui.state.settings.cardSize);
+  ligarTamanhoCards();
+  ligarAtualizacao();
+  // o jogo abriu de verdade (processo detectado): marca o card
+  if (api.onSessionStart) {
+    api.onSessionStart(({ id, title }) => {
+      ui.jogando.add(id);
+      toast(`${title} aberto — contando o tempo de jogo`, 'ok');
+      render();
+    });
+  }
   // quando o jogo fecha, o processo principal avisa e atualizamos o tempo
   if (api.onSessionEnd) {
-    api.onSessionEnd(({ id, title, session }) => {
+    api.onSessionEnd(({ id, title, session, playtime }) => {
+      ui.jogando.delete(id);
       const g = ui.state.games.find(x => x.id === id);
+      if (g && playtime) g.playtime = playtime;
       if (g && session) {
-        g.playtime = { totalMs: session.total, sessions: session.sessions, lastAt: Date.now() };
         g.playedAt = Date.now();
         toast(`${title}: ${fmtPlaytime(session.elapsed)} nesta sessão · total ${fmtPlaytime(session.total)}`, 'ok');
-        render();
+      }
+      render();
+    });
+  }
+  // varredura automática achou algo: atualiza a tela sem perguntar
+  if (api.onLibraryChanged) {
+    api.onLibraryChanged(({ novos, removidos, state }) => {
+      if (!state) return;
+      ui.state = state;
+      ui.jogando = new Set((state.sessoes || []).map(x => x.id));
+      render();
+      if (novos && novos.length) {
+        toast(novos.length === 1 ? `Jogo novo na biblioteca: ${novos[0]}`
+          : `${novos.length} jogos novos: ${novos.slice(0, 3).join(', ')}${novos.length > 3 ? '…' : ''}`, 'ok');
+        enriquecerAutomatico();
+      } else if (removidos) {
+        toast(`${removidos} jogo(s) saíram da biblioteca (desinstalados)`, 'ok');
       }
     });
   }

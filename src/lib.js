@@ -8,12 +8,19 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 const covers = require('./covers');
 const genres = require('./genres');
 const videos = require('./videos');
 const metadata = require('./metadata');
 const identity = require('./identity');
+const { VigiaDeSessoes, pastaVigiavel } = require('./sessions');
+const { criarZip, lerZip } = require('./zip');
+const { EventEmitter } = require('events');
+
+/** Avisos para o main.js (bandeja, janela): 'sessao:inicio', 'sessao:fim'. */
+const eventos = new EventEmitter();
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -183,7 +190,10 @@ const DEFAULT_SETTINGS = {
   sort: 'recent',
   sgdbKey: '',
   layout: 'grade',          // 'grade' | 'rondel'
-  videoFolder: ''           // pasta com trailers locais (opcional)
+  videoFolder: '',          // pasta com trailers locais (opcional)
+  autoScan: true,           // varre sozinho ao abrir e quando as pastas mudam
+  minimizarAoJogar: true,   // esconde na bandeja enquanto o jogo roda
+  cardSize: 158             // largura mínima do card na grade (px)
 };
 
 /* ------------------------------------------------------------------ */
@@ -246,7 +256,13 @@ function parseVdf(text) {
   return root;
 }
 
+let steamRootsCache = null;            // o registro não muda enquanto o app está aberto
 function steamRoots() {
+  if (steamRootsCache) return steamRootsCache;
+  steamRootsCache = steamRootsSemCache();
+  return steamRootsCache;
+}
+function steamRootsSemCache() {
   const roots = [];
   const guesses = [
     'C:/Program Files (x86)/Steam',
@@ -1128,6 +1144,7 @@ function mergeScanned(old, g) {
 /** Junta o que foi coletado com a biblioteca atual e grava. */
 function finishScan(store, collected, report, opts) {
   opts = opts || {};
+  limparCacheLojas();                 // a loja pode ter sido instalada/removida
   const prev = new Map(store.games.map(g => [g.id, g]));
   const hidden = new Set(store.load().hidden || []);
   const merged = collected.filter(g => !hidden.has(g.id)).map(g => mergeScanned(prev.get(g.id), g));
@@ -1330,6 +1347,27 @@ function fmtDuration(ms) {
 /**
  * Registra o início/fim de uma sessão. Retorna um "stop" que grava o tempo no store.
  */
+const MIN_SESSAO_MS = 20000;             // <20s: não conta (engano, crash, launcher que só repassa)
+
+/**
+ * Soma uma sessão ao jogo e guarda no histórico (usado pela página de estatísticas).
+ * O histórico guarda as últimas 500 sessões: { at: fim da sessão, ms: duração }.
+ */
+function registrarSessao(store, gameId, elapsed) {
+  if (!(elapsed >= MIN_SESSAO_MS)) return null;
+  const current = store.games.find(g => g.id === gameId);
+  if (!current) return null;
+  const pt = current.playtime || {};
+  const total = (pt.totalMs || 0) + elapsed;
+  const sessions = (pt.sessions || 0) + 1;
+  const history = [...(Array.isArray(pt.history) ? pt.history : []), { at: Date.now(), ms: Math.round(elapsed) }].slice(-500);
+  store.updateGame(gameId, {
+    playtime: { ...pt, totalMs: total, sessions, lastSessionMs: elapsed, lastAt: Date.now(), history },
+    playedAt: Date.now()
+  });
+  return { elapsed, total, sessions };
+}
+
 function startSession(store, game, child) {
   const startedAt = Date.now();
   const entry = { startedAt, child };
@@ -1338,14 +1376,7 @@ function startSession(store, game, child) {
     const entry = runningProcesses.get(game.id);
     runningProcesses.delete(game.id);
     if (!entry || save === false) return null;
-    const elapsed = Date.now() - entry.startedAt;
-    if (elapsed < 20000) return null;                     // <20s: não conta (engano, crash)
-    const current = store.games.find(g => g.id === game.id) || game;
-    const total = ((current.playtime && current.playtime.totalMs) || 0) + elapsed;
-    const sessions = ((current.playtime && current.playtime.sessions) || 0) + 1;
-    const lastSessionMs = elapsed;
-    store.updateGame(game.id, { playtime: { totalMs: total, sessions, lastSessionMs, lastAt: Date.now() }, playedAt: Date.now() });
-    return { elapsed, total, sessions };
+    return registrarSessao(store, game.id, Date.now() - entry.startedAt);
   };
   return { startedAt, finish, _entry: entry };
 }
@@ -1354,11 +1385,20 @@ function startSession(store, game, child) {
 /* Backup (exportar / importar)                                        */
 /* ------------------------------------------------------------------ */
 
+/** Caminho local de uma URL file:// gravada pelo app (formato "file://C:/..." ou "file:///home/..."). */
+function caminhoDeFileUrl(url) {
+  let p = String(url || '').replace(/^file:\/\//i, '');
+  if (/^\/[A-Za-z]:[\\/]/.test(p)) p = p.slice(1);
+  if (process.platform !== 'win32' && !p.startsWith('/')) p = '/' + p;
+  return p;
+}
+const IMG_EXT = /\.(jpe?g|png|webp|gif|bmp)$/i;
+
 function exportLibrary(store, targetFile) {
   const data = store.load();
   const payload = {
     app: 'Arcade Hub',
-    formatVersion: 1,
+    formatVersion: 2,
     exportedAt: new Date().toISOString(),
     settings: {
       ...data.settings,
@@ -1371,17 +1411,54 @@ function exportLibrary(store, targetFile) {
     genreCache: data.genreCache
   };
   fs.mkdirSync(path.dirname(targetFile), { recursive: true });
-  fs.writeFileSync(targetFile, JSON.stringify(payload, null, 2), 'utf8');
-  return { file: targetFile, games: data.games.length, bytes: fs.statSync(targetFile).size };
+
+  if (!/\.zip$/i.test(targetFile)) {
+    fs.writeFileSync(targetFile, JSON.stringify(payload, null, 2), 'utf8');
+    return { file: targetFile, games: data.games.length, bytes: fs.statSync(targetFile).size, capas: 0 };
+  }
+
+  // .zip: leva as capas junto. No JSON, a capa vira "zip:capas/<arquivo>".
+  const entradas = [];
+  const vistos = new Map();                    // caminho local -> nome no zip
+  const empacotar = url => {
+    if (typeof url !== 'string' || !/^file:\/\//i.test(url)) return url;
+    const local = caminhoDeFileUrl(url);
+    if (!IMG_EXT.test(local)) return url;
+    if (!vistos.has(local)) {
+      let st;
+      try { st = fs.statSync(local); } catch { return url; }
+      if (!st.isFile() || st.size > 20 * 1024 * 1024) return url;
+      const nome = 'capas/' + crypto.createHash('sha1').update(local).digest('hex').slice(0, 16) + path.extname(local).toLowerCase();
+      entradas.push({ name: nome, data: fs.readFileSync(local), compress: false });
+      vistos.set(local, nome);
+    }
+    return 'zip:' + vistos.get(local);
+  };
+  payload.games = data.games.map(g => ({ ...g, art: empacotar(g.art), customArt: empacotar(g.customArt) }));
+  entradas.unshift({ name: 'biblioteca.json', data: Buffer.from(JSON.stringify(payload, null, 2), 'utf8') });
+  const tmp = targetFile + '.tmp';
+  fs.writeFileSync(tmp, criarZip(entradas));
+  fs.renameSync(tmp, targetFile);
+  return { file: targetFile, games: data.games.length, bytes: fs.statSync(targetFile).size, capas: vistos.size };
 }
 
 /** Lê e valida um backup. Não altera nada — serve para mostrar o que vai entrar. */
 function lerBackup(sourceFile) {
   let raw;
-  try {
-    raw = JSON.parse(fs.readFileSync(sourceFile, 'utf8'));
-  } catch (e) {
-    throw new Error('não consegui ler esse arquivo — ele não é um JSON válido (o backup foi salvo pelo Arcade Hub?)');
+  let capas = null;
+  if (/\.zip$/i.test(sourceFile)) {
+    let zip;
+    try { zip = lerZip(fs.readFileSync(sourceFile)); } catch (e) { throw new Error('não consegui abrir esse .zip: ' + e.message); }
+    const json = zip.get('biblioteca.json');
+    if (!json) throw new Error('esse .zip não é um backup do Arcade Hub (falta o biblioteca.json)');
+    try { raw = JSON.parse(json().toString('utf8')); } catch { throw new Error('o biblioteca.json dentro do .zip está corrompido'); }
+    capas = zip;
+  } else {
+    try {
+      raw = JSON.parse(fs.readFileSync(sourceFile, 'utf8'));
+    } catch (e) {
+      throw new Error('não consegui ler esse arquivo — ele não é um JSON válido (o backup foi salvo pelo Arcade Hub?)');
+    }
   }
   if (!raw || !Array.isArray(raw.games)) throw new Error('arquivo inválido (não parece um backup do Arcade Hub)');
   const games = [];
@@ -1402,7 +1479,7 @@ function lerBackup(sourceFile) {
     delete settings.windowBounds;
   }
   return {
-    games, ignorados, settings,
+    games, ignorados, settings, capas,
     favorites: strArr(raw.favorites), hidden: strArr(raw.hidden),
     genreCache: raw.genreCache && typeof raw.genreCache === 'object' ? raw.genreCache : null
   };
@@ -1422,8 +1499,54 @@ function programasDoBackup(b, mode) {
   return [...lista];
 }
 
+/** Assinatura dos formatos de imagem aceitos (não confia na extensão). */
+function pareceImagem(buf) {
+  if (!buf || buf.length < 12) return false;
+  if (buf[0] === 0xff && buf[1] === 0xd8) return true;                                  // jpg
+  if (buf.readUInt32BE(0) === 0x89504e47) return true;                                  // png
+  if (buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return true;
+  if (buf.toString('ascii', 0, 4) === 'GIF8') return true;
+  if (buf[0] === 0x42 && buf[1] === 0x4d) return true;                                  // bmp
+  return false;
+}
+
+/** Tira as capas do zip para a pasta de capas e troca "zip:capas/x" pelo caminho local. */
+function extrairCapas(b, store) {
+  if (!b.capas) return 0;
+  const dir = covers.artDir(store.dir);
+  const feitas = new Map();
+  let n = 0;
+  const resolver = ref => {
+    if (typeof ref !== 'string' || !ref.startsWith('zip:')) return ref;
+    const nomeZip = ref.slice(4);
+    if (feitas.has(nomeZip)) return feitas.get(nomeZip);
+    let url = null;
+    const base = path.basename(nomeZip);
+    const ler = b.capas.get(nomeZip);
+    if (ler && /^[\w.-]+$/.test(base) && IMG_EXT.test(base)) {
+      try {
+        const dados = ler();
+        if (dados.length <= 20 * 1024 * 1024 && pareceImagem(dados)) {
+          const destino = path.join(dir, 'backup-' + base);
+          fs.writeFileSync(destino, dados);
+          url = 'file://' + destino.replace(/\\/g, '/');
+          n++;
+        }
+      } catch { /* capa corrompida: o jogo fica sem capa */ }
+    }
+    feitas.set(nomeZip, url);
+    return url;
+  };
+  for (const g of b.games) {
+    g.art = resolver(g.art);
+    g.customArt = resolver(g.customArt);
+  }
+  return n;
+}
+
 function importLibrary(store, sourceFile, mode, backupJaLido) {
   const b = backupJaLido || lerBackup(sourceFile);
+  const capasImportadas = extrairCapas(b, store);
   const d = store.load();
   // "substituir" começa do zero. (Antes o mapa era montado ANTES de zerar a lista,
   // então os jogos antigos continuavam lá e o modo agia como "mesclar".)
@@ -1443,12 +1566,25 @@ function importLibrary(store, sourceFile, mode, backupJaLido) {
   if (b.genreCache) d.genreCache = { ...d.genreCache, ...b.genreCache };
   refreshProblems(store);
   store.save();
-  return { added, updated, ignored: b.ignorados, total: d.games.length };
+  return { added, updated, ignored: b.ignorados, total: d.games.length, capas: capasImportadas };
 }
 
 /* ------------------------------------------------------------------ */
 /* Diagnóstico por jogo (o card avisa o problema antes do clique)      */
 /* ------------------------------------------------------------------ */
+
+/**
+ * Lojas instaladas, com cache de 60s. Antes cada resposta da interface (favoritar,
+ * salvar ajuste, abrir jogo…) consultava o registro do Windows de novo.
+ */
+let launchersCache = null;
+function launchersCacheados() {
+  if (launchersCache && Date.now() - launchersCache.at < 60000) return launchersCache.v;
+  const v = detectLaunchers();
+  launchersCache = { v, at: Date.now() };
+  return v;
+}
+function limparCacheLojas() { launchersCache = null; steamRootsCache = null; }
 
 /** Descobre se as lojas estão instaladas nesta máquina. */
 function detectLaunchers() {
@@ -1488,7 +1624,7 @@ function detectLaunchers() {
 function refreshProblems(store) {
   const d = store.load();
   const settings = d.settings || {};
-  const launchers = detectLaunchers();
+  const launchers = launchersCacheados();
   const emulators = settings.emulators || {};
   const retro = settings.retroarch || {};
   let changed = 0;
@@ -1699,6 +1835,124 @@ function register(ipcMain, deps) {
   const ok = data => ({ ok: true, data });
   const fail = err => ({ ok: false, error: String(err && err.message || err) });
 
+  /** Manda um aviso para todas as janelas abertas. */
+  const enviar = (canal, dados) => {
+    const ws = BrowserWindow && BrowserWindow.getAllWindows ? BrowserWindow.getAllWindows() : [];
+    for (const w of ws) {
+      try { if (!w.isDestroyed()) w.webContents.send(canal, dados); } catch { /* janela fechando */ }
+    }
+  };
+
+  /* ---------------- sessões de jogo (tempo de jogo) ---------------- */
+  const sessoesAtivas = new Map();          // gameId -> { title, inicio, origem }
+  const pastasProibidas = () => [...(store.settings.folders || []), ...(store.settings.romFolders || [])];
+
+  const marcarInicio = (game, origem, inicio) => {
+    if (sessoesAtivas.has(game.id)) return;
+    sessoesAtivas.set(game.id, { title: game.title, inicio: inicio || Date.now(), origem });
+    eventos.emit('sessao:inicio', { id: game.id, title: game.title });
+    enviar('game:sessionStart', { id: game.id, title: game.title, origem });
+  };
+  const encerrar = (game, ms, info) => {
+    const tinha = sessoesAtivas.delete(game.id);
+    const res = registrarSessao(store, game.id, ms);
+    const atual = store.games.find(g => g.id === game.id);
+    if (tinha) eventos.emit('sessao:fim', { id: game.id, title: game.title, session: res, ativas: sessoesAtivas.size });
+    enviar('game:sessionEnd', {
+      id: game.id, title: game.title, session: res,
+      playtime: atual ? atual.playtime : null,
+      nuncaAbriu: !!(info && info.nuncaAbriu)
+    });
+  };
+  const vigia = deps.vigia || new VigiaDeSessoes({
+    onInicio: game => marcarInicio(game, 'pasta'),
+    onFim: (game, ms, info) => encerrar(game, ms, info)
+  });
+  /** Começa a vigiar a pasta do jogo (lojas, atalhos, launchers que fecham logo). */
+  const vigiarPasta = (game, opts) => (game.kind === 'rom'
+    ? false
+    : vigia.vigiar(game, { proibidas: pastasProibidas(), ...(opts || {}) }));
+
+  /** Ao fechar o app: grava o tempo das sessões que ainda estão abertas. */
+  const fecharSessoes = () => {
+    for (const [id, sess] of [...sessoesAtivas]) {
+      const it = vigia.itens && vigia.itens.get(id);
+      const fim = it && it.ultimo ? it.ultimo : Date.now();
+      sessoesAtivas.delete(id);
+      vigia.parar(id);
+      registrarSessao(store, id, fim - sess.inicio);
+    }
+  };
+
+  /* ---------------- varredura automática ---------------- */
+  let vigiasDePastas = [];
+  let esperaVarredura = null;
+  let varrendoSozinho = false;
+
+  const varrerEmSegundoPlano = async motivo => {
+    if (store.settings.autoScan === false || varrendoSozinho) return null;
+    varrendoSozinho = true;
+    try {
+      const antes = new Set(store.games.map(g => g.id));
+      await runScanAsync(store, { keepMissing: true });
+      const depois = store.games;
+      const novos = depois.filter(g => !antes.has(g.id)).map(g => g.title);
+      const removidos = [...antes].filter(id => !depois.some(g => g.id === id)).length;
+      enviar('library:changed', { motivo, novos, removidos, state: state() });
+      return { novos, removidos };
+    } catch (e) {
+      console.warn('[arcade-hub] varredura automática falhou:', e && e.message);
+      return null;
+    } finally {
+      varrendoSozinho = false;
+    }
+  };
+
+  const agendarVarredura = () => {
+    clearTimeout(esperaVarredura);
+    // espera as cópias/instalações assentarem: cada mudança nova adia 20s
+    esperaVarredura = setTimeout(() => varrerEmSegundoPlano('pastas'), deps.esperaVarreduraMs || 20000);
+    if (esperaVarredura.unref) esperaVarredura.unref();
+  };
+
+  /** Liga um fs.watch em cada pasta que pode ganhar jogos novos. */
+  const religarVigiasDePastas = () => {
+    for (const w of vigiasDePastas) { try { w.close(); } catch { /* já fechado */ } }
+    vigiasDePastas = [];
+    const st = store.settings;
+    if (st.autoScan === false) return;
+    const alvos = [];
+    // jogo novo numa pasta de jogos = pasta nova na raiz (não precisa olhar dentro)
+    for (const f of st.folders || []) alvos.push({ dir: f, recursive: false });
+    for (const f of st.romFolders || []) alvos.push({ dir: f, recursive: true });
+    if (st.includeStoreLaunchers !== false && process.platform === 'win32') {
+      try {
+        for (const root of steamRoots()) {
+          for (const lib of steamLibraries(root)) {
+            alvos.push({ dir: path.join(lib, 'steamapps'), recursive: false, filtro: n => /^appmanifest_\d+\.acf$/i.test(n) });
+          }
+        }
+      } catch { /* sem Steam */ }
+      for (const d of ['C:/ProgramData/Epic/EpicGamesLauncher/Data/Manifests']) {
+        alvos.push({ dir: d, recursive: false, filtro: n => /\.item$/i.test(n) });
+      }
+    }
+    const vistos = new Set();
+    for (const a of alvos) {
+      const chave = norm(a.dir).toLowerCase();
+      if (vistos.has(chave) || !fs.existsSync(a.dir)) continue;
+      vistos.add(chave);
+      try {
+        const w = fs.watch(a.dir, { recursive: a.recursive, persistent: false }, (_ev, nome) => {
+          if (a.filtro && nome && !a.filtro(String(nome))) return;
+          agendarVarredura();
+        });
+        w.on('error', () => { /* pasta removida/desconectada */ });
+        vigiasDePastas.push(w);
+      } catch { /* sem suporte a watch nessa pasta */ }
+    }
+  };
+
   const state = () => {
     const d = store.load();
     const settings = { ...d.settings };
@@ -1710,7 +1964,8 @@ function register(ipcMain, deps) {
       settings,
       lastScan: d.lastScan,
       lastScanReport: d.lastScanReport || null,
-      launchers: detectLaunchers(),
+      launchers: launchersCacheados(),
+      sessoes: [...sessoesAtivas].map(([id, x]) => ({ id, ...x })),
       versions: { app: app.getVersion(), electron: process.versions.electron, os: `${os.platform()} ${os.release()}` },
       dataDir: store.dir
     };
@@ -1733,6 +1988,9 @@ function register(ipcMain, deps) {
       // mudou emulador/pasta? recalcula quais jogos estão quebrados
       if (patch && (patch.emulators || patch.retroarch || patch.folders || patch.romFolders)) {
         refreshProblems(store);
+      }
+      if (patch && ('folders' in patch || 'romFolders' in patch || 'autoScan' in patch || 'includeStoreLaunchers' in patch)) {
+        religarVigiasDePastas();
       }
       return ok(state());
     } catch (e) { return fail(e); }
@@ -1803,7 +2061,9 @@ function register(ipcMain, deps) {
         if (!clean.launch) throw new Error('forma de abrir inválida (link não permitido ou tipo desconhecido)');
         clean.launchEdited = true;
       }
-      return ok(store.updateGame(id, clean));
+      const atualizado = store.updateGame(id, clean);
+      if (clean.launch) refreshProblems(store);        // caminho corrigido: o aviso some na hora
+      return ok(store.games.find(g => g.id === id) || atualizado);
     } catch (e) { return fail(e); }
   });
 
@@ -1830,12 +2090,16 @@ function register(ipcMain, deps) {
       if (plan.kind === 'needs-emulator') {
         return { ok: false, needsEmulator: true, platform: plan.platform, hint: plan.hint, error: `Configure o emulador de ${plan.hint} em Ajustes` };
       }
+      if (sessoesAtivas.has(id)) {
+        return { ok: false, error: `${game.title} já está aberto` };
+      }
       let session = null;
       if (plan.kind === 'url') {
         await shell.openExternal(plan.target);
-        // para links (Steam/Epic/GOG/navegador) não dá para medir o tempo do jogo
+        // Steam/Epic/GOG: o tempo é medido vigiando os programas abertos dentro da pasta do jogo
+        const vigiando = vigiarPasta(game);
         store.updateGame(id, { playedAt: Date.now() });
-        return ok({ plan, timed: false });
+        return ok({ plan, timed: vigiando ? 'pasta' : false });
       } else if (plan.kind === 'exe') {
         if (!plan.target || !fs.existsSync(plan.target)) {
           throw new Error(`Arquivo não encontrado: ${plan.target}`);
@@ -1845,10 +2109,10 @@ function register(ipcMain, deps) {
         if (!/\.exe$/i.test(plan.target)) {
           const erro = await shell.openPath(plan.target);
           if (erro) throw new Error(erro);
+          const vigiando = vigiarPasta(game);
           store.updateGame(id, { playedAt: Date.now() });
-          return ok({ plan, timed: false });
+          return ok({ plan, timed: vigiando ? 'pasta' : false });
         }
-        const sender = _e.sender;
         let child;
         try {
           child = await iniciarProcesso(plan);
@@ -1858,17 +2122,21 @@ function register(ipcMain, deps) {
           if (err.precisaAdmin && !(plan.args || []).length) {
             const erro = await shell.openPath(plan.target);
             if (erro) throw err;
+            vigiarPasta(game);
             store.updateGame(id, { playedAt: Date.now() });
             return ok({ plan, timed: false, elevated: true });
           }
           throw err;
         }
-        session = startSession(store, game, child);
+        const inicio = Date.now();
+        session = { startedAt: inicio };
+        marcarInicio(game, 'processo', inicio);
         child.on('exit', () => {
-          const res = session.finish(true);
-          try {
-            if (sender && !sender.isDestroyed()) sender.send('game:sessionEnd', { id, title: game.title, session: res });
-          } catch { /* janela fechada */ }
+          const ms = Date.now() - inicio;
+          // fechou rápido: era um launcher que abriu o jogo de verdade e saiu.
+          // Passa a vigiar a pasta do jogo, contando desde o clique em Jogar.
+          if (ms < MIN_SESSAO_MS && vigiarPasta(game, { inicio, espera: 60000, primeiraChecagem: 2000 })) return;
+          encerrar(game, ms);
         });
         child.unref();
       } else {
@@ -1887,14 +2155,14 @@ function register(ipcMain, deps) {
       if (!game) throw new Error('jogo não encontrado');
       const add = Math.max(0, Math.min(Number(seconds) || 0, 4 * 3600)) * 1000;
       const total = ((game.playtime && game.playtime.totalMs) || 0) + add;
-      store.updateGame(id, { playtime: { totalMs: total, sessions: (game.playtime && game.playtime.sessions) || 0, lastAt: Date.now() }, playedAt: Date.now() });
+      store.updateGame(id, { playtime: { ...(game.playtime || {}), totalMs: total, sessions: (game.playtime && game.playtime.sessions) || 0, lastAt: Date.now() }, playedAt: Date.now() });
       return ok({ totalMs: total });
     } catch (e) { return fail(e); }
   });
 
   ipcMain.handle('playtime:reset', (_e, id) => {
     try {
-      store.updateGame(id, { playtime: { totalMs: 0, sessions: 0 } });
+      store.updateGame(id, { playtime: { totalMs: 0, sessions: 0, history: [] } });
       return ok(state());
     } catch (e) { return fail(e); }
   });
@@ -1905,8 +2173,11 @@ function register(ipcMain, deps) {
     try {
       const r = await dialog.showSaveDialog({
         title: 'Exportar biblioteca',
-        defaultPath: `arcade-hub-backup-${new Date().toISOString().slice(0, 10)}.json`,
-        filters: [{ name: 'Backup do Arcade Hub', extensions: ['json'] }]
+        defaultPath: `arcade-hub-backup-${new Date().toISOString().slice(0, 10)}.zip`,
+        filters: [
+          { name: 'Backup com capas (.zip)', extensions: ['zip'] },
+          { name: 'Só a biblioteca, sem capas (.json)', extensions: ['json'] }
+        ]
       });
       if (r.canceled || !r.filePath) return ok({ canceled: true });
       const info = exportLibrary(store, r.filePath);
@@ -1919,7 +2190,7 @@ function register(ipcMain, deps) {
       const r = await dialog.showOpenDialog({
         title: 'Importar biblioteca',
         properties: ['openFile'],
-        filters: [{ name: 'Backup do Arcade Hub', extensions: ['json'] }]
+        filters: [{ name: 'Backup do Arcade Hub', extensions: ['zip', 'json'] }]
       });
       if (r.canceled || !r.filePaths[0]) return ok({ canceled: true });
       const modo = mode === 'replace' ? 'replace' : 'merge';
@@ -1992,7 +2263,7 @@ function register(ipcMain, deps) {
         missingRoms: missingRoms.map(g => ({ id: g.id, title: g.title, path: g.launch.rom })),
         noEmulator: [...new Set(noEmu.map(g => g.platformKey))],
         lastScanReport: d.lastScanReport || null,
-      launchers: detectLaunchers(),
+      launchers: launchersCacheados(),
         dataDir: store.dir,
         versions: { app: app.getVersion(), electron: process.versions.electron, node: process.versions.node, os: `${os.platform()} ${os.release()}` }
       });
@@ -2051,7 +2322,7 @@ function register(ipcMain, deps) {
   });
 
   ipcMain.handle('detect:launchers', () => {
-    try { return ok({ launchers: detectLaunchers() }); } catch (e) { return fail(e); }
+    try { limparCacheLojas(); return ok({ launchers: launchersCacheados() }); } catch (e) { return fail(e); }
   });
 
   /* ---------------- gêneros ---------------- */
@@ -2294,11 +2565,25 @@ function register(ipcMain, deps) {
   });
   ipcMain.handle('window:close', e => { BrowserWindow.fromWebContents(e.sender).close(); return ok(true); });
 
-  return state;
+  ipcMain.handle('detect:launchers:fresh', () => { limparCacheLojas(); return ok({ launchers: launchersCacheados() }); });
+
+  // varredura automática: vigia as pastas e confere a biblioteca pouco depois de abrir.
+  // Fica fora do caminho da abertura (consulta o registro no Windows).
+  const tVigias = setTimeout(religarVigiasDePastas, deps.atrasoVigias != null ? deps.atrasoVigias : 3000);
+  if (tVigias.unref) tVigias.unref();
+  if (deps.varrerAoAbrir !== false) {
+    const t = setTimeout(() => {
+      const d = store.load();
+      if (d.games.length && Date.now() - (d.lastScan || 0) > 10 * 60 * 1000) varrerEmSegundoPlano('inicio');
+    }, deps.atrasoVarreduraInicial || 5000);
+    if (t.unref) t.unref();
+  }
+
+  return { state, fecharSessoes, varrerEmSegundoPlano, religarVigiasDePastas, vigia, sessoesAtivas };
 }
 
 module.exports = {
-  DEFAULT_SETTINGS, Store, runScan, runScanAsync, collectScan, finishScan, mergeScanned, buildLaunchPlan, register, genres,
+  DEFAULT_SETTINGS, Store, runScan, runScanAsync, registrarSessao, eventos, limparCacheLojas, launchersCacheados, extrairCapas, caminhoDeFileUrl, collectScan, finishScan, mergeScanned, buildLaunchPlan, register, genres,
   dedupeGames, installKey, markInstalled, dirOf, exeOf, startSession,
   detectLaunchers, refreshProblems, detectEmulators, retroarchCores, KNOWN_EMULATORS,
   cancelBatches, resetBatch, batchCancelled, exportLibrary, importLibrary, lerBackup, programasDoBackup, sanitizeLaunch, urlPermitida, refineDiscPlatform, fmtDuration,
