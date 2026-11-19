@@ -1,12 +1,14 @@
 # Gera o instalador do Windows e publica no GitHub Releases.
-# Para lançar uma versão: mude "version" no package.json, faça commit e
-# crie a tag (ex.: git tag v1.0.2 && git push --tags). O resto é automático,
-# inclusive o latest.yml que o atualizador do app usa.
+# Para lançar uma versão: mude "version" no package.json e faça push no main.
+# O electron-builder cria a release (tag v<versão>) e envia o instalador, o
+# portátil, o .zip e o latest.yml que o atualizador do app usa.
+# Se a versão não mudou, ele vê que a release já existe e não publica de novo.
 name: Publicar versão
 
 on:
   push:
-    tags: ['v*']
+    branches: [main]
+    paths: ['package.json', '.github/workflows/release.yml']
   workflow_dispatch:
 
 permissions:
