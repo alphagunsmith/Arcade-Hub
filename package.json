@@ -1,0 +1,71 @@
+{
+  "name": "arcade-hub",
+  "productName": "Arcade Hub",
+  "version": "1.0.1",
+  "description": "Todos os seus jogos (Steam, Epic, GOG, portateis e emuladores) em um so lugar.",
+  "main": "main.js",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.arcadehub.launcher",
+    "productName": "Arcade Hub",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json",
+      "src/**/*",
+      "renderer/**/*",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "artifactName": "Arcade-Hub-${version}-win-x64.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Arcade Hub",
+      "artifactName": "Arcade-Hub-${version}-setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "Arcade-Hub-${version}-portable.${ext}"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "alphagunsmith",
+        "repo": "Arcade-Hub",
+        "releaseType": "release"
+      }
+    ]
+  },
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis portable zip --x64"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alphagunsmith/Arcade-Hub.git"
+  }
+}

@@ -1,0 +1,28 @@
+# Gera o instalador do Windows e publica no GitHub Releases.
+# Para lançar uma versão: mude "version" no package.json, faça commit e
+# crie a tag (ex.: git tag v1.0.2 && git push --tags). O resto é automático,
+# inclusive o latest.yml que o atualizador do app usa.
+name: Publicar versão
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Gerar instalador e publicar
+        run: npx electron-builder --win nsis portable zip --x64 --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
