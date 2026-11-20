@@ -132,14 +132,18 @@ async function appIdPorNome(titulo) {
   const itens = (j && j.items) || [];
   if (!itens.length) return null;
   const alvo = chaveTitulo(titulo);
-  // nome igual; senão um contém o outro ("Expedition 33" ↔ "Clair Obscur: Expedition 33").
-  // Antes caía no 1º resultado da busca, que podia ser outro jogo.
+  if (!alvo) return null;
+  // Só nome igual. "Contém" pegava outro jogo da série ("Minecraft" → "Minecraft
+  // Dungeons II", "Warcraft" → "Guardian of Warcraft"): melhor ficar sem vídeo.
   const exato = itens.find(i => chaveTitulo(i.name) === alvo);
-  const parecido = exato || itens.find(i => {
-    const k = chaveTitulo(i.name);
-    return k.length >= 5 && alvo.length >= 5 && (k.includes(alvo) || alvo.includes(k));
+  if (exato) return String(exato.id || '') || null;
+  // única exceção: o nome do jogo é o subtítulo do nome no Steam
+  // ("Expedition 33" ↔ "Clair Obscur: Expedition 33")
+  const subtitulo = alvo.length >= 6 && itens.find(i => {
+    const partes = String(i.name || '').split(/\s*:\s+|\s+[-–—]\s+/).slice(1).map(chaveTitulo);
+    return partes.includes(alvo);
   });
-  return parecido ? String(parecido.id || '') || null : null;
+  return subtitulo ? String(subtitulo.id || '') || null : null;
 }
 
 /**
@@ -154,9 +158,11 @@ async function appIdPorNome(titulo) {
  */
 async function trailersDoApp(appId) {
   if (!appId) return [];
-  const url = `https://store.steampowered.com/api/appdetails?appids=${encodeURIComponent(appId)}&filters=movies&l=portuguese`;
+  const url = `https://store.steampowered.com/api/appdetails?appids=${encodeURIComponent(appId)}&filters=basic,movies&l=portuguese`;
   const j = await fetchJson(url);
   const d = j && j[appId] && j[appId].success ? j[appId].data : null;
+  // o Steam também vende filmes, séries e trilhas sonoras: só serve jogo
+  if (d && d.type && d.type !== 'game') return [];
   const filmes = (d && d.movies) || [];
   const lista = filmes.map(m => {
     if (!m) return null;
@@ -226,13 +232,8 @@ function escolherVariante(master, baseUrl) {
   return (ate720[0] || opcoes.sort((a, b) => a.altura - b.altura)[0]).url;
 }
 
-/**
- * Baixa um trailer HLS (fMP4) e junta num MP4 só, que o <video> toca do disco.
- * Os segmentos .m4s são pedaços de um MP4 fragmentado: o arquivo de início
- * (EXT-X-MAP) seguido dos pedaços, em ordem, já é um MP4 válido.
- * Só o vídeo (o rondel toca sem som), então não precisa juntar o áudio.
- */
-async function baixarHls(masterUrl, destino) {
+/** Lê a playlist HLS e devolve as URLs na ordem: o início (EXT-X-MAP) e os pedaços. */
+async function listaHls(masterUrl) {
   const master = await fetchTexto(masterUrl);
   const varUrl = escolherVariante(master, masterUrl);
   if (!varUrl) throw new Error('trailer sem variante de vídeo');
@@ -243,7 +244,17 @@ async function baixarHls(masterUrl, destino) {
   const pedacos = lista.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'))
     .map(u => new URL(u, varUrl).href);
   if (!pedacos.length) throw new Error('trailer vazio');
-  const urls = [new URL(mapa[1], varUrl).href, ...pedacos];
+  return [new URL(mapa[1], varUrl).href, ...pedacos];
+}
+
+/**
+ * Baixa um trailer HLS (fMP4) e junta num MP4 só, que o <video> toca do disco.
+ * Os segmentos .m4s são pedaços de um MP4 fragmentado: o arquivo de início
+ * (EXT-X-MAP) seguido dos pedaços, em ordem, já é um MP4 válido.
+ * Só o vídeo (o rondel toca sem som), então não precisa juntar o áudio.
+ */
+async function baixarHls(masterUrl, destino) {
+  const urls = await listaHls(masterUrl);
   // baixa 4 de cada vez, mantendo a ordem
   const partes = new Array(urls.length);
   let total = 0;
@@ -287,7 +298,15 @@ async function baixarArquivo(url, destino) {
 }
 
 /** Steam: MP4 direto (trailers antigos) ou HLS montado em MP4 (novos). */
-async function viaSteam(jogo, titulo, cache, metaArq) {
+async function viaSteam(jogo, titulo, cache, metaArq, o) {
+  if (o && o.stream) {
+    const plano = await planoSteam(jogo, titulo);
+    if (!plano.ok) return plano;
+    const meta = { appId: plano.appId, nome: plano.nome, url: plano.fonte, em: Date.now(), v2: true };
+    const url = await urlStreaming(o.dataDir, plano, cache, metaArq, meta);
+    if (url) return { ok: true, url, arquivo: cache, origem: 'steam', streaming: true, appId: plano.appId, nome: plano.nome };
+    // sem servidor local: cai no download completo abaixo
+  }
   const appId = (jogo && jogo.steamAppId) || await appIdPorNome(titulo);
   if (!appId) return { ok: false, motivo: 'não achei esse jogo no Steam' };
   const trailers = await trailersDoApp(appId);
@@ -299,7 +318,7 @@ async function viaSteam(jogo, titulo, cache, metaArq) {
       if (t.mp4 && await mp4Existe(t.mp4)) { await baixarArquivo(t.mp4, cache); fonte = t.mp4; }
       else if (t.hls) { await baixarHls(t.hls, cache); fonte = t.hls; }
       else continue;
-      try { fs.writeFileSync(metaArq, JSON.stringify({ appId, nome: t.nome, url: fonte, em: Date.now() })); } catch { /* noop */ }
+      try { fs.writeFileSync(metaArq, JSON.stringify({ appId, nome: t.nome, url: fonte, em: Date.now(), v2: true })); } catch { /* noop */ }
       return { ok: true, url: toFileUrl(cache), arquivo: cache, origem: 'steam', appId, nome: t.nome };
     } catch (e) {
       ultimoErro = String((e && e.message) || e);
@@ -309,8 +328,260 @@ async function viaSteam(jogo, titulo, cache, metaArq) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Streaming: toca enquanto baixa                                       */
+/* ------------------------------------------------------------------ */
+/*
+ * Em vez de baixar o trailer inteiro (10–60 MB) antes de mostrar, o servidor
+ * local entrega os bytes ao <video> conforme chegam e, ao mesmo tempo, grava
+ * no cache. O MP4 do Steam já vem com o índice (moov) no começo e o HLS é
+ * MP4 fragmentado, então os dois começam a tocar com o primeiro pedaço.
+ * Quem pedir de novo no meio do download (o loop, por exemplo) recebe o que
+ * já chegou e continua junto; depois de pronto, vem do arquivo.
+ */
+
+const PLANO_VALIDADE = 30 * 60 * 1000;
+const ABANDONO_MS = 3000;          // sem ninguém assistindo por 3 s: cancela o download
+const planos = new Map();          // chave do jogo -> { em, plano } (só os endereços)
+const transmissoes = new Map();    // token -> { plano, destino, metaArq, meta }
+const downloads = new Map();       // destino -> Transmissao em andamento
+const inicios = new Map();         // fonte -> { pedacos, pronto } começo pré-baixado dos vizinhos
+const INICIO_MAX = 6;              // no máximo 6 começos na memória (~2 MB cada)
+const INICIO_MP4 = 768 * 1024;     // MP4: 768 KB já passam o índice e uns segundos de vídeo
+const INICIO_HLS = 3;              // HLS: init + 2 pedaços (o player começa com 2)
+
+/** Descobre de onde vem o trailer do Steam sem baixar nada (alguns KB). */
+async function planoSteam(jogo, titulo) {
+  const chave = 'steam:' + ((jogo && jogo.steamAppId) || chaveTitulo(titulo));
+  const guardado = planos.get(chave);
+  if (guardado && Date.now() - guardado.em < PLANO_VALIDADE) return guardado.plano;
+  const appId = (jogo && jogo.steamAppId) || await appIdPorNome(titulo);
+  if (!appId) return { ok: false, motivo: 'não achei esse jogo no Steam' };
+  const trailers = await trailersDoApp(appId);
+  if (!trailers.length) return { ok: false, motivo: 'o Steam não tem trailer desse jogo', appId };
+  let ultimoErro = '';
+  for (const t of trailers.slice(0, 3)) {
+    try {
+      let plano = null;
+      if (t.mp4 && await mp4Existe(t.mp4)) plano = { ok: true, tipo: 'mp4', url: t.mp4, fonte: t.mp4, appId, nome: t.nome };
+      else if (t.hls) plano = { ok: true, tipo: 'hls', urls: await listaHls(t.hls), fonte: t.hls, appId, nome: t.nome };
+      if (plano) { planos.set(chave, { em: Date.now(), plano }); return plano; }
+    } catch (e) { ultimoErro = String((e && e.message) || e); }
+  }
+  return { ok: false, motivo: ultimoErro || 'não consegui ler o trailer desse jogo', appId };
+}
+
+class Transmissao {
+  constructor(plano, destino, aoTerminar) {
+    this.plano = plano; this.destino = destino; this.aoTerminar = aoTerminar;
+    this.pedacos = []; this.total = 0; this.tamanho = 0;
+    this.pronto = false; this.erro = null;
+    this.ouvintes = new Set();
+    this.cabecalho = new Promise(res => { this._cabecalho = res; });
+  }
+
+  // entrega a quem está assistindo e grava no cache
+  _empurrar(b) {
+    if (this.total === 0 && (b.length < 8 || b.toString('ascii', 4, 8) !== 'ftyp')) throw new Error('arquivo de vídeo inválido');
+    this.pedacos.push(b); this.total += b.length;
+    if (this.total > MAX_MB * 1024 * 1024) throw new Error('vídeo grande demais');
+    this.arquivo.write(b);
+    for (const o of this.ouvintes) { try { o.write(b); } catch { /* quem saiu sai */ } }
+  }
+
+  async _fetch(url, signal, extra) {
+    const steam = /steamstatic\.com/i.test(url);
+    const res = await fetch(url, { signal, headers: { 'User-Agent': UA, Accept: 'video/*,*/*', ...(steam ? { Referer: 'https://store.steampowered.com/' } : {}), ...(extra || {}) } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res;
+  }
+
+  async iniciar() {
+    const tmp = this.destino + '.part';
+    const ctrl = new AbortController();
+    this.ctrl = ctrl;
+    const parado = setTimeout(() => ctrl.abort(), 180000);
+    this.arquivo = fs.createWriteStream(tmp);
+    try {
+      // começo já pré-baixado (vizinho do rondel)? entrega na hora e segue dali
+      let comeco = [];
+      const ini = inicios.get(this.plano.fonte);
+      if (ini) { try { comeco = (await ini.pronto) || []; } catch { comeco = []; } }
+      if (this.plano.tipo === 'mp4') {
+        const jaTem = comeco.reduce((n, b) => n + b.length, 0);
+        const res = await this._fetch(this.plano.url, ctrl.signal, jaTem ? { Range: `bytes=${jaTem}-` } : null);
+        let pular = 0;
+        if (jaTem && res.status === 206) {
+          const tot = /\/(\d+)$/.exec(res.headers.get('content-range') || '');
+          this.tamanho = tot ? Number(tot[1]) : 0;
+        } else {
+          this.tamanho = Number(res.headers.get('content-length') || 0);
+          pular = jaTem;                 // servidor ignorou o range: descarta o que já temos
+        }
+        if (this.tamanho > MAX_MB * 1024 * 1024) throw new Error('vídeo grande demais');
+        this._cabecalho();
+        for (const b of comeco) this._empurrar(b);
+        for await (const parte of res.body) {
+          let b = Buffer.from(parte);
+          if (pular) { const corte = Math.min(pular, b.length); b = b.subarray(corte); pular -= corte; if (!b.length) continue; }
+          this._empurrar(b);
+        }
+        if (this.tamanho && this.total !== this.tamanho) throw new Error('download incompleto');
+      } else {
+        // HLS: um pedaço de cada vez, na ordem, com a banda toda: o player
+        // precisa dos primeiros pedaços inteiros para começar, e buscar vários
+        // juntos atrasava todos. Só o init (pequeno) vai junto com o 1º.
+        this._cabecalho();
+        const urls = this.plano.urls;
+        const pegar = u => {
+          const p = this._fetch(u, ctrl.signal).then(r => r.arrayBuffer()).then(a => Buffer.from(a));
+          p.catch(() => {});            // erro é tratado quando chega a vez dele
+          return p;
+        };
+        for (const b of comeco) this._empurrar(b);
+        const fila = [...comeco.map(b => Promise.resolve(b)), ...urls.slice(comeco.length, comeco.length + 2).map(pegar)];
+        for (let i = comeco.length; i < urls.length; i++) {
+          const b = await fila[i];
+          while (fila.length < Math.min(urls.length, i + 3)) fila.push(pegar(urls[fila.length]));
+          this._empurrar(b);
+        }
+      }
+      if (this.total < 20000) throw new Error('arquivo de vídeo inválido');
+      await new Promise((res, rej) => this.arquivo.end(e => (e ? rej(e) : res())));
+      fs.renameSync(tmp, this.destino);
+      this.pronto = true;
+      try { this.aoTerminar && this.aoTerminar(); } catch { /* noop */ }
+    } catch (e) {
+      this.erro = e;
+      this._cabecalho();
+      try { this.arquivo.destroy(); } catch { /* noop */ }
+      try { fs.unlinkSync(tmp); } catch { /* noop */ }
+    } finally {
+      clearTimeout(parado);
+      for (const o of this.ouvintes) { try { this.erro ? o.destroy() : o.end(); } catch { /* noop */ } }
+      this.ouvintes.clear();
+      this.pedacos = [];                 // o arquivo já tem tudo
+      downloads.delete(this.destino);
+    }
+  }
+
+  /** Liga uma resposta HTTP: manda o que já chegou e segue mandando. */
+  async servir(res, req) {
+    await this.cabecalho;
+    if (this.erro) { res.writeHead(502); return res.end(); }
+    res.writeHead(200, {
+      'Content-Type': 'video/mp4', 'Cache-Control': 'no-store', 'Accept-Ranges': 'none',
+      ...(this.tamanho ? { 'Content-Length': this.tamanho } : {})
+    });
+    for (const b of this.pedacos) res.write(b);
+    if (this.pronto || this.erro) return res.end();
+    this.ouvintes.add(res);
+    clearTimeout(this.abandono);
+    req.on('close', () => {
+      this.ouvintes.delete(res);
+      if (this.ouvintes.size || this.pronto || this.erro) return;
+      // o rondel girou para outro jogo: não deixa este disputar a banda com o próximo
+      clearTimeout(this.abandono);
+      this.abandono = setTimeout(() => {
+        if (!this.ouvintes.size && !this.pronto && this.ctrl) this.ctrl.abort();
+      }, ABANDONO_MS);
+    });
+  }
+}
+
+function transmissaoDe(t) {
+  let d = downloads.get(t.destino);
+  if (!d) {
+    d = new Transmissao(t.plano, t.destino, () => {
+      try { fs.writeFileSync(t.metaArq, JSON.stringify(t.meta)); } catch { /* noop */ }
+    });
+    downloads.set(t.destino, d);
+    d.iniciar();
+  }
+  return d;
+}
+
+let servidor = null;               // Promise<{ok, porta}>
+function portaDoServidor(dir) {
+  if (!servidor) servidor = iniciarServidorVideos(dir).then(r => { if (!r.ok) servidor = null; return r; });
+  return servidor.then(r => r.porta || 0);
+}
+
+/** Registra um trailer para tocar por streaming e devolve a URL local. */
+async function urlStreaming(dir, plano, destino, metaArq, meta) {
+  const porta = await portaDoServidor(dir);
+  if (!porta) return '';
+  const token = crypto.randomBytes(12).toString('hex');
+  transmissoes.set(token, { plano, destino, metaArq, meta });
+  if (transmissoes.size > 200) transmissoes.delete(transmissoes.keys().next().value);
+  return `http://127.0.0.1:${porta}/stream/${token}`;
+}
+
+/** Baixa só o começo do trailer (para o vizinho do rondel começar na hora). */
+function preCarregarInicio(plano) {
+  if (!plano || !plano.ok || !plano.fonte || inicios.has(plano.fonte)) return inicios.get(plano && plano.fonte);
+  const ent = { em: Date.now() };
+  ent.pronto = (async () => {
+    const H = { 'User-Agent': UA, Referer: 'https://store.steampowered.com/' };
+    const pegar = async (u, extra) => {
+      const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 30000);
+      try {
+        const r = await fetch(u, { signal: ctrl.signal, headers: { ...H, ...(extra || {}) } });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return { r, b: Buffer.from(await r.arrayBuffer()) };
+      } finally { clearTimeout(t); }
+    };
+    if (plano.tipo === 'hls') {
+      const out = [];
+      for (const u of plano.urls.slice(0, INICIO_HLS)) out.push((await pegar(u)).b);
+      return out;
+    }
+    const { r, b } = await pegar(plano.url, { Range: `bytes=0-${INICIO_MP4 - 1}` });
+    return r.status === 206 ? [b] : [];     // sem range, não vale guardar o arquivo inteiro aqui
+  })();
+  ent.pronto.catch(() => inicios.delete(plano.fonte));
+  inicios.set(plano.fonte, ent);
+  while (inicios.size > INICIO_MAX) inicios.delete(inicios.keys().next().value);
+  return ent;
+}
+
+/**
+ * Prepara os vizinhos do rondel. Sempre descobre os endereços (alguns KB);
+ * com `comeco`, também baixa o começo do trailer (~1–2 MB) para tocar na hora.
+ */
+async function prepararVideo(jogo, opts) {
+  const o = opts || {};
+  const titulo = (jogo && jogo.title) || '';
+  if (!titulo) return false;
+  const dir = dataDirOf(o.dataDir);
+  if (procurarLocal(titulo, o.localDir)) return true;
+  const base = path.join(videoDir(dir), slug(titulo));
+  if (fs.existsSync(base + '.mp4') || fs.existsSync(base + '.yt.json')) return true;
+  const ehRom = jogo.kind === 'rom';
+  if (ehRom && !jogo.steamAppId) return false;
+  try {
+    const p = await planoSteam(jogo, titulo);
+    if (!p || !p.ok) return false;
+    if (o.comeco) { const ent = preCarregarInicio(p); if (ent) await ent.pronto.catch(() => {}); }
+    return true;
+  } catch { return false; }
+}
+
+/* ------------------------------------------------------------------ */
 /* API principal                                                        */
 /* ------------------------------------------------------------------ */
+
+/**
+ * O trailer guardado é mesmo deste jogo? true = sim, false = apagar,
+ * null = não deu para conferir agora (sem internet): fica e confere depois.
+ */
+async function cacheSteamValido(jogo, titulo, meta) {
+  const idLoja = jogo && jogo.steamAppId ? String(jogo.steamAppId) : '';
+  if (idLoja) return !meta.appId || String(meta.appId) === idLoja;
+  try {
+    const certo = await appIdPorNome(titulo);
+    return !!certo && String(certo) === String(meta.appId || '');
+  } catch { return null; }
+}
 
 /**
  * Resolve o vídeo de um jogo.
@@ -335,6 +606,20 @@ async function resolverVideo(jogo, opts) {
   if (fs.existsSync(cache) && fs.statSync(cache).size > 20000) {
     let doCache = {};
     try { doCache = JSON.parse(fs.readFileSync(metaArq, 'utf8')); } catch { /* cache antigo, sem metadados */ }
+    // vídeo baixado com a regra antiga de nome (que pegava outro jogo): confere uma vez
+    if (!o.somenteLocal && doCache.fonte !== 'screenscraper' && !doCache.v2) {
+      const valido = await cacheSteamValido(jogo, titulo, doCache);
+      if (valido === false) {
+        for (const a of [cache, metaArq]) { try { fs.unlinkSync(a); } catch { /* noop */ } }
+        planos.delete('steam:' + ((jogo && jogo.steamAppId) || chaveTitulo(titulo)));
+      } else if (valido === true) {
+        try { fs.writeFileSync(metaArq, JSON.stringify({ ...doCache, v2: true })); } catch { /* noop */ }
+      }
+    }
+  }
+  if (fs.existsSync(cache) && fs.statSync(cache).size > 20000) {
+    let doCache = {};
+    try { doCache = JSON.parse(fs.readFileSync(metaArq, 'utf8')); } catch { /* cache antigo, sem metadados */ }
     return {
       ok: true, url: toFileUrl(cache), arquivo: cache, origem: 'cache',
       appId: (jogo && jogo.steamAppId) || doCache.appId || '', nome: doCache.nome || ''
@@ -346,8 +631,12 @@ async function resolverVideo(jogo, opts) {
   if (o.youtubeKey && fs.existsSync(cacheYt)) {
     try {
       const y = JSON.parse(fs.readFileSync(cacheYt, 'utf8'));
-      if (y && y.id) return { ok: true, tipo: 'youtube', youtubeId: y.id, url: fontes.urlEmbed(y.id), origem: 'youtube (cache)', nome: y.nome || '' };
-      ytIgnorados = (y && y.ignorados) || [];      // "Outro vídeo": não repete os recusados
+      // escolhido com o filtro antigo e não passa no novo (ex.: trailer do filme)? busca outro
+      if (y && y.id && !fontes.youtubeAceito(y.nome, jogo)) {
+        ytIgnorados = [...(y.ignorados || []), y.id];
+        try { fs.writeFileSync(cacheYt, JSON.stringify({ ignorados: ytIgnorados })); } catch { /* noop */ }
+      } else if (y && y.id) return { ok: true, tipo: 'youtube', youtubeId: y.id, url: fontes.urlEmbed(y.id), origem: 'youtube (cache)', nome: y.nome || '' };
+      else ytIgnorados = (y && y.ignorados) || [];      // "Outro vídeo": não repete os recusados
     } catch { /* cache corrompido: busca de novo */ }
   }
   if (o.somenteLocal) return { ok: false, motivo: 'sem vídeo local' };
@@ -355,14 +644,19 @@ async function resolverVideo(jogo, opts) {
   // fila de fontes: a primeira que achar vence
   const ehRom = jogo && jogo.kind === 'rom';
   const fila = [];
-  if (!ehRom || (jogo && jogo.steamAppId)) fila.push(['Steam', () => viaSteam(jogo, titulo, cache, metaArq)]);
+  if (!ehRom || (jogo && jogo.steamAppId)) fila.push(['Steam', () => viaSteam(jogo, titulo, cache, metaArq, o)]);
   if (ehRom && fontes.credenciaisCompletas(o.screenscraper)) {
     fila.push(['ScreenScraper', async () => {
       const r = await fontes.videoScreenScraper(jogo, o.screenscraper, o.fetcher);
       if (!r.ok) return r;
-      await baixarArquivo(r.url, cache);
       // sem a URL (ela leva as credenciais): só de onde veio
-      try { fs.writeFileSync(metaArq, JSON.stringify({ fonte: 'screenscraper', jogoId: r.jogoId, nome: r.nome, em: Date.now() })); } catch { /* noop */ }
+      const meta = { fonte: 'screenscraper', jogoId: r.jogoId, nome: r.nome, em: Date.now() };
+      if (o.stream) {
+        const url = await urlStreaming(o.dataDir, { tipo: 'mp4', url: r.url }, cache, metaArq, meta);
+        if (url) return { ok: true, url, arquivo: cache, origem: 'screenscraper', streaming: true, nome: r.nome };
+      }
+      await baixarArquivo(r.url, cache);
+      try { fs.writeFileSync(metaArq, JSON.stringify(meta)); } catch { /* noop */ }
       return { ok: true, url: toFileUrl(cache), arquivo: cache, origem: 'screenscraper', nome: r.nome };
     }]);
   }
@@ -401,6 +695,17 @@ function iniciarServidorVideos(dir, porta) {
   const permitidas = [path.join(raiz, 'videos'), path.join(raiz, 'trailers')];
 
   const server = http.createServer((req, res) => {
+    const st = /^\/stream\/([0-9a-f]{24})$/.exec((req.url || '').split('?')[0]);
+    if (st) {
+      const t = transmissoes.get(st[1]);
+      if (!t) { res.writeHead(404); return res.end('não encontrado'); }
+      // já terminou de baixar: vem do arquivo, com busca (range)
+      if (!downloads.has(t.destino) && fs.existsSync(t.destino) && fs.statSync(t.destino).size > 20000) {
+        return servirArquivo(t.destino, req, res);
+      }
+      transmissaoDe(t).servir(res, req).catch(() => { try { res.destroy(); } catch { /* noop */ } });
+      return;
+    }
     let alvo;
     try { alvo = decodeURIComponent(new URL(req.url, 'http://127.0.0.1').searchParams.get('f') || ''); }
     catch { res.writeHead(400); return res.end('pedido inválido'); }
@@ -409,7 +714,16 @@ function iniciarServidorVideos(dir, porta) {
     const abs = path.resolve(alvo);
     const dentro = permitidas.some(p => abs === p || abs.startsWith(p + path.sep));
     if (!dentro || !fs.existsSync(abs)) { res.writeHead(404); return res.end('não encontrado'); }
+    servirArquivo(abs, req, res);
+  });
 
+  return new Promise((resolve) => {
+    server.on('error', () => resolve({ ok: false, porta: 0 }));
+    server.listen(porta || 0, '127.0.0.1', () => resolve({ ok: true, porta: server.address().port, server }));
+  });
+}
+
+function servirArquivo(abs, req, res) {
     const stat = fs.statSync(abs);
     const tipo = /\.webm$/i.test(abs) ? 'video/webm' : /\.(ogv|ogg)$/i.test(abs) ? 'video/ogg'
       : /\.(mov|m4v)$/i.test(abs) ? 'video/quicktime' : 'video/mp4';
@@ -439,16 +753,10 @@ function iniciarServidorVideos(dir, porta) {
       'Accept-Ranges': 'bytes', 'Cache-Control': 'no-store'
     });
     fs.createReadStream(abs).pipe(res);
-  });
-
-  return new Promise((resolve) => {
-    server.on('error', () => resolve({ ok: false, porta: 0 }));
-    server.listen(porta || 0, '127.0.0.1', () => resolve({ ok: true, porta: server.address().port, server }));
-  });
 }
 
 module.exports = {
-  baixarHls, escolherVariante,
+  baixarHls, escolherVariante, listaHls, planoSteam, prepararVideo, portaDoServidor, urlStreaming, preCarregarInicio,
   resolverVideo, procurarLocal, chaveTitulo, slug, videoDir, videoLocalDir,
   appIdPorNome, trailersDoApp, mp4Existe, iniciarServidorVideos, toFileUrl, VIDEO_EXT
 };

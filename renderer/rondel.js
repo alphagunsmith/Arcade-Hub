@@ -172,6 +172,18 @@ const Rondel = (() => {
     arte.appendChild(s);
   }
 
+  // deixa engatilhados os trailers dos lados: ao girar, o streaming já sabe de onde puxar
+  function prepararVizinhos() {
+    const api = window.arcadeAPI;
+    if (!api || !api.prepararVideos || itens.length < 2) return;
+    const ids = [];
+    for (const d of [1, -1, 2, -2]) {
+      const g = itens[(centro + d + itens.length) % itens.length];
+      if (g && !ids.includes(g.id)) ids.push(g.id);
+    }
+    api.prepararVideos(ids).catch(() => {});
+  }
+
   async function tocarVideo(jogo) {
     const arte = document.getElementById('rondel-arte');
     if (!arte || !jogo) return;
@@ -190,6 +202,8 @@ const Rondel = (() => {
       const resp = await api.videoFor({ id: jogo.id, title: jogo.title, steamAppId: jogo.steamAppId });
       info = resp && resp.data ? resp.data : (resp || { ok: false });
     }
+    // sem vídeo próprio para carregar: já pode preparar os vizinhos
+    if (!info || !info.ok || info.tipo === 'youtube' || !info.streaming) prepararVizinhos();
 
     // o jogo saiu do centro enquanto baixava? não toca
     const atual = itens[centro];
@@ -246,6 +260,7 @@ const Rondel = (() => {
       }
     };
     v.onplaying = () => {
+      if (info.streaming) prepararVizinhos();   // o atual já tocou: agora sim, os do lado
       arte.classList.add('tocando');
       seloVideo('');
       const velho = arte.querySelector('img');
@@ -262,7 +277,8 @@ const Rondel = (() => {
     const arte = document.getElementById('rondel-arte');
     if (arte) {
       const v = arte.querySelector('video');
-      if (v) { try { v.pause(); } catch { /* noop */ } v.remove(); }
+      // solta a conexão na hora: o streaming que ninguém assiste é cancelado
+      if (v) { try { v.pause(); v.removeAttribute('src'); v.load(); } catch { /* noop */ } v.remove(); }
       const yt = arte.querySelector('iframe.rondel-yt');
       if (yt) yt.remove();
       const img = arte.querySelector('img');

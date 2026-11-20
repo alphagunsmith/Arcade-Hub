@@ -48,28 +48,41 @@ const MOTIVO_YT = {
   ipRefererBlocked: 'a chave do YouTube tem restrição de site/IP — tire a restrição ou use "Nenhuma"'
 };
 
-/** Pontua um resultado: título do jogo presente + palavras de trailer/gameplay. */
+// palavras de filme/série: "Resident Evil trailer" no YouTube traz o filme
+const FILME = /\b(movie|film|filme|filmes|pelicula|cinema|serie|series|tv series|temporada|season|episode|episodio|netflix|hbo|max original|prime video|amazon original|disney|paramount|live action|box office|bilheteria|imax|em breve nos cinemas|in theaters|nos cinemas)\b/;
+
+/**
+ * Pontua um resultado. O nome inteiro do jogo é obrigatório e vídeo de filme ou
+ * série é descartado: sem um vídeo confiável, o jogo fica sem vídeo.
+ */
 function pontuar(item, jogo, ehRom) {
   const t = normal(item.snippet && item.snippet.title);
+  const canal = normal(item.snippet && item.snippet.channelTitle);
   const alvo = normal(jogo.title);
-  let p = 0;
-  if (alvo && t.includes(alvo)) p += 10;
-  else {
-    const palavras = alvo.split(' ').filter(w => w.length > 2);
-    p += palavras.filter(w => t.includes(w)).length * 2;
-  }
+  if (!alvo || !t.includes(alvo)) return -99;
+  // palavra de filme que não faz parte do nome do jogo ("The LEGO Movie Videogame" pode)
+  const semNome = (t.replace(alvo, ' ') + ' ' + canal);
+  if (FILME.test(semNome) && !FILME.test(alvo)) return -99;
+  let p = 10;
   if (ehRom ? /gameplay|longplay|playthrough/.test(t) : /trailer/.test(t)) p += 4;
+  if (/\b(game|jogo|gameplay|ps[1-5]|playstation|xbox|nintendo|switch|steam|pc)\b/.test(t)) p += 3;
   if (/official|oficial/.test(t)) p += 2;
   if (/reaction|react|review|analise|meme|tier list|top 10|ranking/.test(t)) p -= 8;
   return p;
 }
 
+/** O vídeo guardado antes ainda passa no filtro atual? (pelo título salvo) */
+function youtubeAceito(nome, jogo) {
+  return pontuar({ snippet: { title: nome || '', channelTitle: '' } }, jogo, jogo && jogo.kind === 'rom') >= 10;
+}
+
 async function buscarYoutube(jogo, chave, fetcher, ignorar) {
   if (!chave) return { ok: false, motivo: 'sem chave do YouTube' };
   const ehRom = jogo.kind === 'rom';
-  const q = ehRom ? `${jogo.title} ${jogo.platform || ''} gameplay` : `${jogo.title} trailer`;
+  const q = ehRom ? `${jogo.title} ${jogo.platform || ''} gameplay` : `${jogo.title} game trailer`;
   const url = 'https://www.googleapis.com/youtube/v3/search?' + new URLSearchParams({
-    part: 'snippet', type: 'video', videoEmbeddable: 'true', maxResults: '8',
+    part: 'snippet', type: 'video', videoEmbeddable: 'true', maxResults: '10',
+    videoCategoryId: '20',                    // só a categoria Jogos: tira trailers de filme
     safeSearch: 'moderate', q: q.trim(), key: chave
   });
   let res;
@@ -84,7 +97,7 @@ async function buscarYoutube(jogo, chave, fetcher, ignorar) {
   const itens = (j.items || []).filter(i => i && i.id && i.id.videoId && !fora.has(i.id.videoId));
   if (!itens.length) return { ok: false, motivo: 'o YouTube não achou vídeo desse jogo' };
   const melhor = itens.map(i => ({ i, p: pontuar(i, jogo, ehRom) })).sort((a, b) => b.p - a.p)[0];
-  if (melhor.p < 4) return { ok: false, motivo: 'o YouTube não achou um vídeo confiável desse jogo' };
+  if (melhor.p < 10) return { ok: false, motivo: 'o YouTube não achou um vídeo confiável desse jogo' };
   return { ok: true, youtubeId: melhor.i.id.videoId, nome: (melhor.i.snippet && melhor.i.snippet.title) || '' };
 }
 
@@ -184,6 +197,6 @@ async function testarYoutube(chave, fetcher) {
 }
 
 module.exports = {
-  buscarYoutube, urlEmbed, testarYoutube,
+  buscarYoutube, urlEmbed, testarYoutube, youtubeAceito, pontuar,
   videoScreenScraper, testarScreenScraper, credenciaisCompletas, SS_SISTEMAS, crcDaRom
 };

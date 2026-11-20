@@ -2577,11 +2577,32 @@ function register(ipcMain, deps) {
         {
           dataDir: store.dir, localDir: store.settings.videoFolder,
           youtubeKey: store.settings.youtubeKey || '',
-          screenscraper: credScreenScraper(store.settings)
+          screenscraper: credScreenScraper(store.settings),
+          stream: true                        // toca enquanto baixa
         }
       );
       return ok(r);
     } catch (e) { return ok({ ok: false, motivo: String((e && e.message) || e) }); }
+  });
+
+  // rondel: deixa prontos os endereços dos trailers vizinhos (não baixa nada)
+  ipcMain.handle('video:preparar', async (_e, ids) => {
+    try {
+      const lista = (Array.isArray(ids) ? ids : []).slice(0, 4);
+      // um de cada vez, em segundo plano: os 2 primeiros (vizinhos colados) já
+      // baixam o começo do trailer; os outros só descobrem o endereço
+      (async () => {
+        for (const [i, id] of lista.entries()) {
+          const g = (store.games || []).find(x => x.id === id);
+          if (!g) continue;
+          await videos.prepararVideo({
+            title: g.title, kind: g.kind,
+            steamAppId: g.steamAppId || (g.launch && g.launch.type === 'steam' && g.launch.appId)
+          }, { dataDir: store.dir, localDir: store.settings.videoFolder, comeco: i < 2 }).catch(() => {});
+        }
+      })();
+      return ok(true);
+    } catch (e) { return ok(false); }
   });
 
   // botão "Testar" das fontes de vídeo nos ajustes
@@ -2613,10 +2634,7 @@ function register(ipcMain, deps) {
   ipcMain.handle('video:http', async (_e, { arquivo }) => {
     try {
       if (!arquivo) return ok({ ok: false });
-      if (!videoPort) {
-        const srv = await videos.iniciarServidorVideos(store.dir);
-        videoPort = srv.ok ? srv.porta : 0;
-      }
+      if (!videoPort) videoPort = await videos.portaDoServidor(store.dir);
       if (!videoPort) return ok({ ok: false });
       return ok({ ok: true, url: `http://127.0.0.1:${videoPort}/?f=${encodeURIComponent(arquivo)}` });
     } catch (e) { return ok({ ok: false }); }

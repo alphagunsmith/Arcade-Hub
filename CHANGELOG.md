@@ -1,5 +1,19 @@
 # Novidades
 
+## 1.0.9
+
+**Vídeo por streaming**
+- O trailer começa a tocar assim que chega o primeiro pedaço, sem esperar o download inteiro. Enquanto você assiste, ele é guardado no PC para as próximas vezes.
+- Os jogos ao lado do selecionado no rondel já deixam o começo do trailer baixado. Ao girar a roda, o vídeo entra na hora: entre 0,02 e 0,35 s nos testes, inclusive com internet de 4 Mbit/s.
+- Se você passa para outro jogo, o download do anterior é cancelado em 3 s e não disputa a internet com o novo.
+- Antes, um trailer novo do Steam (720p, ~28 MB) levava de 9 s (25 Mbit/s) a quase 1 minuto (4 Mbit/s) para começar.
+
+**Chega de trailer de filme ou de outro jogo**
+- Steam: só aceita o nome exato do jogo (ou o subtítulo, como "Expedition 33"). Antes, "Minecraft" pegava "Minecraft Dungeons II" e "Warcraft" pegava outro jogo. Também só aceita item que é jogo na loja, e não filme, série ou trilha sonora.
+- YouTube: busca só na categoria Jogos, exige o nome inteiro do jogo no título e descarta vídeos de filme ou série (filme, Netflix, cinema etc.).
+- Se nenhuma fonte achar um trailer confiável, o jogo fica sem vídeo.
+- Os vídeos já guardados são conferidos com as regras novas na primeira vez que cada jogo aparece. O que for de filme ou de outro jogo é apagado e trocado, ou o jogo fica sem vídeo.
+
 ## 1.0.8
 
 - O vídeo do rondel começa na hora. Não tem mais a espera de 2 segundos: se o trailer já está no PC, toca em cerca de 0,2 s.
