@@ -119,6 +119,8 @@ const Rondel = (() => {
     if (!arte) return;
     arte.innerHTML = '';
     arte.classList.remove('tocando', 'retrato');
+    const outroBtn = document.getElementById('rondel-outro');
+    if (outroBtn) outroBtn.hidden = true;
     if (titulo) titulo.textContent = jogo ? jogo.title : '';
     if (meta) {
       const partes = [];
@@ -176,7 +178,7 @@ const Rondel = (() => {
     const chave = jogo.id;
     // já está tocando esse E o elemento ainda está lá (se sumiu do DOM — troca de
     // skin, redesenho — precisa tocar de novo, senão o vídeo morre para sempre)
-    if (videoAtual === chave && arte.querySelector('video')) return;
+    if (videoAtual === chave && arte.querySelector('video, iframe.rondel-yt')) return;
     videoAtual = chave;
     abortar = false;
     seloVideo('');
@@ -195,6 +197,31 @@ const Rondel = (() => {
 
     if (!info || !info.ok) {
       seloVideo('sem vídeo');
+      return;
+    }
+    const outro = document.getElementById('rondel-outro');
+    if (outro) outro.hidden = !/youtube/.test(info.origem || '');
+
+    // YouTube: player oficial embutido (não dá para baixar), sem som e em loop
+    if (info.tipo === 'youtube' && info.url) {
+      const f = document.createElement('iframe');
+      f.className = 'rondel-yt';
+      f.src = info.url;
+      f.title = info.nome || 'Vídeo do jogo';
+      f.allow = 'autoplay; encrypted-media; picture-in-picture';
+      f.referrerPolicy = 'strict-origin-when-cross-origin';
+      f.tabIndex = -1;
+      f.onload = () => {
+        // dá um instante para o player começar antes de tirar a imagem da frente
+        setTimeout(() => {
+          const atualYt = itens[centro];
+          if (!atualYt || atualYt.id !== jogo.id) return;
+          arte.classList.add('tocando');
+          const velho = arte.querySelector('img');
+          if (velho) velho.classList.add('sumindo');
+        }, 1400);
+      };
+      arte.insertBefore(f, arte.firstChild);
       return;
     }
 
@@ -236,6 +263,8 @@ const Rondel = (() => {
     if (arte) {
       const v = arte.querySelector('video');
       if (v) { try { v.pause(); } catch { /* noop */ } v.remove(); }
+      const yt = arte.querySelector('iframe.rondel-yt');
+      if (yt) yt.remove();
       const img = arte.querySelector('img');
       if (img) img.classList.remove('com-video', 'sumindo');
       arte.classList.remove('tocando');
@@ -254,7 +283,7 @@ const Rondel = (() => {
     const alvo = itens[centro];
     const idAlvo = alvo ? alvo.id : null;
     const arte = document.getElementById('rondel-arte');
-    const temVideoNoDom = !!(arte && arte.querySelector('video'));
+    const temVideoNoDom = !!(arte && arte.querySelector('video, iframe.rondel-yt'));
 
     // já está tocando este jogo? não reinicia nada
     if (!forcar && idAlvo && idAlvo === videoAtual && temVideoNoDom) return;
@@ -435,10 +464,17 @@ const Rondel = (() => {
   /* ---------------- ciclo de vida ---------------- */
 
   function pausar() { clearTimeout(timerVideo); abortar = true; pararVideo(); }
+  /** "Outro vídeo": o vídeo guardado foi apagado; busca de novo para o jogo do centro. */
+  function recarregarVideo() {
+    videoAtual = null; ultimoAgendado = null;
+    clearTimeout(timerVideo); timerVideo = null; abortar = true; pararVideo();
+    const j = itens[centro];
+    if (j) { abortar = false; tocarVideo(j); }
+  }
   function retomar() { aplicar(); pintarTopo(); agendarVideo(false); }
 
   return {
-    montar, irPara, proximo, anterior, selecionarId, pausar, retomar,
+    montar, irPara, proximo, anterior, selecionarId, pausar, retomar, recarregarVideo,
     ligarControles, aplicar, pararVideo,
     get itens() { return itens; },
     get centro() { return centro; },

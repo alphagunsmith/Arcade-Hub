@@ -22,6 +22,7 @@ const path = require('path');
 const os = require('os');
 const http = require('http');
 const crypto = require('crypto');
+const fontes = require('./fontes-video');
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
 const TIMEOUT = 20000;
@@ -131,9 +132,14 @@ async function appIdPorNome(titulo) {
   const itens = (j && j.items) || [];
   if (!itens.length) return null;
   const alvo = chaveTitulo(titulo);
-  // prefere o item cujo nome bate inteiro, senão o primeiro (o Steam já ordena)
+  // nome igual; senão um contém o outro ("Expedition 33" ↔ "Clair Obscur: Expedition 33").
+  // Antes caía no 1º resultado da busca, que podia ser outro jogo.
   const exato = itens.find(i => chaveTitulo(i.name) === alvo);
-  return String((exato || itens[0]).id || '') || null;
+  const parecido = exato || itens.find(i => {
+    const k = chaveTitulo(i.name);
+    return k.length >= 5 && alvo.length >= 5 && (k.includes(alvo) || alvo.includes(k));
+  });
+  return parecido ? String(parecido.id || '') || null : null;
 }
 
 /**
@@ -259,9 +265,10 @@ async function baixarArquivo(url, destino) {
   const timer = setTimeout(() => ctrl.abort(), 120000);
   const tmp = destino + '.part';
   try {
+    const steam = /steamstatic\.com/i.test(url);
     const res = await fetch(url, {
       signal: ctrl.signal,
-      headers: { 'User-Agent': UA, Accept: 'video/*', Referer: 'https://store.steampowered.com/' }
+      headers: { 'User-Agent': UA, Accept: 'video/*', ...(steam ? { Referer: 'https://store.steampowered.com/' } : {}) }
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const total = Number(res.headers.get('content-length') || 0);
@@ -277,6 +284,28 @@ async function baixarArquivo(url, destino) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** Steam: MP4 direto (trailers antigos) ou HLS montado em MP4 (novos). */
+async function viaSteam(jogo, titulo, cache, metaArq) {
+  const appId = (jogo && jogo.steamAppId) || await appIdPorNome(titulo);
+  if (!appId) return { ok: false, motivo: 'não achei esse jogo no Steam' };
+  const trailers = await trailersDoApp(appId);
+  if (!trailers.length) return { ok: false, motivo: 'o Steam não tem trailer desse jogo', appId };
+  let ultimoErro = '';
+  for (const t of trailers.slice(0, 3)) {
+    try {
+      let fonte = '';
+      if (t.mp4 && await mp4Existe(t.mp4)) { await baixarArquivo(t.mp4, cache); fonte = t.mp4; }
+      else if (t.hls) { await baixarHls(t.hls, cache); fonte = t.hls; }
+      else continue;
+      try { fs.writeFileSync(metaArq, JSON.stringify({ appId, nome: t.nome, url: fonte, em: Date.now() })); } catch { /* noop */ }
+      return { ok: true, url: toFileUrl(cache), arquivo: cache, origem: 'steam', appId, nome: t.nome };
+    } catch (e) {
+      ultimoErro = String((e && e.message) || e);
+    }
+  }
+  return { ok: false, motivo: ultimoErro || 'não consegui baixar o trailer desse jogo', appId };
 }
 
 /* ------------------------------------------------------------------ */
@@ -311,33 +340,52 @@ async function resolverVideo(jogo, opts) {
       appId: (jogo && jogo.steamAppId) || doCache.appId || '', nome: doCache.nome || ''
     };
   }
+  // vídeo do YouTube escolhido antes (não gasta a cota de novo)
+  const cacheYt = path.join(videoDir(dir), slug(titulo) + '.yt.json');
+  let ytIgnorados = [];
+  if (o.youtubeKey && fs.existsSync(cacheYt)) {
+    try {
+      const y = JSON.parse(fs.readFileSync(cacheYt, 'utf8'));
+      if (y && y.id) return { ok: true, tipo: 'youtube', youtubeId: y.id, url: fontes.urlEmbed(y.id), origem: 'youtube (cache)', nome: y.nome || '' };
+      ytIgnorados = (y && y.ignorados) || [];      // "Outro vídeo": não repete os recusados
+    } catch { /* cache corrompido: busca de novo */ }
+  }
   if (o.somenteLocal) return { ok: false, motivo: 'sem vídeo local' };
 
-  // 3) Steam
-  try {
-    const appId = (jogo && jogo.steamAppId) || await appIdPorNome(titulo);
-    if (!appId) return { ok: false, motivo: 'não achei esse jogo no Steam' };
-    const trailers = await trailersDoApp(appId);
-    if (!trailers.length) return { ok: false, motivo: 'o Steam não tem trailer desse jogo', appId };
-    // tenta os primeiros: MP4 direto (trailers antigos) ou HLS montado em MP4 (novos)
-    let ultimoErro = '';
-    for (const t of trailers.slice(0, 3)) {
-      try {
-        let fonte = '';
-        if (t.mp4 && await mp4Existe(t.mp4)) { await baixarArquivo(t.mp4, cache); fonte = t.mp4; }
-        else if (t.hls) { await baixarHls(t.hls, cache); fonte = t.hls; }
-        else continue;
-        // guarda de qual trailer/appid veio (diagnóstico e replay do cache)
-        try { fs.writeFileSync(metaArq, JSON.stringify({ appId, nome: t.nome, url: fonte, em: Date.now() })); } catch { /* noop */ }
-        return { ok: true, url: toFileUrl(cache), arquivo: cache, origem: 'steam', appId, nome: t.nome };
-      } catch (e) {
-        ultimoErro = String((e && e.message) || e);
-      }
-    }
-    return { ok: false, motivo: ultimoErro || 'não consegui baixar o trailer desse jogo', appId };
-  } catch (e) {
-    return { ok: false, motivo: String((e && e.message) || e) };
+  // fila de fontes: a primeira que achar vence
+  const ehRom = jogo && jogo.kind === 'rom';
+  const fila = [];
+  if (!ehRom || (jogo && jogo.steamAppId)) fila.push(['Steam', () => viaSteam(jogo, titulo, cache, metaArq)]);
+  if (ehRom && fontes.credenciaisCompletas(o.screenscraper)) {
+    fila.push(['ScreenScraper', async () => {
+      const r = await fontes.videoScreenScraper(jogo, o.screenscraper, o.fetcher);
+      if (!r.ok) return r;
+      await baixarArquivo(r.url, cache);
+      // sem a URL (ela leva as credenciais): só de onde veio
+      try { fs.writeFileSync(metaArq, JSON.stringify({ fonte: 'screenscraper', jogoId: r.jogoId, nome: r.nome, em: Date.now() })); } catch { /* noop */ }
+      return { ok: true, url: toFileUrl(cache), arquivo: cache, origem: 'screenscraper', nome: r.nome };
+    }]);
   }
+  if (o.youtubeKey) {
+    fila.push(['YouTube', async () => {
+      const r = await fontes.buscarYoutube(jogo, o.youtubeKey, o.fetcher, ytIgnorados);
+      if (!r.ok) return r;
+      try { fs.writeFileSync(cacheYt, JSON.stringify({ id: r.youtubeId, nome: r.nome, em: Date.now(), ignorados: ytIgnorados })); } catch { /* noop */ }
+      return { ok: true, tipo: 'youtube', youtubeId: r.youtubeId, url: fontes.urlEmbed(r.youtubeId), origem: 'youtube', nome: r.nome };
+    }]);
+  }
+  if (!fila.length) return { ok: false, motivo: ehRom ? 'configure o ScreenScraper ou o YouTube para vídeos de ROMs' : 'sem fonte de vídeo' };
+  const motivos = [];
+  for (const [nome, tentar] of fila) {
+    try {
+      const r = await tentar();
+      if (r && r.ok) return r;
+      motivos.push(`${nome}: ${(r && r.motivo) || 'sem vídeo'}`);
+    } catch (e) {
+      motivos.push(`${nome}: ${String((e && e.message) || e)}`);
+    }
+  }
+  return { ok: false, motivo: motivos.join(' · ') };
 }
 
 /**

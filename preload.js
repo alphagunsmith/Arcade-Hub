@@ -81,6 +81,8 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
   },
 
   // atualização do app
+  testarFonteVideo: fonte => call('video:testarFonte', fonte),
+  esquecerVideo: id => call('video:esquecer', id),
   updateStatus: () => call('update:get'),
   checkUpdates: () => call('update:check'),
   installUpdate: () => call('update:install'),

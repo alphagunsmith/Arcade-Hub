@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <!-- img-src PRECISA de https: as miniaturas de capa vêm da Steam, Libretro, Wikipedia
      e SteamGridDB. Sem isso o seletor de capas mostrava todos os quadros quebrados. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' file: data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; media-src 'self' file: http://127.0.0.1:*; object-src 'none'; base-uri 'none'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' file: data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; media-src 'self' file: http://127.0.0.1:*; frame-src https://www.youtube-nocookie.com https://www.youtube.com; object-src 'none'; base-uri 'none'" />
 <title>Arcade Hub</title>
 <link rel="stylesheet" href="styles.css" />
 </head>
@@ -125,6 +125,7 @@
             <div class="row">
               <button class="primary-btn" id="rondel-play">Jogar</button>
               <button class="ghost-btn" id="rondel-detalhes">Detalhes</button>
+              <button class="ghost-btn" id="rondel-outro" hidden title="O YouTube escolheu o vídeo errado? Pega o próximo da busca">Outro vídeo</button>
             </div>
           </div>
           <div class="rondel-barra" aria-hidden="true"><i></i></div>
@@ -384,6 +385,46 @@
           <button class="ghost-btn" id="add-videofolder">+ Escolher pasta</button>
         </div>
         <ul class="path-list" id="list-videofolder"></ul>
+
+        <div class="panel-head" style="margin-top:22px">
+          <div>
+            <h3>Vídeos de outras fontes</h3>
+            <p class="muted small">Quando o Steam não tem o vídeo (jogos de console, ROMs), o Arcade Hub tenta estas fontes. A pasta acima sempre vem primeiro.</p>
+          </div>
+        </div>
+        <div class="fonte-video">
+          <div class="fonte-topo"><b>YouTube</b><span class="muted small">trailer de qualquer jogo · toca pela internet</span><span class="fonte-estado" id="yt-estado"></span></div>
+          <div class="fonte-campos">
+            <input type="password" id="yt-key" placeholder="Chave da API do YouTube (começa com AIza…)" autocomplete="off" spellcheck="false" />
+            <button class="ghost-btn" id="yt-testar">Salvar e testar</button>
+          </div>
+          <details class="fonte-ajuda"><summary>Como conseguir a chave (grátis, uns 3 minutos)</summary>
+            <ol>
+              <li>Abra <b>console.cloud.google.com</b> e entre com sua conta Google.</li>
+              <li>Crie um projeto (qualquer nome, ex.: "Arcade Hub").</li>
+              <li>Em <b>APIs e serviços › Biblioteca</b>, procure <b>YouTube Data API v3</b> e clique em <b>Ativar</b>.</li>
+              <li>Em <b>APIs e serviços › Credenciais</b>, clique em <b>Criar credenciais › Chave de API</b>.</li>
+              <li>Copie a chave e cole aqui. A cota grátis dá para buscar uns 100 vídeos por dia — cada jogo só busca uma vez.</li>
+            </ol>
+          </details>
+        </div>
+        <div class="fonte-video">
+          <div class="fonte-topo"><b>ScreenScraper</b><span class="muted small">gameplay de ROMs, os mesmos vídeos do EmulationStation</span><span class="fonte-estado" id="ss-estado"></span></div>
+          <div class="fonte-campos grade-2">
+            <input type="text" id="ss-usuario" placeholder="Usuário do ScreenScraper" autocomplete="off" spellcheck="false" />
+            <input type="password" id="ss-senha" placeholder="Senha" autocomplete="off" />
+            <input type="text" id="ss-devid" placeholder="ID de desenvolvedor" autocomplete="off" spellcheck="false" />
+            <input type="password" id="ss-devsenha" placeholder="Senha de desenvolvedor" autocomplete="off" />
+          </div>
+          <div class="fonte-campos"><span class="muted small">As senhas ficam guardadas cifradas pelo Windows e nunca vão no backup.</span><button class="ghost-btn" id="ss-testar">Salvar e testar</button></div>
+          <details class="fonte-ajuda"><summary>Como conseguir</summary>
+            <ol>
+              <li>Crie uma conta grátis em <b>screenscraper.fr</b> (usuário e senha).</li>
+              <li>O ScreenScraper também exige um <b>ID de desenvolvedor</b> para cada programa. Peça o seu no fórum do site, na seção de desenvolvedores, dizendo que é para o Arcade Hub. É grátis.</li>
+              <li>Preencha os quatro campos e clique em Salvar e testar.</li>
+            </ol>
+          </details>
+        </div>
       </div>
 
       <div class="tab-panel" data-panel="emulators" hidden>

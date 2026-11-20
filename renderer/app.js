@@ -191,6 +191,8 @@ const api = (() => {
     onSessionStart: () => () => {},
     onLibraryChanged: () => () => {},
     setFullscreen: () => reply(true),
+    testarFonteVideo: () => reply({ ok: false, motivo: 'disponível só no app instalado' }),
+    esquecerVideo: () => reply(true),
     win: { min: () => {}, max: () => {}, close: () => {} }
   };
 })();
@@ -1599,6 +1601,15 @@ function montarRondel(games) {
     jogar.dataset.ligado = '1';
     jogar.onclick = () => { const g = atual(); if (g) launch(g); };
     det.onclick = () => { const g = atual(); if (g) openDetail(g); };
+    const outro = $('#rondel-outro');
+    if (outro) outro.onclick = async () => {
+      const g = atual();
+      if (!g || !api.esquecerVideo) return;
+      outro.hidden = true;
+      await api.esquecerVideo(g.id);
+      toast('Procurando outro vídeo…', 'ok');
+      Rondel.recarregarVideo();
+    };
     $('#rondel-esq').onclick = () => Rondel.anterior();
     $('#rondel-dir').onclick = () => Rondel.proximo();
   }
@@ -2260,6 +2271,7 @@ function openSettings() {
     toast('Skin aplicada', 'ok');
   };
   $('#opt-sgdb').value = s.sgdbKey || '';
+  ligarFontesDeVideo(s);
   $('#opt-launchers').checked = s.includeStoreLaunchers !== false;
   $('#opt-autoscan').checked = s.autoScan !== false;
   $('#opt-tray').checked = s.minimizarAoJogar !== false;
@@ -2928,6 +2940,46 @@ function startGamepadLoop() {
   window.addEventListener('gamepadconnected', () => {
     toast('Controle conectado — direcional navega, A abre as informações, X inicia o jogo, B volta', 'ok');
   });
+}
+
+/* ---------- fontes de vídeo (Ajustes › Pastas) ---------- */
+function ligarFontesDeVideo(s) {
+  const ss = s.screenscraper || {};
+  $('#yt-key').value = s.youtubeKey || '';
+  $('#ss-usuario').value = ss.usuario || '';
+  $('#ss-devid').value = ss.devid || '';
+  $('#ss-senha').value = '';
+  $('#ss-devsenha').value = '';
+  $('#ss-senha').placeholder = ss.temSenha ? 'Senha (guardada — deixe vazio para manter)' : 'Senha';
+  $('#ss-devsenha').placeholder = ss.temDevSenha ? 'Senha de dev. (guardada)' : 'Senha de desenvolvedor';
+  const estado = (sel, txt, bom) => { const e = $(sel); e.textContent = txt; e.className = 'fonte-estado' + (bom === true ? ' bom' : bom === false ? ' ruim' : ''); };
+  estado('#yt-estado', s.youtubeKey ? 'configurado' : 'desligado', s.youtubeKey ? true : null);
+  estado('#ss-estado', ss.usuario && ss.devid && ss.temSenha && ss.temDevSenha ? 'configurado' : 'desligado', ss.usuario && ss.temSenha ? true : null);
+  const testar = async (fonte, sel, botao) => {
+    estado(sel, 'testando…');
+    botao.disabled = true;
+    const r = await api.testarFonteVideo(fonte);
+    botao.disabled = false;
+    const d = r && r.ok ? r.data : { ok: false, motivo: (r && r.error) || 'falhou' };
+    estado(sel, d.ok ? (d.info || 'funcionando') : d.motivo, !!d.ok);
+  };
+  $('#yt-testar').onclick = async () => {
+    const r = await api.saveSettings({ youtubeKey: $('#yt-key').value });
+    if (!r.ok) return toast(r.error, 'err');
+    ui.state = r.data;
+    if (!$('#yt-key').value.trim()) return estado('#yt-estado', 'desligado', null);
+    testar('youtube', '#yt-estado', $('#yt-testar'));
+  };
+  $('#ss-testar').onclick = async () => {
+    const r = await api.saveSettings({ screenscraper: {
+      usuario: $('#ss-usuario').value, devid: $('#ss-devid').value,
+      senha: $('#ss-senha').value, devsenha: $('#ss-devsenha').value
+    } });
+    if (!r.ok) return toast(r.error, 'err');
+    ui.state = r.data;
+    $('#ss-senha').value = ''; $('#ss-devsenha').value = '';
+    testar('screenscraper', '#ss-estado', $('#ss-testar'));
+  };
 }
 
 /* ---------- tamanho dos cards ---------- */

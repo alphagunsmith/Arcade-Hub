@@ -1939,3 +1939,26 @@ body[data-layout="rondel"] .content { overflow: hidden; }
 .rondel-seta.dir { right: 2vw; }
 .rondel-contador { right: 3vw; bottom: 2.4vh; }
 .rondel-dica { position: absolute; left: 0; right: 0; bottom: 2.2vh; margin: 0; pointer-events: none; }
+
+/* vídeo do YouTube no destaque do rondel: 16:9 cobrindo a faixa larga (corta em cima/embaixo) */
+.rondel-arte iframe.rondel-yt {
+  position: absolute; z-index: 1; border: 0; pointer-events: none;
+  left: 50%; top: 50%; width: max(100%, calc(var(--rd-topo-h, 50vh) * 16 / 9)); aspect-ratio: 16 / 9; height: auto;
+  transform: translate(-50%, -50%) scale(1.02);
+}
+.rondel-arte.tocando.retrato > img:not(.rondel-poster) { opacity: 0; }
+
+/* fontes de vídeo (Ajustes › Pastas) */
+.fonte-video { margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: var(--input-bg); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+.fonte-topo { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.fonte-topo b { font-size: 13px; }
+.fonte-estado { margin-left: auto; font-size: 11.5px; color: var(--muted); }
+.fonte-estado.bom { color: var(--good); }
+.fonte-estado.ruim { color: #fda4af; }
+.fonte-campos { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+.fonte-campos input { flex: 1; min-width: 0; height: 34px; padding: 0 11px; border-radius: 9px; background: var(--bg, #0b0f16); border: 1px solid var(--line-strong); color: var(--text); outline: none; user-select: text; }
+.fonte-campos input:focus { border-color: var(--accent-55); box-shadow: 0 0 0 3px rgba(34,211,238,.1); }
+.fonte-campos input::placeholder { color: var(--muted); }
+.fonte-campos.grade-2 { display: grid; grid-template-columns: 1fr 1fr; }
+.fonte-ajuda summary { cursor: pointer; font-size: 12px; color: var(--accent); }
+.fonte-ajuda ol { margin: 8px 0 0; padding-left: 20px; font-size: 12px; color: var(--muted); line-height: 1.6; }

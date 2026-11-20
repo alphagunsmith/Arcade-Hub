@@ -2,7 +2,7 @@
 /**
  * Arcade Hub — processo principal do Electron
  */
-const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, nativeImage, session } = require('electron');
 const path = require('path');
 const lib = require('./src/lib');
 
@@ -91,6 +91,16 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // O player embutido do YouTube exige saber de onde vem (sem isso: "Erro 153").
+  // A página do app é file://, que não manda origem; aqui ela se identifica.
+  session.defaultSession.webRequest.onBeforeSendHeaders(
+    { urls: ['https://www.youtube-nocookie.com/*', 'https://www.youtube.com/*'] },
+    (d, cb) => {
+      if (!d.requestHeaders.Referer) d.requestHeaders.Referer = 'https://github.com/alphagunsmith/Arcade-Hub';
+      cb({ requestHeaders: d.requestHeaders });
+    }
+  );
+
   hub = lib.register(ipcMain, { shell, dialog, BrowserWindow, app, store });
   ligarBandejaDuranteOJogo();
   registrarIpcDeAtualizacao();

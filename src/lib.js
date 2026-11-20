@@ -18,6 +18,31 @@ const identity = require('./identity');
 const { VigiaDeSessoes, pastaVigiavel } = require('./sessions');
 const { criarZip, lerZip } = require('./zip');
 const { EventEmitter } = require('events');
+const fontesVideo = require('./fontes-video');
+
+/* Senhas guardadas cifradas pelo sistema (Windows DPAPI via safeStorage). */
+function cifrar(txt) {
+  if (!txt) return '';
+  try {
+    const { safeStorage } = require('electron');
+    if (safeStorage && safeStorage.isEncryptionAvailable()) return 'enc:' + safeStorage.encryptString(String(txt)).toString('base64');
+  } catch { /* fora do Electron (testes) */ }
+  return 'b64:' + Buffer.from(String(txt), 'utf8').toString('base64');
+}
+function decifrar(v) {
+  if (!v) return '';
+  const s = String(v);
+  try {
+    if (s.startsWith('enc:')) return require('electron').safeStorage.decryptString(Buffer.from(s.slice(4), 'base64'));
+    if (s.startsWith('b64:')) return Buffer.from(s.slice(4), 'base64').toString('utf8');
+  } catch { return ''; }
+  return s;
+}
+/** Credenciais do ScreenScraper já decifradas (só no processo principal). */
+function credScreenScraper(settings) {
+  const c = (settings && settings.screenscraper) || {};
+  return { usuario: c.usuario || '', devid: c.devid || '', senha: decifrar(c.senha), devpassword: decifrar(c.devsenha) };
+}
 
 /** Avisos para o main.js (bandeja, janela): 'sessao:inicio', 'sessao:fim'. */
 const eventos = new EventEmitter();
@@ -194,7 +219,9 @@ const DEFAULT_SETTINGS = {
   autoScan: true,           // varre sozinho ao abrir e quando as pastas mudam
   minimizarAoJogar: true,   // esconde na bandeja enquanto o jogo roda
   cardSize: 158,            // largura mínima do card na grade (px)
-  abrirNoModoTV: false      // começa direto no Modo TV (PC ligado na TV)
+  abrirNoModoTV: false,     // começa direto no Modo TV (PC ligado na TV)
+  youtubeKey: '',           // chave da YouTube Data API v3 (vídeos de qualquer jogo)
+  screenscraper: { usuario: '', senha: '', devid: '', devsenha: '' }   // senhas cifradas
 };
 
 /* ------------------------------------------------------------------ */
@@ -1403,8 +1430,10 @@ function exportLibrary(store, targetFile) {
     exportedAt: new Date().toISOString(),
     settings: {
       ...data.settings,
-      // a chave de API é sua — não vai no arquivo por padrão
-      sgdbKey: ''
+      // chaves e senhas são suas — não vão no arquivo
+      sgdbKey: '',
+      youtubeKey: '',
+      screenscraper: { usuario: '', senha: '', devid: '', devsenha: '' }
     },
     games: data.games,
     favorites: data.favorites,
@@ -1477,6 +1506,8 @@ function lerBackup(sourceFile) {
   if (raw.settings && typeof raw.settings === 'object') {
     settings = { ...raw.settings };
     delete settings.sgdbKey;
+    delete settings.youtubeKey;
+    delete settings.screenscraper;
     delete settings.windowBounds;
   }
   return {
@@ -1561,7 +1592,10 @@ function importLibrary(store, sourceFile, mode, backupJaLido) {
   if (b.favorites) d.favorites = [...new Set([...(mode === 'replace' ? [] : d.favorites), ...b.favorites])];
   if (b.hidden) d.hidden = [...new Set([...(mode === 'replace' ? [] : d.hidden), ...b.hidden])];
   if (b.settings && mode === 'replace') {
-    d.settings = { ...d.settings, ...b.settings, sgdbKey: d.settings.sgdbKey, windowBounds: d.settings.windowBounds };
+    d.settings = {
+      ...d.settings, ...b.settings, sgdbKey: d.settings.sgdbKey, windowBounds: d.settings.windowBounds,
+      youtubeKey: d.settings.youtubeKey, screenscraper: d.settings.screenscraper
+    };
     d.settings.emulators = { ...defaultEmulators(), ...(d.settings.emulators || {}) };
   }
   if (b.genreCache) d.genreCache = { ...d.genreCache, ...b.genreCache };
@@ -1958,6 +1992,8 @@ function register(ipcMain, deps) {
     const d = store.load();
     const settings = { ...d.settings };
     settings.emulators = { ...settings.emulators };
+    const ss = settings.screenscraper || {};
+    settings.screenscraper = { usuario: ss.usuario || '', devid: ss.devid || '', temSenha: !!ss.senha, temDevSenha: !!ss.devsenha };
     return {
       games: d.games,
       favorites: d.favorites,
@@ -1985,6 +2021,21 @@ function register(ipcMain, deps) {
 
   ipcMain.handle('settings:save', (_e, patch) => {
     try {
+      if (patch && patch.screenscraper) {
+        const atual = store.settings.screenscraper || {};
+        const novo = patch.screenscraper;
+        patch = {
+          ...patch,
+          screenscraper: {
+            usuario: novo.usuario != null ? String(novo.usuario).trim() : (atual.usuario || ''),
+            devid: novo.devid != null ? String(novo.devid).trim() : (atual.devid || ''),
+            // senha vazia = mantém a guardada; "-" = apaga
+            senha: novo.senha === '-' ? '' : novo.senha ? cifrar(novo.senha) : (atual.senha || ''),
+            devsenha: novo.devsenha === '-' ? '' : novo.devsenha ? cifrar(novo.devsenha) : (atual.devsenha || '')
+          }
+        };
+      }
+      if (patch && 'youtubeKey' in patch) patch = { ...patch, youtubeKey: String(patch.youtubeKey || '').trim() };
       store.saveSettings(patch || {});
       // mudou emulador/pasta? recalcula quais jogos estão quebrados
       if (patch && (patch.emulators || patch.retroarch || patch.folders || patch.romFolders)) {
@@ -2519,12 +2570,43 @@ function register(ipcMain, deps) {
         {
           title: g.title || title, id: g.id || id,
           // jogo da Steam: usa o appid da própria loja (mais certeiro que buscar pelo nome)
-          steamAppId: g.steamAppId || (g.launch && g.launch.type === 'steam' && g.launch.appId) || steamAppId
+          steamAppId: g.steamAppId || (g.launch && g.launch.type === 'steam' && g.launch.appId) || steamAppId,
+          kind: g.kind, platform: g.platform, platformKey: g.platformKey || (g.launch && g.launch.platform),
+          rom: g.launch && g.launch.rom
         },
-        { dataDir: store.dir, localDir: store.settings.videoFolder }
+        {
+          dataDir: store.dir, localDir: store.settings.videoFolder,
+          youtubeKey: store.settings.youtubeKey || '',
+          screenscraper: credScreenScraper(store.settings)
+        }
       );
       return ok(r);
     } catch (e) { return ok({ ok: false, motivo: String((e && e.message) || e) }); }
+  });
+
+  // botão "Testar" das fontes de vídeo nos ajustes
+  ipcMain.handle('video:testarFonte', async (_e, fonte) => {
+    try {
+      if (fonte === 'youtube') return ok(await fontesVideo.testarYoutube(store.settings.youtubeKey || ''));
+      if (fonte === 'screenscraper') return ok(await fontesVideo.testarScreenScraper(credScreenScraper(store.settings)));
+      return ok({ ok: false, motivo: 'fonte desconhecida' });
+    } catch (e) { return ok({ ok: false, motivo: String((e && e.message) || e) }); }
+  });
+
+  // "Trocar vídeo": apaga o vídeo guardado do jogo para buscar de novo
+  ipcMain.handle('video:esquecer', (_e, id) => {
+    try {
+      const g = store.games.find(x => x.id === id);
+      if (!g) return ok(false);
+      const base = path.join(videos.videoDir(store.dir), videos.slug(g.title));
+      // YouTube: guarda o vídeo recusado para a próxima busca pular ele
+      try {
+        const y = JSON.parse(fs.readFileSync(base + '.yt.json', 'utf8'));
+        if (y && y.id) fs.writeFileSync(base + '.yt.json', JSON.stringify({ ignorados: [...(y.ignorados || []), y.id] }));
+      } catch { /* não era do YouTube */ }
+      for (const ext of ['.mp4', '.json']) { try { fs.unlinkSync(base + ext); } catch { /* não existia */ } }
+      return ok(true);
+    } catch (e) { return fail(e); }
   });
 
   // reserva quando o Chromium recusa file:// no <video>
@@ -2588,7 +2670,7 @@ function register(ipcMain, deps) {
 }
 
 module.exports = {
-  DEFAULT_SETTINGS, Store, runScan, runScanAsync, registrarSessao, eventos, limparCacheLojas, launchersCacheados, extrairCapas, caminhoDeFileUrl, collectScan, finishScan, mergeScanned, buildLaunchPlan, register, genres,
+  DEFAULT_SETTINGS, Store, cifrar, decifrar, credScreenScraper, runScan, runScanAsync, registrarSessao, eventos, limparCacheLojas, launchersCacheados, extrairCapas, caminhoDeFileUrl, collectScan, finishScan, mergeScanned, buildLaunchPlan, register, genres,
   dedupeGames, installKey, markInstalled, dirOf, exeOf, startSession,
   detectLaunchers, refreshProblems, detectEmulators, retroarchCores, KNOWN_EMULATORS,
   cancelBatches, resetBatch, batchCancelled, exportLibrary, importLibrary, lerBackup, programasDoBackup, sanitizeLaunch, urlPermitida, refineDiscPlatform, fmtDuration,

@@ -1,5 +1,16 @@
 # Novidades
 
+## 1.0.7
+
+**Vídeos de outras fontes além do Steam**
+- **YouTube:** com uma chave grátis do Google (Ajustes › Pastas), jogos que não estão no Steam ganham trailer. Para ROMs o app procura um vídeo de gameplay da plataforma. O vídeo toca pela internet, sem som e em loop, e a busca é feita uma vez só por jogo para poupar a cota.
+- O app ignora vídeos de reação, review e afins, e só aceita um resultado com o nome do jogo no título.
+- Botão **Outro vídeo** no rondel: se o YouTube escolheu o vídeo errado, ele descarta esse e busca o próximo.
+- **ScreenScraper:** para ROMs, baixa o mesmo vídeo de gameplay que o EmulationStation usa (identifica pelo sistema, nome do arquivo e CRC). Precisa de conta no screenscraper.fr e de um ID de desenvolvedor.
+- Ordem de busca: sua pasta de vídeos → Steam → ScreenScraper (ROMs) → YouTube.
+- As senhas do ScreenScraper ficam cifradas pelo Windows. A chave do YouTube e a conta do ScreenScraper nunca vão no backup.
+- Quando nenhuma fonte acha o vídeo, o motivo de cada uma aparece em português (chave inválida, cota do dia esgotada etc.).
+
 ## 1.0.6
 
 **Vídeos dos jogos voltaram**
