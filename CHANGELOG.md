@@ -1,5 +1,14 @@
 # Novidades
 
+## 1.0.5
+
+**Rondel de ponta a ponta**
+- O rondel ocupa a janela inteira, de uma borda à outra.
+- O destaque fica na metade de cima. Quando a capa é em pé, ela aparece nítida à direita, sobre o fundo desfocado.
+- A roda fica na metade de baixo. O card do centro é grande e os vizinhos vão encolhendo até as duas bordas. Quantos cabem depende da largura da janela: 13 jogos em 1600 px e 9 em 1280 px.
+- Os cards de trás ficam sólidos e só escurecem com a distância. Antes eram transparentes e um vazava no outro.
+- Corrigido o "NaNh jogadas" no destaque, que agora mostra o tempo de jogo certo.
+
 ## 1.0.4
 - As capas da abertura do Modo TV são sorteadas da biblioteca inteira a cada vez que você entra, em posições diferentes.
 - Jogos adicionados desde a última abertura têm lugar garantido na próxima.

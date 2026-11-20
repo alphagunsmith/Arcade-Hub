@@ -49,29 +49,55 @@ const Rondel = (() => {
     return deltaDe(i) * (Math.PI / (VISIVEIS + 1.35));
   }
 
+  /**
+   * Geometria "de ponta a ponta": o card do centro tem a altura do palco e cada
+   * vizinho encolhe um pouco e encosta no anterior (com leve sobreposição), até
+   * alcançar as DUAS bordas da janela. Quantos cabem depende da largura: numa
+   * tela larga aparecem mais jogos de cada lado.
+   */
+  function geometria(roda) {
+    const W = roda.clientWidth || 1200;
+    const H = roda.clientHeight || 300;
+    const hC = Math.max(150, Math.min(H * 0.84, 460));
+    const wC = hC * 0.75;                                  // cards são 3:4
+    const escala = k => Math.max(0.4, Math.pow(0.85, k));
+    const pos = [0];
+    for (let k = 1; k < 40; k++) {
+      const wAnt = wC * escala(k - 1), wK = wC * escala(k);
+      pos[k] = pos[k - 1] + (wAnt / 2 + wK / 2) * 0.8 + Math.max(6, W * 0.004);
+      if (pos[k] - wK / 2 > W / 2) break;                  // este já encosta/passa da borda
+    }
+    return { W, H, wC, hC, escala, pos, maxK: pos.length - 1 };
+  }
+
   function aplicar() {
     const roda = document.getElementById('rondel-roda');
     if (!roda) return;
-    // O raio tem de deixar o card de ±1 bem visível e o de ±2/±3 morrendo na
-    // borda — se passar disso, os cards vazam para fora da janela.
-    const raio = Math.min(340, Math.max(150, roda.clientWidth * 0.24));
+    const g = geometria(roda);
+    roda.style.setProperty('--rd-w', g.wC.toFixed(1) + 'px');
+    roda.style.setProperty('--rd-h', g.hC.toFixed(1) + 'px');
     const cards = [...roda.querySelectorAll('.rondel-card')];
 
     for (const card of cards) {
       const i = Number(card.dataset.idx);
       const delta = deltaDe(i);
       const abs = Math.abs(delta);
-      const ang = delta * (Math.PI / (VISIVEIS + 1.35));
-      const dx = Math.sin(ang) * raio;
-      const s = 0.55 + 0.45 * Math.cos(ang);
-      // queda suave: 1.0 no centro, ~.72 em ±1, ~.45 em ±2, ~.22 em ±3
-      const opacidade = abs > VISIVEIS ? 0 : Math.max(0.22, 1 - abs * 0.26);
-      const visivel = abs <= VISIVEIS;
+      const lado = Math.sign(delta);
+      const visivel = abs <= g.maxK;
+      // fora da tela: estaciona logo depois da borda, para entrar deslizando
+      const k = Math.min(abs, g.maxK + 1);
+      const x = k <= g.maxK ? g.pos[k] : g.pos[g.maxK] + g.wC * g.escala(g.maxK);
+      const s = g.escala(k);
+      const giro = abs === 0 ? 0 : -lado * Math.min(34, 16 + abs * 3);   // os lados olham para o centro
+      // sólidos (sem transparência, senão um card vaza no outro): só escurecem com a distância
+      const brilho = abs === 0 ? 1 : Math.max(0.38, 0.82 - (abs - 1) * 0.08);
+      const capa = card.firstElementChild;
+      if (capa) capa.style.filter = abs === 0 ? '' : `brightness(${brilho.toFixed(2)}) saturate(${Math.max(0.6, 1 - abs * 0.06).toFixed(2)})`;
 
       card.style.transform =
-        `translate3d(calc(-50% + ${dx.toFixed(1)}px), -50%, 0) scale(${s.toFixed(3)}) rotateY(${(-ang * 0.45).toFixed(3)}rad)`;
-      card.style.opacity = visivel ? opacidade.toFixed(3) : '0';
-      card.style.zIndex = String(100 - abs);
+        `translate3d(calc(-50% + ${(lado * x).toFixed(1)}px), -50%, ${(-abs * 30)}px) rotateY(${giro}deg) scale(${s.toFixed(3)})`;
+      card.style.opacity = visivel ? '1' : '0';
+      card.style.zIndex = String(200 - abs);
       card.style.pointerEvents = visivel ? 'auto' : 'none';
       card.classList.toggle('centro', abs === 0);
       card.classList.toggle('lado', abs > 0);
@@ -92,14 +118,15 @@ const Rondel = (() => {
     const meta = document.getElementById('rondel-meta');
     if (!arte) return;
     arte.innerHTML = '';
-    arte.classList.remove('tocando');
+    arte.classList.remove('tocando', 'retrato');
     if (titulo) titulo.textContent = jogo ? jogo.title : '';
     if (meta) {
       const partes = [];
       if (jogo) {
         if (jogo.platform) partes.push(jogo.platform);
         if (jogo.meta && jogo.meta.score) partes.push(`nota ${jogo.meta.score}`);
-        if (jogo.playtime) partes.push(`${Math.round(jogo.playtime / 3600)}h jogadas`);
+        const ms = jogo.playtime && jogo.playtime.totalMs;
+        if (ms) partes.push(`${typeof fmtPlaytime === 'function' ? fmtPlaytime(ms) : Math.round(ms / 36e5) + 'h'} jogadas`);
       }
       meta.textContent = partes.join(' · ');
     }
@@ -108,6 +135,19 @@ const Rondel = (() => {
       const img = document.createElement('img');
       img.src = jogo.art;
       img.alt = jogo.title;
+      // capa em pé (a maioria): o fundo vira a capa desfocada e a capa aparece
+      // nítida à direita, em vez de esticada e cortada na faixa larga
+      img.onload = () => {
+        if (img.naturalWidth / Math.max(1, img.naturalHeight) > 1.2) return;   // paisagem: cobre tudo
+        arte.classList.add('retrato');
+        if (!arte.querySelector('.rondel-poster')) {
+          const poster = document.createElement('img');
+          poster.className = 'rondel-poster';
+          poster.src = jogo.art;
+          poster.alt = '';
+          arte.appendChild(poster);
+        }
+      };
       arte.appendChild(img);
     } else {
       const vazio = document.createElement('div');

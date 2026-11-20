@@ -1875,3 +1875,67 @@ body.modo-tv .toasts { bottom: 11vh; }
   font-weight: 650; transition: opacity .25s, transform .25s;
 }
 .tv-avisos.on { opacity: 1; transform: translate(-50%, 0); }
+
+
+/* ================= 1.0.5 — rondel de ponta a ponta ================= */
+/* ocupa a janela inteira: sai do respiro lateral do conteúdo e vai até as bordas */
+body[data-layout="rondel"] .content { overflow: hidden; }
+.rondel {
+  margin: -52px -26px -40px;
+  height: 100vh;
+  gap: 0;
+  position: relative;
+}
+.rondel-topo {
+  flex: 0 0 50%;
+  height: auto;
+  border-radius: 0;
+  border: 0;
+  background: #05070c;
+  -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
+}
+.rondel-fade {
+  background:
+    linear-gradient(90deg, rgba(6,8,12,.95) 0%, rgba(6,8,12,.7) 34%, rgba(6,8,12,.15) 70%, rgba(6,8,12,.35) 100%),
+    linear-gradient(0deg, rgba(6,8,12,.9), transparent 50%);
+}
+.rondel-info { left: 4vw; bottom: 16%; right: auto; max-width: min(46vw, 760px); gap: 10px; }
+.rondel-info h2 { font-size: clamp(26px, 3.4vw, 60px); line-height: 1.04; letter-spacing: -.01em; }
+.rondel-info .muted { font-size: clamp(12px, .95vw, 16px); }
+/* capa em pé: fundo desfocado + pôster nítido à direita */
+.rondel-arte.retrato > img:not(.rondel-poster) { filter: blur(28px) saturate(1.25) brightness(.62); transform: scale(1.18); }
+.rondel-arte img.rondel-poster {
+  position: absolute; z-index: 4; left: auto; bottom: auto;
+  right: 6vw; top: 50%; transform: translateY(-50%);
+  height: 72%; width: auto; aspect-ratio: auto;
+  object-fit: contain; border-radius: 14px; opacity: 1;
+  box-shadow: 0 30px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.1);
+  transition: opacity .45s ease;
+}
+.rondel-arte.tocando .rondel-poster { opacity: 0; }
+.rondel-barra { bottom: 0; }
+
+.rondel-palco {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 180px;
+  margin-top: -2vh;
+  perspective: 1600px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
+}
+.rondel-roda { top: 0; bottom: 9%; }
+.rondel-card,
+.rondel-card.centro { width: var(--rd-w, 132px); height: var(--rd-h, 176px); }
+.rondel-card { transition: transform .42s cubic-bezier(.2,.8,.2,1), opacity .3s ease; }
+.rondel-card .rondel-capa { border-radius: 12px; box-shadow: 0 24px 44px -20px rgba(0,0,0,.9); transition: filter .3s ease; }
+.rondel-card.centro .rondel-capa {
+  box-shadow: 0 0 0 2px var(--accent), 0 0 46px -6px var(--accent), 0 30px 60px -24px rgba(0,0,0,.9);
+}
+.rondel-card .rondel-nome { font-size: clamp(11px, .85vw, 15px); top: calc(100% + 10px); }
+.rondel-seta { width: 48px; height: 48px; background: rgba(15,20,30,.7); backdrop-filter: blur(6px); }
+.rondel-seta.esq { left: 2vw; }
+.rondel-seta.dir { right: 2vw; }
+.rondel-contador { right: 3vw; bottom: 2.4vh; }
+.rondel-dica { position: absolute; left: 0; right: 0; bottom: 2.2vh; margin: 0; pointer-events: none; }
