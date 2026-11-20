@@ -161,11 +161,11 @@ async function trailersDoApp(appId) {
     return {
       nome: m.name || '',
       mp4,
-      // reserva: fica registrado de onde veio, para diagnóstico
-      manifesto: m.hls_h264 || m.dash_h264 || '',
+      // trailers enviados a partir de 2025 não têm MP4 no CDN: só HLS/DASH
+      hls: m.hls_h264 || '',
       destacado: !!m.highlight
     };
-  }).filter(m => m && m.mp4);
+  }).filter(m => m && (m.mp4 || m.hls));
   return lista.sort((a, b) => Number(b.destacado) - Number(a.destacado));
 }
 
@@ -178,6 +178,80 @@ async function mp4Existe(url) {
     clearTimeout(t);
     return r.ok && /video/i.test(r.headers.get('content-type') || '');
   } catch { return false; }
+}
+
+/* ------------------------------------------------------------------ */
+/* HLS → MP4 (trailers novos do Steam)                                 */
+/* ------------------------------------------------------------------ */
+
+async function fetchTexto(url) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': UA, Referer: 'https://store.steampowered.com/' } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.text();
+  } finally { clearTimeout(timer); }
+}
+
+async function fetchBuffer(url) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 60000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': UA, Referer: 'https://store.steampowered.com/' } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return Buffer.from(await res.arrayBuffer());
+  } finally { clearTimeout(timer); }
+}
+
+/** Escolhe a variante de vídeo: 720p se houver, senão a maior abaixo disso, senão a menor. */
+function escolherVariante(master, baseUrl) {
+  const linhas = master.split(/\r?\n/);
+  const opcoes = [];
+  for (let i = 0; i < linhas.length; i++) {
+    const m = /^#EXT-X-STREAM-INF:(.*)$/.exec(linhas[i]);
+    if (!m) continue;
+    const alt = /RESOLUTION=\d+x(\d+)/.exec(m[1]);
+    const uri = (linhas[i + 1] || '').trim();
+    if (uri && !uri.startsWith('#')) opcoes.push({ altura: alt ? Number(alt[1]) : 0, url: new URL(uri, baseUrl).href });
+  }
+  if (!opcoes.length) return null;
+  const ate720 = opcoes.filter(o => o.altura && o.altura <= 720).sort((a, b) => b.altura - a.altura);
+  return (ate720[0] || opcoes.sort((a, b) => a.altura - b.altura)[0]).url;
+}
+
+/**
+ * Baixa um trailer HLS (fMP4) e junta num MP4 só, que o <video> toca do disco.
+ * Os segmentos .m4s são pedaços de um MP4 fragmentado: o arquivo de início
+ * (EXT-X-MAP) seguido dos pedaços, em ordem, já é um MP4 válido.
+ * Só o vídeo (o rondel toca sem som), então não precisa juntar o áudio.
+ */
+async function baixarHls(masterUrl, destino) {
+  const master = await fetchTexto(masterUrl);
+  const varUrl = escolherVariante(master, masterUrl);
+  if (!varUrl) throw new Error('trailer sem variante de vídeo');
+  const lista = await fetchTexto(varUrl);
+  if (/#EXT-X-KEY:METHOD=(?!NONE)/.test(lista)) throw new Error('trailer protegido');
+  const mapa = /#EXT-X-MAP:URI="([^"]+)"/.exec(lista);
+  if (!mapa) throw new Error('trailer em formato antigo (TS), não suportado');
+  const pedacos = lista.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'))
+    .map(u => new URL(u, varUrl).href);
+  if (!pedacos.length) throw new Error('trailer vazio');
+  const urls = [new URL(mapa[1], varUrl).href, ...pedacos];
+  // baixa 4 de cada vez, mantendo a ordem
+  const partes = new Array(urls.length);
+  let total = 0;
+  for (let i = 0; i < urls.length; i += 4) {
+    const lote = await Promise.all(urls.slice(i, i + 4).map(fetchBuffer));
+    lote.forEach((b, j) => { partes[i + j] = b; total += b.length; });
+    if (total > MAX_MB * 1024 * 1024) throw new Error('vídeo grande demais');
+  }
+  const mp4 = Buffer.concat(partes);
+  if (mp4.length < 20000 || mp4.toString('ascii', 4, 8) !== 'ftyp') throw new Error('arquivo de vídeo inválido');
+  const tmp = destino + '.part';
+  fs.writeFileSync(tmp, mp4);
+  fs.renameSync(tmp, destino);
+  return destino;
 }
 
 async function baixarArquivo(url, destino) {
@@ -245,15 +319,22 @@ async function resolverVideo(jogo, opts) {
     if (!appId) return { ok: false, motivo: 'não achei esse jogo no Steam' };
     const trailers = await trailersDoApp(appId);
     if (!trailers.length) return { ok: false, motivo: 'o Steam não tem trailer desse jogo', appId };
-    // tenta os primeiros: trailer antigo pode não ter MP4 no CDN
+    // tenta os primeiros: MP4 direto (trailers antigos) ou HLS montado em MP4 (novos)
+    let ultimoErro = '';
     for (const t of trailers.slice(0, 3)) {
-      if (!(await mp4Existe(t.mp4))) continue;
-      await baixarArquivo(t.mp4, cache);
-      // guarda de qual trailer/appid veio (diagnóstico e replay do cache)
-      try { fs.writeFileSync(metaArq, JSON.stringify({ appId, nome: t.nome, url: t.mp4, em: Date.now() })); } catch { /* noop */ }
-      return { ok: true, url: toFileUrl(cache), arquivo: cache, origem: 'steam', appId, nome: t.nome };
+      try {
+        let fonte = '';
+        if (t.mp4 && await mp4Existe(t.mp4)) { await baixarArquivo(t.mp4, cache); fonte = t.mp4; }
+        else if (t.hls) { await baixarHls(t.hls, cache); fonte = t.hls; }
+        else continue;
+        // guarda de qual trailer/appid veio (diagnóstico e replay do cache)
+        try { fs.writeFileSync(metaArq, JSON.stringify({ appId, nome: t.nome, url: fonte, em: Date.now() })); } catch { /* noop */ }
+        return { ok: true, url: toFileUrl(cache), arquivo: cache, origem: 'steam', appId, nome: t.nome };
+      } catch (e) {
+        ultimoErro = String((e && e.message) || e);
+      }
     }
-    return { ok: false, motivo: 'os trailers desse jogo não estão em MP4', appId };
+    return { ok: false, motivo: ultimoErro || 'não consegui baixar o trailer desse jogo', appId };
   } catch (e) {
     return { ok: false, motivo: String((e && e.message) || e) };
   }
@@ -319,6 +400,7 @@ function iniciarServidorVideos(dir, porta) {
 }
 
 module.exports = {
+  baixarHls, escolherVariante,
   resolverVideo, procurarLocal, chaveTitulo, slug, videoDir, videoLocalDir,
   appIdPorNome, trailersDoApp, mp4Existe, iniciarServidorVideos, toFileUrl, VIDEO_EXT
 };

@@ -1,5 +1,13 @@
 # Novidades
 
+## 1.0.6
+
+**Vídeos dos jogos voltaram**
+- Os trailers enviados ao Steam a partir de 2025 não têm mais versão em MP4, só em streaming (HLS), em pedaços. Por isso os jogos recentes ficavam sem vídeo no rondel.
+- Agora o app baixa os pedaços do trailer em 720p e junta num MP4, que fica guardado e toca sem internet. Trailers antigos continuam vindo direto em MP4.
+- Os jogos da Steam usam o próprio ID da loja para achar o trailer, em vez de buscar pelo nome.
+- Jogos que não estão na Steam (ex.: de PSP) continuam podendo usar um vídeo seu: aponte a pasta em Ajustes › Pastas e salve o arquivo com o nome do jogo.
+
 ## 1.0.5
 
 **Rondel de ponta a ponta**

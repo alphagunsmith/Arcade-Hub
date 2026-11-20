@@ -2516,7 +2516,11 @@ function register(ipcMain, deps) {
     try {
       const g = (store.games || []).find(x => x.id === id) || { title };
       const r = await videos.resolverVideo(
-        { title: g.title || title, steamAppId: g.steamAppId || steamAppId, id: g.id || id },
+        {
+          title: g.title || title, id: g.id || id,
+          // jogo da Steam: usa o appid da própria loja (mais certeiro que buscar pelo nome)
+          steamAppId: g.steamAppId || (g.launch && g.launch.type === 'steam' && g.launch.appId) || steamAppId
+        },
         { dataDir: store.dir, localDir: store.settings.videoFolder }
       );
       return ok(r);
