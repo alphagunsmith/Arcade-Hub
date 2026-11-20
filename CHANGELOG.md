@@ -1,5 +1,9 @@
 # Novidades
 
+## 1.0.4
+- As capas da abertura do Modo TV são sorteadas da biblioteca inteira a cada vez que você entra, em posições diferentes.
+- Jogos adicionados desde a última abertura têm lugar garantido na próxima.
+
 ## 1.0.3
 
 **Modo TV (no estilo do Big Picture)**

@@ -649,10 +649,31 @@ const ModoTV = (() => {
   /* ------------------------------------------------------------------ */
   /* abrir / fechar                                                      */
   /* ------------------------------------------------------------------ */
+  /**
+   * Capas da abertura: sorteadas a cada vez, da biblioteca inteira (então jogo
+   * novo entra no sorteio sozinho). Os jogos que chegaram desde a última
+   * abertura têm lugar garantido, para você ver os novos aparecendo.
+   */
+  const MAX_CAPAS = 18;
+  const CHAVE_VISTOS = 'arcadehub.abertura.vistos';
+  function embaralhar(lista) {
+    const a = [...lista];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
   function capasParaAbertura() {
     const com = visiveis().filter(g => arte(g));
-    com.sort((a, b) => (msJogado(b) - msJogado(a)) || ((b.playedAt || 0) - (a.playedAt || 0)));
-    return com.slice(0, 18).map(g => ({ src: arte(g), titulo: g.title }));
+    let vistos = null;
+    try { vistos = new Set(JSON.parse(localStorage.getItem(CHAVE_VISTOS) || 'null') || []); } catch { vistos = null; }
+    // primeira abertura: ninguém é "novo", senão todos seriam
+    const novos = vistos && vistos.size ? embaralhar(com.filter(g => !vistos.has(g.id))) : [];
+    const resto = embaralhar(com.filter(g => !novos.includes(g)));
+    const escolhidos = embaralhar([...novos.slice(0, MAX_CAPAS), ...resto].slice(0, MAX_CAPAS));
+    try { localStorage.setItem(CHAVE_VISTOS, JSON.stringify(visiveis().map(g => g.id))); } catch { /* sem storage */ }
+    return escolhidos.map(g => ({ src: arte(g), titulo: g.title }));
   }
 
   function relogio() {
