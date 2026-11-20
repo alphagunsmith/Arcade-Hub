@@ -1620,3 +1620,258 @@ button.barra:hover .barra-nome { color: var(--accent); }
 .stats-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .stats-chips button { padding: 5px 10px; border-radius: 999px; font-size: 11.5px; background: var(--input-bg); border: 1px solid var(--line); color: var(--txt); cursor: pointer; }
 .stats-chips button:hover { border-color: var(--accent-50); }
+
+
+/* ================= 1.0.3 — abertura do Modo TV ================= */
+.intro {
+  position: fixed; inset: 0; z-index: 9999; overflow: hidden; cursor: none;
+  background: radial-gradient(ellipse at 50% 45%, #0f2138 0%, #070c18 52%, #020306 100%);
+}
+.intro::before {
+  content: ""; position: absolute; inset: 0; opacity: .55; pointer-events: none;
+  background-image: radial-gradient(rgba(34, 211, 238, .14) 1px, transparent 1.5px);
+  background-size: 34px 34px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 0%, transparent 72%);
+          mask-image: radial-gradient(ellipse at 50% 45%, #000 0%, transparent 72%);
+}
+.intro-rede { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; filter: drop-shadow(0 0 5px rgba(34, 211, 238, .75)); }
+.intro-fio { fill: none; stroke: url(#ih-fio); stroke-width: 2; stroke-linecap: round; opacity: .9; }
+.intro-capa {
+  position: absolute; border-radius: 10px; overflow: hidden; opacity: 0;
+  background: #0b1220; box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+}
+.intro-capa img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.intro-capa.ligada { box-shadow: 0 0 0 1.5px rgba(34, 211, 238, .85), 0 0 26px rgba(34, 211, 238, .45), 0 14px 34px rgba(0, 0, 0, .55); }
+.intro-capa-reserva { width: 100%; height: 100%; display: grid; place-items: center; font-weight: 800; font-size: 26px; color: rgba(255, 255, 255, .92); letter-spacing: .04em; }
+.intro-logo { position: absolute; }
+.intro-molde, .intro-controle { position: absolute; inset: 0; }
+.intro-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.intro-controle { filter: drop-shadow(0 18px 22px rgba(0, 0, 0, .55)); z-index: 2; }
+.intro-rastro {
+  position: absolute; left: 22%; right: 22%; top: -70%; height: 90%; z-index: 1; pointer-events: none; border-radius: 50%;
+  background: linear-gradient(to bottom, transparent, rgba(34, 211, 238, .35) 70%, rgba(34, 211, 238, .0));
+  filter: blur(10px); transform-origin: 50% 100%;
+}
+.intro-logo.aceso .intro-molde { filter: drop-shadow(0 0 34px rgba(34, 211, 238, .35)); }
+.intro-pulso {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  border: 3px solid rgba(34, 211, 238, .95);
+  box-shadow: 0 0 42px rgba(34, 211, 238, .55), inset 0 0 70px rgba(34, 211, 238, .22);
+}
+.intro-pulso.fino { border-width: 1.5px; border-color: rgba(232, 121, 249, .75); box-shadow: 0 0 26px rgba(232, 121, 249, .4); }
+.intro-ponto {
+  position: absolute; left: 0; top: 0; width: 9px; height: 9px; border-radius: 50%;
+  background: #fff; box-shadow: 0 0 10px #22d3ee, 0 0 24px #22d3ee;
+  offset-anchor: 50% 50%; offset-rotate: 0deg; pointer-events: none;
+}
+.intro-nome {
+  position: absolute; left: 50%; transform: translateX(-50%); opacity: 0; white-space: nowrap;
+  font-size: clamp(20px, 3.3vmin, 36px); font-weight: 800; letter-spacing: .34em; padding-left: .34em;
+  color: #e6f6ff; text-shadow: 0 0 24px rgba(34, 211, 238, .35);
+}
+.intro-nome b { color: #22d3ee; font-weight: 800; }
+
+/* ================= 1.0.3 — Modo TV (Big Picture) ================= */
+.tv {
+  --tv-tile: clamp(128px, 10.6vw, 230px);
+  position: fixed; inset: 0; z-index: 950; overflow: hidden;
+  color: #eef6ff; background: #05080f;
+  font-size: clamp(14px, 1.02vw, 21px);
+  user-select: none;
+}
+.tv[hidden], .tv-secao[hidden], .tv-pagina[hidden], .tv-menu[hidden] { display: none !important; }
+body.modo-tv .toasts, body.modo-tv .update-bar { z-index: 9000; }
+body.modo-tv .toasts { bottom: 11vh; }
+
+.tv-fundo, .tv-fundo-img, .tv-vinheta { position: absolute; inset: 0; pointer-events: none; }
+.tv-fundo-img {
+  inset: -60px; background-size: cover; background-position: center 25%;
+  filter: blur(46px) saturate(1.35) brightness(.5); opacity: 0; transition: opacity .7s ease;
+}
+.tv-fundo-img.on { opacity: 1; }
+.tv-vinheta {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 15, .92) 0%, rgba(5, 8, 15, .35) 55%, rgba(5, 8, 15, .6) 100%),
+    linear-gradient(180deg, rgba(5, 8, 15, .25) 0%, rgba(5, 8, 15, .1) 30%, #05080f 78%);
+}
+
+.tv-topo {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between; padding: 2.4vh 3.4vw;
+}
+.tv-marca { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: .3em; font-size: .78em; }
+.tv-marca svg { width: 2.4em; height: 2.4em; filter: drop-shadow(0 0 14px rgba(34, 211, 238, .35)); }
+.tv-marca b { color: #22d3ee; }
+.tv-abas { display: flex; align-items: center; gap: .4em; }
+.tv-abas button {
+  background: none; border: 0; color: rgba(255, 255, 255, .55); cursor: pointer;
+  font: inherit; font-size: 1.12em; font-weight: 650; padding: .45em 1.1em; border-radius: 999px; transition: all .18s;
+}
+.tv-abas button:hover { color: #fff; }
+.tv-abas button.on { color: #fff; background: rgba(255, 255, 255, .12); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
+.tv-gatilho { font-size: .66em; font-weight: 800; padding: .2em .55em; border-radius: 6px; border: 1px solid rgba(255, 255, 255, .28); color: rgba(255, 255, 255, .6); }
+.tv-status { display: flex; align-items: center; gap: 1em; font-weight: 650; font-size: 1.05em; }
+.tv-pad { font-size: 1.1em; opacity: .85; }
+
+.tv-corpo { position: absolute; top: 11vh; bottom: 8.5vh; left: 0; right: 0; z-index: 1; transition: filter .3s, opacity .3s; }
+.tv.com-pagina .tv-corpo { filter: blur(8px); opacity: .35; }
+
+/* início */
+.tv-inicio { display: flex; flex-direction: column; height: 100%; }
+.tv-destaque { flex: none; height: 34%; display: flex; flex-direction: column; justify-content: flex-end; gap: .55em; padding: 0 4vw; }
+.tv-dest-origem { font-size: .8em; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #22d3ee; }
+.tv-dest-titulo { margin: 0; font-size: clamp(30px, 3.7vw, 70px); font-weight: 800; line-height: 1.04; letter-spacing: -.01em; text-shadow: 0 6px 30px rgba(0, 0, 0, .5); max-width: 22ch; }
+.tv-dest-meta { display: flex; flex-wrap: wrap; gap: .4em 1.4em; color: rgba(255, 255, 255, .78); font-weight: 550; }
+.tv-nota { color: #4ade80; font-weight: 800; }
+.tv-ao-vivo { color: #4ade80; font-weight: 700; }
+.tv-aviso { color: #fbbf24; }
+.tv-dest-desc {
+  margin: .2em 0 0; max-width: 58ch; color: rgba(255, 255, 255, .62); line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 1.45em;
+}
+.tv-fileiras {
+  position: relative; flex: 1; overflow: hidden; margin-top: 3vh; padding-left: 4vw;
+  -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 70%, transparent 100%);
+}
+.tv-fileiras-pista { transition: transform .38s cubic-bezier(.2, .8, .2, 1); }
+.tv-fileira { padding-bottom: 2.4vh; opacity: .5; transition: opacity .25s; }
+.tv-fileira.ativa { opacity: 1; }
+.tv-fileira h2 { margin: 0 0 1.1vh; font-size: 1.08em; font-weight: 700; color: rgba(255, 255, 255, .88); }
+.tv-trilho-faixa {
+  display: flex; column-gap: 1.15vw; padding: 12px 0 6px;
+  transition: transform .32s cubic-bezier(.2, .8, .2, 1);
+}
+
+/* blocos (capas) */
+.tv-bloco {
+  flex: none; width: var(--tv-tile); padding: 0; border: 0; background: none; color: inherit;
+  font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 10px;
+}
+.tv-bloco-capa {
+  position: relative; aspect-ratio: 2 / 3; border-radius: 11px; overflow: hidden;
+  background: #111a2b; box-shadow: 0 10px 26px rgba(0, 0, 0, .45);
+  transition: transform .2s cubic-bezier(.2, .8, .2, 1), box-shadow .2s;
+}
+.tv-bloco-capa img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tv-bloco.foco .tv-bloco-capa {
+  transform: scale(1.09);
+  box-shadow: 0 0 0 3px #fff, 0 0 0 7px rgba(34, 211, 238, .5), 0 22px 46px rgba(0, 0, 0, .65);
+}
+.tv-bloco.foco .tv-bloco-capa::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .22) 45%, transparent 60%);
+  background-size: 250% 100%; animation: tvBrilho 2.6s ease-in-out infinite;
+}
+@keyframes tvBrilho { 0% { background-position: 130% 0; } 55%, 100% { background-position: -60% 0; } }
+.tv-bloco-nome {
+  font-size: .86em; font-weight: 600; color: rgba(255, 255, 255, .72);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .2s, transform .2s;
+}
+.tv-bloco.foco .tv-bloco-nome { opacity: 1; transform: translateY(6px); color: #fff; }
+.tv-bloco.desinstalado .tv-bloco-capa img { filter: grayscale(.9) brightness(.55); }
+.tv-bloco-reserva {
+  width: 100%; height: 100%; display: grid; place-items: center; font-size: 2.3em; font-weight: 800; color: rgba(255, 255, 255, .9);
+  background: linear-gradient(150deg, #1e3a5f, #3b2a6b);
+}
+.tv-selo { position: absolute; top: 8px; right: 8px; font-size: .72em; font-weight: 800; border-radius: 999px; padding: .25em .7em; background: rgba(5, 8, 15, .82); }
+.tv-selo-jogando { color: #4ade80; }
+.tv-selo-fav { color: #fbbf24; padding: .25em .55em; }
+.tv-vazio { color: rgba(255, 255, 255, .5); padding: 2vh 0; }
+
+/* biblioteca */
+.tv-biblioteca { display: flex; flex-direction: column; height: 100%; padding: 0 4vw; }
+.tv-bib-topo { display: flex; align-items: baseline; gap: .8em; }
+.tv-bib-topo h2 { margin: 0; font-size: 2em; font-weight: 800; }
+.tv-bib-conta { color: rgba(255, 255, 255, .55); }
+.tv-bib-grade {
+  flex: 1; overflow-y: auto; display: grid; align-content: start;
+  grid-template-columns: repeat(auto-fill, minmax(var(--tv-tile), 1fr)); gap: 2.4vh 1.3vw;
+  padding: 18px 10px 60px; scrollbar-width: none;
+}
+.tv-bib-grade::-webkit-scrollbar { display: none; }
+.tv-bib-grade .tv-bloco { width: auto; }
+
+/* estatísticas */
+.tv-stats { padding: 1vh 4vw; height: 100%; overflow: hidden; }
+.tv-stats-numeros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2vw; }
+.tv-stats-num { padding: 2.6vh 1.8vw; border-radius: 18px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .08); backdrop-filter: blur(10px); }
+.tv-stats-num b { display: block; font-size: 2.5em; font-weight: 800; letter-spacing: -.01em; }
+.tv-stats-num span { color: rgba(255, 255, 255, .55); font-size: .78em; text-transform: uppercase; letter-spacing: .12em; }
+.tv-stats-top { margin-top: 4vh; max-width: 1100px; }
+.tv-stats-top h2 { margin: 0 0 1.6vh; font-size: 1.3em; }
+.tv-stats-linha { display: flex; align-items: center; gap: 1em; margin: 1.1vh 0; }
+.tv-stats-capa { flex: none; width: 2.6em; height: 3.6em; border-radius: 6px; background: #1b2436 center / cover; }
+.tv-stats-info { flex: 1; display: grid; grid-template-columns: 1fr auto; gap: .35em .8em; align-items: center; }
+.tv-stats-nome { font-weight: 650; }
+.tv-stats-horas { color: rgba(255, 255, 255, .6); font-variant-numeric: tabular-nums; }
+.tv-stats-barra { grid-column: 1 / -1; height: 8px; border-radius: 999px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.tv-stats-barra i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #22d3ee, #a855f7, #e879f9); }
+
+/* dicas de botões */
+.tv-dicas {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 8.5vh; z-index: 2;
+  display: flex; align-items: center; justify-content: flex-end; gap: 2.2vw; padding: 0 3.4vw;
+  background: linear-gradient(0deg, rgba(5, 8, 15, .9), transparent); font-size: .92em; color: rgba(255, 255, 255, .82);
+}
+.tv-dica { display: inline-flex; align-items: center; gap: .45em; white-space: nowrap; }
+.tv-dica .tv-botao + .tv-botao { margin-left: -.1em; }
+.tv-botao {
+  display: inline-grid; place-items: center; min-width: 1.75em; height: 1.75em; padding: 0 .45em; box-sizing: border-box;
+  border-radius: 7px; font-size: .78em; font-weight: 800; color: #fff; background: rgba(255, 255, 255, .16);
+}
+.tv-botao-a, .tv-botao-b, .tv-botao-x, .tv-botao-y { border-radius: 50%; padding: 0; width: 1.75em; }
+.tv-botao-a { background: #16a34a; }
+.tv-botao-b { background: #dc2626; }
+.tv-botao-x { background: #2563eb; }
+.tv-botao-y { background: #ca8a04; }
+.tv-botao-lb, .tv-botao-rb { background: #334155; border-radius: 6px; }
+
+/* página do jogo */
+.tv-pagina {
+  position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; gap: 4.5vw; padding: 9vh 7vw 12vh;
+  background: rgba(5, 8, 15, .55); animation: tvEntra .28s cubic-bezier(.2, .8, .2, 1) both;
+}
+@keyframes tvEntra { from { opacity: 0; transform: scale(1.02); } to { opacity: 1; transform: none; } }
+.tv-pag-capa {
+  flex: none; width: clamp(220px, 23vw, 440px); aspect-ratio: 2 / 3; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .12), 0 40px 80px rgba(0, 0, 0, .65), 0 0 80px rgba(34, 211, 238, .18);
+}
+.tv-pag-capa img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tv-pag-capa .tv-bloco-reserva { font-size: 4em; }
+.tv-pag-info { flex: 1; min-width: 0; max-width: 72ch; }
+.tv-pag-titulo { margin: .25em 0 0; font-size: clamp(34px, 4.3vw, 80px); font-weight: 800; line-height: 1.02; letter-spacing: -.015em; }
+.tv-pag-fatos { display: flex; flex-wrap: wrap; gap: 1.2em 3.2vw; margin: 3.4vh 0 2.6vh; }
+.tv-pag-fatos b { display: block; font-size: 1.55em; font-weight: 800; }
+.tv-pag-fatos span { font-size: .76em; color: rgba(255, 255, 255, .55); text-transform: uppercase; letter-spacing: .12em; }
+.tv-pag-desc { margin: 0; color: rgba(255, 255, 255, .7); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.tv-pag-aviso { color: #fbbf24; margin: 1.4vh 0 0; }
+.tv-pag-botoes { display: flex; flex-wrap: wrap; gap: 1vw; margin-top: 4.4vh; }
+.tv-btn {
+  border: 0; cursor: pointer; font: inherit; font-size: 1.08em; font-weight: 750; color: #fff;
+  padding: 1.5vh 2.4vw; border-radius: 12px; background: rgba(255, 255, 255, .1);
+  transition: transform .16s, box-shadow .16s, background .16s;
+}
+.tv-btn-principal { background: linear-gradient(90deg, #06b6d4, #6366f1); box-shadow: 0 10px 30px rgba(34, 211, 238, .3); }
+.tv-btn.foco { transform: scale(1.06); box-shadow: 0 0 0 3px #fff, 0 12px 34px rgba(0, 0, 0, .45); }
+.tv-btn:not(.tv-btn-principal).foco { background: rgba(255, 255, 255, .2); }
+
+/* menu (Start) */
+.tv-menu { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; background: rgba(3, 5, 10, .62); backdrop-filter: blur(6px); animation: tvEntra .2s ease both; }
+.tv-menu-caixa {
+  width: min(480px, 82vw); padding: 22px; border-radius: 22px;
+  background: rgba(15, 22, 36, .96); border: 1px solid rgba(255, 255, 255, .1); box-shadow: 0 40px 90px rgba(0, 0, 0, .6);
+}
+.tv-menu-titulo { font-size: .75em; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: rgba(255, 255, 255, .5); margin: 4px 8px 12px; }
+.tv-menu-item {
+  display: block; width: 100%; text-align: left; border: 0; cursor: pointer; font: inherit; font-size: 1.08em; font-weight: 600;
+  color: #fff; background: none; padding: 1.05em 1.1em; border-radius: 12px; transition: background .15s;
+}
+.tv-menu-item.foco { background: rgba(34, 211, 238, .16); box-shadow: inset 0 0 0 2px #22d3ee; }
+
+.tv-avisos {
+  position: absolute; left: 50%; bottom: 11vh; z-index: 5; transform: translate(-50%, 12px); opacity: 0; pointer-events: none;
+  padding: .75em 1.5em; border-radius: 999px; background: rgba(15, 22, 36, .94); border: 1px solid rgba(255, 255, 255, .1);
+  font-weight: 650; transition: opacity .25s, transform .25s;
+}
+.tv-avisos.on { opacity: 1; transform: translate(-50%, 0); }

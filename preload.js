@@ -114,5 +114,7 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
     min: () => ipcRenderer.invoke('win:action', 'min'),
     max: () => ipcRenderer.invoke('win:action', 'max'),
     close: () => ipcRenderer.invoke('win:action', 'close')
-  }
+  },
+  // Modo TV: tela cheia
+  setFullscreen: on => ipcRenderer.invoke('win:action', on ? 'fullscreen-on' : 'fullscreen-off')
 });

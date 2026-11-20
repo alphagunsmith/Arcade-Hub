@@ -193,7 +193,8 @@ const DEFAULT_SETTINGS = {
   videoFolder: '',          // pasta com trailers locais (opcional)
   autoScan: true,           // varre sozinho ao abrir e quando as pastas mudam
   minimizarAoJogar: true,   // esconde na bandeja enquanto o jogo roda
-  cardSize: 158             // largura mínima do card na grade (px)
+  cardSize: 158,            // largura mínima do card na grade (px)
+  abrirNoModoTV: false      // começa direto no Modo TV (PC ligado na TV)
 };
 
 /* ------------------------------------------------------------------ */

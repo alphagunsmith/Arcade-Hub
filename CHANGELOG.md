@@ -1,5 +1,32 @@
 # Novidades
 
+## 1.0.3
+
+**Modo TV (no estilo do Big Picture)**
+- Tela cheia, feita para jogar do sofá com controle. Abre pelo botão de TV no topo, pelo botão Guia do controle ou pelo ajuste "Abrir direto no Modo TV" (Ajustes › Geral).
+- Início: destaque grande do jogo em foco, com o fundo desfocado da capa, e fileiras de jogos:
+  - Continue jogando, Favoritos, Mais jogados e Adicionados recentemente;
+  - uma fileira por loja e uma por console.
+- Biblioteca em grade de A a Z, e um resumo de Estatísticas.
+- Página do jogo com tempo de jogo, sessões, última vez, nota, descrição e os botões Jogar e Favoritar.
+- Controle:
+  - direcional ou analógico para navegar (segurar repete);
+  - A abre o jogo e X joga direto;
+  - Y favorita e B volta;
+  - LB/RB trocam de seção;
+  - Start abre o menu e Select escolhe um jogo aleatório;
+  - Guia sai do Modo TV.
+- Teclado: setas, Enter, Esc, Espaço, F, Q/E e M. O mouse também funciona.
+- A barra de baixo mostra os botões certos para o que está na tela: os do controle quando há um conectado, ou as teclas quando não há.
+- Sons de navegação gerados na hora, sem arquivos de áudio. Dá para desligar no menu.
+
+**Abertura animada**
+- O logo aparece como um molde vazio, o controle cai girando e encaixa, e o encaixe solta um pulso.
+- Cada capa da sua biblioteca que o pulso alcança acende e se liga ao logo por um fio de energia.
+- Usa as capas dos seus jogos, começando pelos mais jogados.
+- Qualquer tecla ou botão pula a animação. Dá para desligar no menu do Modo TV.
+- Com "reduzir movimento" ligado no Windows, a animação é trocada por uma versão curta e parada.
+
 ## 1.0.2
 
 **Tempo de jogo**

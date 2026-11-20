@@ -190,7 +190,8 @@ const api = (() => {
     onUpdateStatus: () => () => {},
     onSessionStart: () => () => {},
     onLibraryChanged: () => () => {},
-    win: () => {}
+    setFullscreen: () => reply(true),
+    win: { min: () => {}, max: () => {}, close: () => {} }
   };
 })();
 
@@ -2262,6 +2263,11 @@ function openSettings() {
   $('#opt-launchers').checked = s.includeStoreLaunchers !== false;
   $('#opt-autoscan').checked = s.autoScan !== false;
   $('#opt-tray').checked = s.minimizarAoJogar !== false;
+  $('#opt-tv').checked = !!s.abrirNoModoTV;
+  $('#opt-tv').onchange = async e => {
+    const r = await api.saveSettings({ abrirNoModoTV: e.target.checked });
+    if (r.ok) { ui.state = r.data; toast(e.target.checked ? 'O Arcade Hub vai abrir no Modo TV' : 'O Arcade Hub vai abrir na tela normal', 'ok'); }
+  };
   const salvarInterruptor = (chave, msgLiga, msgDesliga) => async e => {
     const r = await api.saveSettings({ [chave]: e.target.checked });
     if (r.ok) { ui.state = r.data; toast(e.target.checked ? msgLiga : msgDesliga, 'ok'); }
@@ -2399,6 +2405,7 @@ function ligarCasca() {
   const box = $('#busca-flutuante');
 
   $('#btn-menu').onclick = e => { e.stopPropagation(); alternarMenu(); };
+  $('#btn-tv').onclick = e => { e.stopPropagation(); fecharMenu(); ModoTV.abrir(); };
   $('#btn-busca').onclick = e => { e.stopPropagation(); fecharMenu(); alternarBusca(); };
 
   // clique no fundo escuro fecha; clique dentro do painel não
@@ -2841,6 +2848,7 @@ function jogoFocado() {
 
 function pollGamepad() {
   if (!navigator.getGamepads) return;
+  if (typeof ModoTV !== 'undefined' && ModoTV.ativo) return;   // o Modo TV lê o controle sozinho
   // com um jogo aberto por cima, o controle é do jogo: o launcher não reage
   if (!document.hasFocus() || document.hidden) return;
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
@@ -2909,6 +2917,7 @@ function pollGamepad() {
   }
 
   if (edge(1, 'b') && openModal) closeAll();
+  if (edge(16, 'guia') && typeof ModoTV !== 'undefined') { closeAll(); ModoTV.abrir(); }
   if (edge(9, 'start')) runScan();
   if (edge(8, 'select') && !openModal) playRandom();
 }
@@ -3134,6 +3143,9 @@ function renderStats() {
   ui.groupBy = (ui.state.settings && ui.state.settings.groupBy) || 'none';
   ui.jogando = new Set((ui.state.sessoes || []).map(x => x.id));
   aplicarTamanhoCards(ui.state.settings && ui.state.settings.cardSize);
+  if (ui.state.settings && ui.state.settings.abrirNoModoTV && typeof ModoTV !== 'undefined') {
+    setTimeout(() => ModoTV.abrir(), 0);
+  }
   ligarTamanhoCards();
   ligarAtualizacao();
   // o jogo abriu de verdade (processo detectado): marca o card
@@ -3142,6 +3154,7 @@ function renderStats() {
       ui.jogando.add(id);
       toast(`${title} aberto — contando o tempo de jogo`, 'ok');
       render();
+      if (typeof ModoTV !== 'undefined') ModoTV.atualizar();
     });
   }
   // quando o jogo fecha, o processo principal avisa e atualizamos o tempo
@@ -3155,6 +3168,7 @@ function renderStats() {
         toast(`${title}: ${fmtPlaytime(session.elapsed)} nesta sessão · total ${fmtPlaytime(session.total)}`, 'ok');
       }
       render();
+      if (typeof ModoTV !== 'undefined') ModoTV.atualizar();
     });
   }
   // varredura automática achou algo: atualiza a tela sem perguntar
@@ -3164,6 +3178,7 @@ function renderStats() {
       ui.state = state;
       ui.jogando = new Set((state.sessoes || []).map(x => x.id));
       render();
+      if (typeof ModoTV !== 'undefined') ModoTV.atualizar();
       if (novos && novos.length) {
         toast(novos.length === 1 ? `Jogo novo na biblioteca: ${novos[0]}`
           : `${novos.length} jogos novos: ${novos.slice(0, 3).join(', ')}${novos.length > 3 ? '…' : ''}`, 'ok');

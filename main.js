@@ -102,6 +102,8 @@ app.whenReady().then(() => {
     if (action === 'min') w.minimize();
     if (action === 'max') w.isMaximized() ? w.unmaximize() : w.maximize();
     if (action === 'close') w.close();
+    if (action === 'fullscreen-on') w.setFullScreen(true);
+    if (action === 'fullscreen-off') w.setFullScreen(false);
     return { ok: true };
   });
 
