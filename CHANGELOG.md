@@ -1,5 +1,12 @@
 # Novidades
 
+## 1.0.8
+
+- O vídeo do rondel começa na hora. Não tem mais a espera de 2 segundos: se o trailer já está no PC, toca em cerca de 0,2 s.
+- Os botões de busca, Modo TV e menu foram para o canto superior esquerdo. Os controles da janela continuam à direita.
+- O aviso "sem vídeo" desceu um pouco e não fica mais embaixo dos botões.
+- O menu (☰) ganhou o bloco **Configurações** logo no topo, com **Ajustes…** e **Escolher skins…**, os mesmos do clique direito.
+
 ## 1.0.7
 
 **Vídeos de outras fontes além do Steam**

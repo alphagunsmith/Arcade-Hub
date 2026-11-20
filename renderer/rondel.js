@@ -219,7 +219,7 @@ const Rondel = (() => {
           arte.classList.add('tocando');
           const velho = arte.querySelector('img');
           if (velho) velho.classList.add('sumindo');
-        }, 1400);
+        }, 700);
       };
       arte.insertBefore(f, arte.firstChild);
       return;
@@ -287,7 +287,7 @@ const Rondel = (() => {
 
     // já está tocando este jogo? não reinicia nada
     if (!forcar && idAlvo && idAlvo === videoAtual && temVideoNoDom) return;
-    // a contagem dos 2 s está correndo para este mesmo jogo? deixa correr
+    // o início já está agendado para este mesmo jogo? deixa correr
     if (!forcar && idAlvo && idAlvo === ultimoAgendado && timerVideo) return;
     ultimoAgendado = idAlvo;
     clearTimeout(timerVideo);
@@ -297,13 +297,12 @@ const Rondel = (() => {
     seloVideo('');
     const jogo = itens[centro];
     if (!jogo) return;
-    const box = document.getElementById('rondel-arte');
-    if (box) box.classList.add('aguardando');     // barra de progresso de 2 s
+    // começa na hora: a pausa curtinha só evita baixar vídeo de cada jogo
+    // que passa quando a roda gira rápido (segurar a seta, arrastar)
     timerVideo = setTimeout(() => {
-      if (box) box.classList.remove('aguardando');
       const ainda = itens[centro];
       if (ainda && ainda.id === jogo.id) tocarVideo(jogo);
-    }, 2000);
+    }, 150);
   }
 
   /* ---------------- navegação ---------------- */
