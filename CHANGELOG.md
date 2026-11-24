@@ -15,7 +15,7 @@ Correções da revisão de código:
   - O servidor local de vídeos só atende o próprio app.
   - As chaves do YouTube e do SteamGridDB ficam cifradas no disco.
 - Uma varredura que trava não congela mais o app, e abrir o app duas vezes não carrega a biblioteca em dobro.
-- **Testes automáticos:** 77 testes rodam no Windows e no Linux a cada mudança, e uma versão só é publicada se todos passarem.
+- **Testes automáticos:** quase 100 testes rodam no Windows e no Linux a cada mudança, e uma versão só é publicada se todos passarem.
 
 ## 1.1.0
 
