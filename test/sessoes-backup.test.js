@@ -63,11 +63,19 @@ const T = tmp('sessoes');
   const zipArq = path.join(T, 'z.zip');
   fs.writeFileSync(zipArq, z);
   if (process.platform === 'win32') {
-    await t('zip: o Windows abre o arquivo', () => {
+    // o leitor de zip do .NET é o mesmo do Windows Explorer e do Expand-Archive
+    await t('zip: o Windows lê o arquivo (.NET ZipFile)', () => {
+      const ps = `Add-Type -AssemblyName System.IO.Compression.FileSystem; $z = [IO.Compression.ZipFile]::OpenRead('${zipArq}'); $z.Entries | ForEach-Object { $_.FullName + '|' + $_.Length }; $z.Dispose()`;
+      const r = spawnSync('powershell.exe', ['-NoProfile', '-Command', ps], { encoding: 'utf8' });
+      assert.strictEqual(r.status, 0, 'saída: ' + r.stdout + ' erro: ' + r.stderr);
+      assert.ok(/a\.json\|350/.test(r.stdout), 'entradas: ' + r.stdout + ' erro: ' + r.stderr);
+    });
+    await t('zip: Expand-Archive extrai o arquivo', () => {
       const destino = path.join(T, 'aberto');
-      const r = spawnSync('powershell.exe', ['-NoProfile', '-Command', `Expand-Archive -LiteralPath '${zipArq}' -DestinationPath '${destino}' -Force`], { encoding: 'utf8' });
-      assert.strictEqual(r.status, 0, r.stderr);
-      assert.strictEqual(fs.readFileSync(path.join(destino, 'a.json'), 'utf8'), '{"x":1}'.repeat(50));
+      const r = spawnSync('powershell.exe', ['-NoProfile', '-Command', `$ErrorActionPreference = 'Stop'; Expand-Archive -LiteralPath '${zipArq}' -DestinationPath '${destino}' -Force; Get-ChildItem -Recurse -Name '${destino}'`], { encoding: 'utf8' });
+      const a = path.join(destino, 'a.json');
+      assert.ok(fs.existsSync(a), 'status ' + r.status + ' saída: ' + r.stdout + ' erro: ' + r.stderr);
+      assert.strictEqual(fs.readFileSync(a, 'utf8'), '{"x":1}'.repeat(50));
     });
   } else if (spawnSync('unzip', ['-v']).status === 0) {
     await t('zip: unzip do sistema aceita o arquivo', () => {

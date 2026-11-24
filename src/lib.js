@@ -1478,6 +1478,12 @@ function caminhoDeFileUrl(url) {
   let p = String(url || '').replace(/^file:\/\//i, '');
   if (/^\/[A-Za-z]:[\\/]/.test(p)) p = p.slice(1);
   if (process.platform !== 'win32' && !p.startsWith('/')) p = '/' + p;
+  // URL no formato padrão vem com %20, %7E… ("RUNNER~1" vira "RUNNER%7E1"). O app
+  // grava o caminho cru, mas capas escolhidas pelo usuário ou de backup podem vir
+  // codificadas: sem decodificar, a capa ficava de fora do backup no Windows.
+  if (/%[0-9a-f]{2}/i.test(p) && !fs.existsSync(p)) {
+    try { p = decodeURIComponent(p); } catch { /* "%" de verdade no nome: fica como está */ }
+  }
   return p;
 }
 const IMG_EXT = /\.(jpe?g|png|webp|gif|bmp)$/i;
