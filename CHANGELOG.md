@@ -1,5 +1,22 @@
 # Novidades
 
+## 1.1.1
+
+Correções da revisão de código:
+- **Biblioteca protegida:** se o arquivo da biblioteca for danificado (queda de energia, problema no disco), o app recupera a gravação anterior e avisa. Antes, ele abria vazio e a próxima gravação apagava tudo. O arquivo danificado também fica guardado.
+- **Tempo de jogo no Windows:** agora conta também os jogos abertos como administrador. E não abre mais um PowerShell novo a cada 15 segundos enquanto você joga: um só fica aberto e fecha sozinho depois.
+- **Teclado:** com a ficha ou outra janela aberta, as setas não mudam mais o jogo que está atrás, no LaunchBox, nos temas de console e no rondel. Na grade, ↑ e ↓ agora caem na coluna certa.
+- **Controle:** o direcional anda pelos botões e campos da ficha, dos Ajustes e do seletor de skins; A aciona, ← → mudam opções e B volta. Antes, ↓ fechava a janela.
+- **Confirmações:** o foco começa em "Cancelar", então um Enter distraído não remove nada. Com o controle, B cancela.
+- **Backup .zip:** algumas capas ficavam de fora no Windows; agora entram todas.
+- **Segurança:**
+  - Arrastar um arquivo para a janela não troca mais a tela do app.
+  - Permissões do navegador (câmera, localização…) ficam bloqueadas.
+  - O servidor local de vídeos só atende o próprio app.
+  - As chaves do YouTube e do SteamGridDB ficam cifradas no disco.
+- Uma varredura que trava não congela mais o app, e abrir o app duas vezes não carrega a biblioteca em dobro.
+- **Testes automáticos:** 77 testes rodam no Windows e no Linux a cada mudança, e uma versão só é publicada se todos passarem.
+
 ## 1.1.0
 
 **Skins estilo LaunchBox e Big Box**
