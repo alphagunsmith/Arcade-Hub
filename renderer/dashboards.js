@@ -78,6 +78,9 @@ const Dashboards = (() => {
   let callbacks = {};          // { onAbrir, onContexto, onJogar }
   let timerVideo = null;
   let videoAtual = null;
+  let favoritos = new Set();   // ids favoritos (vêm do estado do app)
+  const extras = {};           // tipos registrados de fora (launchbox.js)
+  let ultimaAssinatura = '';
 
   const q = (sel) => document.querySelector(sel);
   const raiz = () => q('#dashboard');
@@ -97,10 +100,11 @@ const Dashboards = (() => {
   }
 
   function gruposDe(jogos) {
+    if (extras[tipo] && extras[tipo].grupos) return extras[tipo].grupos(jogos, favoritos, contexto_());
     // colunas do XMB / abas das blades: cada coluna é um filtro real
     const emuladores = jogos.filter(g => g.kind === 'rom');
     const pc = jogos.filter(g => g.kind !== 'rom');
-    const favs = jogos.filter(g => g.favorito);
+    const favs = jogos.filter(g => g.favorito || favoritos.has(g.id));
     const recentes = jogos.filter(g => g.playedAt)
       .sort((a, b) => b.playedAt - a.playedAt).slice(0, 12);
     const out = [
@@ -418,11 +422,43 @@ const Dashboards = (() => {
     if (callbacks.onContexto) callbacks.onContexto(ev, jogo, ev.currentTarget);
   }
 
-  function desenhar() {
+  /** O que um tipo externo enxerga do dashboard. */
+  function contexto_() {
+    return {
+      get tipo() { return tipo; },
+      get grupos() { return grupos; },
+      get coluna() { return coluna; }, set coluna(v) { coluna = v; },
+      get linha() { return linha; }, set linha(v) { linha = v; },
+      get favoritos() { return favoritos; },
+      get skin() { return (window.SKINS || []).find(s => s.id === (window.__skinAplicada || '')) || null; },
+      jogoAtual, abrir, capa, desenhar,
+      jogar: j => { if (callbacks.onJogar) callbacks.onJogar(j); },
+      ficha: j => { if (callbacks.onAbrir) callbacks.onAbrir(j); },
+      favoritar: j => { if (callbacks.onFavoritar) callbacks.onFavoritar(j); },
+      contexto: (ev, j) => { if (callbacks.onContexto) callbacks.onContexto(ev, j, ev.currentTarget); },
+      remontar,
+      video: tocarVideoEm,
+      pararVideo
+    };
+  }
+
+  function desenhar(opcoes) {
     const box = raiz();
     if (!box) return;
+    const ext = extras[tipo];
+    // tipo externo com atualização parcial: só troca o selecionado, sem refazer a tela
+    const g = grupos[coluna];
+    const chave = tipo + '|' + (g ? g.id : '') + '|' + (g ? g.jogos.length : 0);
+    if (ext && ext.atualizar && !(opcoes && opcoes.tudo) && box.dataset.chave === chave && box.firstChild) {
+      ext.atualizar(box, contexto_());
+      agendarVideo();
+      return;
+    }
+    pararVideo();
     box.innerHTML = '';
+    box.style.cssText = '';           // cores por plataforma (variante Colorido) não vazam para outro tema
     box.className = 'dashboard dash-' + (tipo || 'nenhum');
+    box.dataset.chave = chave;
     // tema claro? o texto solto precisa de cor escura (legendas, contador)
     const skin = (window.SKINS || []).find(s => s.id === (window.__skinAplicada || ''));
     const bg = skin && skin.vars && skin.vars['--bg'] ? skin.vars['--bg'] : '#111';
@@ -431,9 +467,10 @@ const Dashboards = (() => {
     const fn = {
       xmb: desenharXMB, blades: desenharBlades, canais: desenharCanais,
       coverflow: desenharCoverflow, tiles: desenharTiles, carrossel: desenharCarrossel
-    }[tipo];
+    }[tipo] || (ext && (b => ext.desenhar(b, contexto_())));
     if (!fn) return;
     fn(box);
+    if (ext) { agendarVideo(); return; }     // tipos externos têm contador próprio
 
     const contador = document.createElement('div');
     contador.className = 'dash-contador';
@@ -448,47 +485,102 @@ const Dashboards = (() => {
     clearTimeout(timerVideo);
     timerVideo = null;
     const j = jogoAtual();
-    if (!j) return;
+    const box = raiz();
+    if (!j || !box) return;
+    // tipo externo diz onde o vídeo entra (painel de detalhes, fundo…)
+    const ext = extras[tipo];
+    if (ext) {
+      const alvo = ext.videoAlvo ? ext.videoAlvo(box) : null;
+      if (!alvo) return;
+      if (videoAtual === j.id && alvo.querySelector('.dash-video, .dash-yt')) return;
+      pararVideo();
+      timerVideo = setTimeout(() => tocarVideoEm(alvo, j), 150);
+      return;
+    }
     // só em temas "de console de verdade" o vídeo do jogo vira plano de fundo
     const comVideo = ['blades', 'coverflow', 'tiles'].includes(tipo);
     if (!comVideo) return;
-    timerVideo = setTimeout(() => tocarVideo(j), 2000);
+    timerVideo = setTimeout(() => tocarVideoEm(box, j, { fundo: true }), 150);
   }
 
-  async function tocarVideo(jogo) {
-    const box = raiz();
-    if (!box || !jogo || videoAtual === jogo.id) return;
+  /** Toca o vídeo do jogo dentro de `alvo` (streaming do app ou YouTube). */
+  async function tocarVideoEm(alvo, jogo, opts) {
+    if (!alvo || !jogo) return;
     videoAtual = jogo.id;
     const api = window.arcadeAPI;
-    if (!api || !api.videoFor) return;
-    const resp = await api.videoFor({ id: jogo.id, title: jogo.title, steamAppId: jogo.steamAppId });
-    const info = resp && resp.data ? resp.data : resp;
-    if (!info || !info.ok) return;
+    if (!api || !api.videoFor) { prepararVizinhos(); return; }
+    let info = null;
+    try {
+      const resp = await api.videoFor({ id: jogo.id, title: jogo.title, steamAppId: jogo.steamAppId });
+      info = resp && resp.data ? resp.data : resp;
+    } catch { info = null; }
     const atual = jogoAtual();
-    if (!atual || atual.id !== jogo.id) return;
-    let fundo = box.querySelector('.dash-video');
-    if (!fundo) {
-      fundo = document.createElement('video');
-      fundo.className = 'dash-video';
-      fundo.muted = true; fundo.loop = true; fundo.playsInline = true; fundo.autoplay = true;
-      box.insertBefore(fundo, box.firstChild);
+    if (!atual || atual.id !== jogo.id || !alvo.isConnected) return;
+    if (!info || !info.ok) { alvo.classList.remove('com-video'); prepararVizinhos(); return; }
+    alvo.querySelectorAll('.dash-video, .dash-yt').forEach(n => n.remove());
+    let no;
+    if (info.tipo === 'youtube' && info.url) {
+      no = document.createElement('iframe');
+      no.className = 'dash-yt';
+      no.allow = 'autoplay; encrypted-media';
+      no.referrerPolicy = 'strict-origin-when-cross-origin';
+      no.src = info.url;
+      no.onload = () => setTimeout(() => { alvo.classList.add('com-video'); prepararVizinhos(); }, 700);
+    } else {
+      no = document.createElement('video');
+      no.className = 'dash-video';
+      no.muted = true; no.loop = true; no.playsInline = true; no.autoplay = true;
+      no.onplaying = () => { alvo.classList.add('com-video'); prepararVizinhos(); };
+      no.onerror = () => { no.remove(); alvo.classList.remove('com-video'); };
+      no.src = info.localUrl || info.url;
     }
-    fundo.src = info.localUrl || info.url;
-    fundo.play().catch(() => {});
+    if (opts && opts.fundo) alvo.insertBefore(no, alvo.firstChild); else alvo.appendChild(no);
+    if (no.play) no.play().catch(() => {});
+  }
+
+  // deixa engatilhados os trailers dos jogos ao lado (o streaming começa na hora)
+  function prepararVizinhos() {
+    const api = window.arcadeAPI;
+    const g = grupos[coluna];
+    if (!api || !api.prepararVideos || !g || g.jogos.length < 2) return;
+    const n = g.jogos.length, ids = [];
+    for (const d of [1, -1, 2, -2]) {
+      const j = g.jogos[(linha + d + n) % n];
+      if (j && !ids.includes(j.id)) ids.push(j.id);
+    }
+    api.prepararVideos(ids).catch(() => {});
   }
 
   function pararVideo() {
     const box = raiz();
-    const v = box && box.querySelector('.dash-video');
-    if (v) v.remove();
+    if (box) {
+      box.querySelectorAll('video.dash-video').forEach(v => {
+        try { v.pause(); v.removeAttribute('src'); v.load(); } catch { /* noop */ }
+        v.remove();
+      });
+      box.querySelectorAll('iframe.dash-yt').forEach(f => f.remove());
+      box.querySelectorAll('.com-video').forEach(n => n.classList.remove('com-video'));
+    }
     videoAtual = null;
     clearTimeout(timerVideo);
   }
 
   /* ---------------- navegação ---------------- */
 
+  /** LB / RB do controle, Q / E e PageUp / PageDown: grupo anterior/próximo. */
+  function trocarGrupo(d) {
+    if (!grupos.length) return;
+    const atual = jogoAtual();
+    coluna = (coluna + d + grupos.length) % grupos.length;
+    linha = 0;
+    // no grupo novo, continua no mesmo jogo se ele estiver lá
+    if (atual) { const i = grupos[coluna].jogos.findIndex(j => j.id === atual.id); if (i >= 0) linha = i; }
+    desenhar();
+  }
+
   function mover(dc, dl) {
     if (!grupos.length) return;
+    if (extras[tipo] && extras[tipo].mover) { extras[tipo].mover(dc, dl, contexto_()); return; }
     if (dc) {
       coluna = (coluna + dc + grupos.length) % grupos.length;
       linha = 0;
@@ -511,6 +603,15 @@ const Dashboards = (() => {
   function tecla(e) {
     if (!tipo) return false;
     const k = e.key;
+    if (extras[tipo]) {
+      if (extras[tipo].tecla && extras[tipo].tecla(e, contexto_())) return true;
+      if (k === 'PageDown' || k === 'e' || k === 'E') { trocarGrupo(1); return true; }
+      if (k === 'PageUp' || k === 'q' || k === 'Q') { trocarGrupo(-1); return true; }
+      const mapa = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] };
+      if (mapa[k]) { mover(mapa[k][0], mapa[k][1]); return true; }
+      if (k === 'Enter') { const j = jogoAtual(); if (j) { abrir(j, e); return true; } }
+      return false;
+    }
     const horizontal = (dc, dl) => {
       if (tipo === 'canais') { if (dc) linha = Math.max(0, Math.min(grupos[coluna].jogos.length - 1, linha + dc)); else if (dl) mover(0, dl); desenhar(); }
       else mover(dc, dl);
@@ -532,17 +633,45 @@ const Dashboards = (() => {
 
   function montar(jogos, opts) {
     callbacks = opts || {};
+    if (callbacks.favoritos) favoritos = new Set(callbacks.favoritos);
     itens = Array.isArray(jogos) ? jogos : [];
+    const antes = jogoAtual();
+    const grupoAntes = grupos[coluna] && grupos[coluna].id;
     grupos = gruposDe(itens);
+    // mesmo grupo e mesmo jogo de antes (re-render não pode "pular" a seleção)
+    const gi = grupos.findIndex(g => g.id === grupoAntes);
+    if (gi >= 0) {
+      coluna = gi;
+      const li = antes ? grupos[gi].jogos.findIndex(j => j.id === antes.id) : -1;
+      if (li >= 0) linha = li;
+    }
     coluna = Math.min(coluna, Math.max(0, grupos.length - 1));
     const ativos = grupos[coluna] ? grupos[coluna].jogos : [];
     linha = Math.min(linha, Math.max(0, ativos.length - 1));
     montado = true;
-    desenhar();
+    // biblioteca mudou de verdade (capa nova, favorito, nome)? refaz a tela toda;
+    // senão (re-render comum do app) só atualiza a seleção, sem piscar o vídeo
+    const assinatura = itens.map(j => j.id + (j.art ? '*' : '') + (favoritos.has(j.id) ? 'f' : '') + j.title + (j.playedAt || '')).join('|');
+    const mudou = assinatura !== ultimaAssinatura;
+    ultimaAssinatura = assinatura;
+    desenhar({ tudo: mudou });
+  }
+
+  /** Recalcula os grupos (ordem mudou, favorito mudou) mantendo a seleção. */
+  function remontar() {
+    montar(itens, callbacks);
+  }
+
+  /** launchbox.js e afins registram tipos novos aqui. */
+  function registrarTipo(id, def) {
+    extras[id] = def;
+    DASHBOARD_TIPOS[id] = { nome: def.nome, desc: def.desc, som: def.som || 'clique' };
   }
 
   function ativar(t) {
+    const mudou = tipo !== (DASHBOARD_TIPOS[t] ? t : null);
     tipo = DASHBOARD_TIPOS[t] ? t : null;
+    if (mudou) { coluna = 0; linha = 0; const b = raiz(); if (b) b.dataset.chave = ''; }
     pararVideo();
     if (!tipo) {
       const box = raiz();
@@ -556,7 +685,7 @@ const Dashboards = (() => {
   function parar() { pararVideo(); clearTimeout(timerVideo); }
 
   return {
-    montar, ativar, parar, tecla, mover,
+    montar, ativar, parar, tecla, mover, trocarGrupo, registrarTipo, remontar,
     get tipo() { return tipo; },
     get ativo() { return !!tipo; },
     get jogoAtual() { return jogoAtual(); },

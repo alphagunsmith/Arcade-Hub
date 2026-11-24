@@ -1,5 +1,24 @@
 # Novidades
 
+## 1.1.0
+
+**Skins estilo LaunchBox e Big Box**
+Novas interfaces completas (não só cores), em Visual › filtro "LaunchBox / Big Box":
+- **LaunchBox — Clássico:** plataformas e categorias à esquerda (Todos, Favoritos, Recentes, Nunca jogados, cada plataforma e cada loja). No meio, a grade de capas separada por letra, com controle de tamanho. À direita, o painel de detalhes com o trailer tocando, botões Jogar, Ficha e favorito, e os dados do jogo.
+- **LaunchBox — Lista:** a mesma tela com uma tabela. Clique no título de qualquer coluna para ordenar (título, plataforma, origem, tempo jogado, última vez, nota). Um botão na barra de cima troca entre capas e lista a qualquer momento.
+- **LaunchBox — Claro** e **Meia-noite** (preto total, bom para tela OLED): variantes de cor.
+- **Big Box — Parede:** modo TV com mural de capas em três fileiras sobre o vídeo do jogo selecionado.
+- **Big Box — Roda vertical:** roda de títulos à direita, vídeo grande e ficha à esquerda.
+- **Big Box — Lista com detalhes:** lista de títulos, vídeo e ficha completa.
+- **Big Box — Colorido:** cada plataforma tem sua cor, e a tela inteira muda ao trocar.
+
+Como usar: setas andam, Enter abre a ficha, Shift+Enter (ou duplo clique) joga. Q/E, PageUp/PageDown ou LB/RB no controle trocam de plataforma.
+
+**Outras melhorias**
+- Os temas de console (XMB, Aurora, Xbox 360…) também começam o vídeo na hora: tiraram a espera de 2 segundos e usam o streaming.
+- LB/RB do controle trocam a coluna ou aba em todos os temas de dashboard.
+- A coluna "Favoritos" dos temas de console agora mostra os seus favoritos de verdade.
+
 ## 1.0.9
 
 **Vídeo por streaming**

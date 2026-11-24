@@ -324,6 +324,152 @@ const SKINS = [
       '--brand-font': '"Cascadia Mono", "Consolas", ui-monospace, monospace'
     }
   },
+  /* ==================================================================
+   * ESTILO LAUNCHBOX / BIG BOX (renderer/launchbox.js)
+   * Interfaces de frontend de PC: a área de trabalho (capas ou lista, com
+   * plataformas à esquerda) e o modo TV (parede, roda vertical, lista).
+   * Cada interface tem variantes de cor; o Colorido pinta por plataforma.
+   * ================================================================== */
+  {
+    id: 'lb-classico',
+    name: 'LaunchBox — Clássico',
+    console: 'LaunchBox',
+    year: 2016,
+    brand: 'Arcade',
+    descricao: 'Área de trabalho: plataformas à esquerda, capas por letra e detalhes com vídeo à direita.',
+    swatch: ['#1c1f26', '#3d9bff', '#e7ecf3'],
+    dashboard: 'lb-caixas',
+    vars: {
+      '--bg': '#16181d', '--bg-2': '#1c1f26', '--panel': '#20242c', '--panel-2': '#2a2f39',
+      '--input-bg': '#14171c', '--txt': '#e7ecf3', '--muted': '#8d97a7',
+      '--accent': '#3d9bff', '--accent-2': '#2a6fd1', '--accent-3': '#9fd0ff',
+      '--on-accent': '#04101f', '--line': 'rgba(200,215,235,.08)', '--line-strong': 'rgba(200,215,235,.16)',
+      '--radius-card': '4px', '--radius-sheet': '8px',
+      '--brand-font': '"Segoe UI Variable", "Segoe UI", system-ui, sans-serif'
+    }
+  },
+  {
+    id: 'lb-lista',
+    name: 'LaunchBox — Lista',
+    console: 'LaunchBox',
+    year: 2016,
+    brand: 'Arcade',
+    descricao: 'Área de trabalho em tabela: ordene por título, plataforma, tempo jogado, última vez ou nota.',
+    swatch: ['#1a1d22', '#4cc38a', '#e7ecf3'],
+    dashboard: 'lb-lista',
+    vars: {
+      '--bg': '#15171b', '--bg-2': '#1a1d22', '--panel': '#1f2329', '--panel-2': '#282d35',
+      '--input-bg': '#13161a', '--txt': '#e6ebf1', '--muted': '#8b95a3',
+      '--accent': '#4cc38a', '--accent-2': '#2f8f62', '--accent-3': '#a6ecc8',
+      '--on-accent': '#04170d', '--line': 'rgba(200,215,235,.08)', '--line-strong': 'rgba(200,215,235,.16)',
+      '--radius-card': '4px', '--radius-sheet': '8px',
+      '--brand-font': '"Segoe UI Variable", "Segoe UI", system-ui, sans-serif'
+    }
+  },
+  {
+    id: 'lb-claro',
+    name: 'LaunchBox — Claro',
+    console: 'LaunchBox',
+    year: 2016,
+    brand: 'Arcade',
+    descricao: 'A área de trabalho em tema claro, para usar de dia.',
+    swatch: ['#eef1f5', '#1f6fd6', '#1a1f29'],
+    dashboard: 'lb-caixas',
+    vars: {
+      '--bg': '#e9edf2', '--bg-2': '#f3f5f8', '--panel': '#ffffff', '--panel-2': '#f0f3f7',
+      '--input-bg': '#ffffff', '--txt': '#1a1f29', '--muted': '#5d6878',
+      '--accent': '#1f6fd6', '--accent-2': '#5aa0f2', '--accent-3': '#0b3d82',
+      '--on-accent': '#ffffff', '--line': 'rgba(20,40,70,.1)', '--line-strong': 'rgba(20,40,70,.2)',
+      '--radius-card': '4px', '--radius-sheet': '8px',
+      '--brand-font': '"Segoe UI Variable", "Segoe UI", system-ui, sans-serif'
+    }
+  },
+  {
+    id: 'lb-meianoite',
+    name: 'LaunchBox — Meia-noite',
+    console: 'LaunchBox',
+    year: 2016,
+    brand: 'Arcade',
+    descricao: 'Preto total (bom em tela OLED) com destaque verde-água.',
+    swatch: ['#000000', '#19d3c5', '#d9fffb'],
+    dashboard: 'lb-caixas',
+    vars: {
+      '--bg': '#000000', '--bg-2': '#050607', '--panel': '#0a0c0d', '--panel-2': '#121517',
+      '--input-bg': '#050607', '--txt': '#eef6f5', '--muted': '#7f8f8e',
+      '--accent': '#19d3c5', '--accent-2': '#0f8f86', '--accent-3': '#9ff3ec',
+      '--on-accent': '#001413', '--line': 'rgba(160,240,230,.08)', '--line-strong': 'rgba(160,240,230,.16)',
+      '--radius-card': '3px', '--radius-sheet': '6px'
+    }
+  },
+  {
+    id: 'bb-parede',
+    name: 'Big Box — Parede',
+    console: 'Big Box',
+    year: 2016,
+    brand: 'Arcade',
+    descricao: 'Modo TV: mural de capas em três fileiras sobre o vídeo do jogo selecionado.',
+    swatch: ['#070b16', '#4fb3ff', '#ffffff'],
+    dashboard: 'bb-parede',
+    vars: {
+      '--bg': '#060912', '--bg-2': '#0a0f1c', '--panel': 'rgba(12,18,32,.78)', '--panel-2': 'rgba(20,28,48,.86)',
+      '--input-bg': '#0a0f1c', '--txt': '#f3f7ff', '--muted': '#93a3c2',
+      '--accent': '#4fb3ff', '--accent-2': '#2a6fd1', '--accent-3': '#c9e7ff',
+      '--on-accent': '#03101e', '--line': 'rgba(150,190,255,.12)', '--line-strong': 'rgba(150,190,255,.24)',
+      '--radius-card': '6px', '--radius-sheet': '10px'
+    }
+  },
+  {
+    id: 'bb-roda',
+    name: 'Big Box — Roda vertical',
+    console: 'Big Box',
+    year: 2016,
+    brand: 'Arcade',
+    descricao: 'Modo TV: roda de títulos à direita, vídeo grande e ficha à esquerda.',
+    swatch: ['#0b0b10', '#ffb400', '#fff6dc'],
+    dashboard: 'bb-roda',
+    vars: {
+      '--bg': '#09090d', '--bg-2': '#0f0f15', '--panel': 'rgba(18,18,26,.8)', '--panel-2': 'rgba(28,28,40,.88)',
+      '--input-bg': '#0f0f15', '--txt': '#f7f5ee', '--muted': '#a39e8f',
+      '--accent': '#ffb400', '--accent-2': '#ff7a00', '--accent-3': '#fff0c2',
+      '--on-accent': '#1a1000', '--line': 'rgba(255,220,150,.12)', '--line-strong': 'rgba(255,220,150,.24)',
+      '--radius-card': '6px', '--radius-sheet': '10px'
+    }
+  },
+  {
+    id: 'bb-texto',
+    name: 'Big Box — Lista com detalhes',
+    console: 'Big Box',
+    year: 2016,
+    brand: 'Arcade',
+    descricao: 'Modo TV: lista de títulos à esquerda, vídeo e ficha completa à direita.',
+    swatch: ['#0e1216', '#ff5a5f', '#ffe3e4'],
+    dashboard: 'bb-texto',
+    vars: {
+      '--bg': '#0c0f13', '--bg-2': '#11161b', '--panel': 'rgba(18,24,30,.82)', '--panel-2': 'rgba(26,34,42,.9)',
+      '--input-bg': '#11161b', '--txt': '#f2f5f8', '--muted': '#98a3ad',
+      '--accent': '#ff5a5f', '--accent-2': '#c9363b', '--accent-3': '#ffd0d2',
+      '--on-accent': '#1c0304', '--line': 'rgba(255,190,190,.1)', '--line-strong': 'rgba(255,190,190,.2)',
+      '--radius-card': '4px', '--radius-sheet': '8px'
+    }
+  },
+  {
+    id: 'bb-colorido',
+    name: 'Big Box — Colorido',
+    console: 'Big Box',
+    year: 2016,
+    brand: 'Arcade',
+    descricao: 'Modo TV em parede, com cor própria para cada plataforma: a tela muda de cor ao trocar.',
+    swatch: ['#1a0f2e', '#ff4fa3', '#4fd1ff'],
+    dashboard: 'bb-parede',
+    colorido: true,
+    vars: {
+      '--bg': '#0d0a18', '--bg-2': '#140f24', '--panel': 'rgba(22,16,40,.78)', '--panel-2': 'rgba(32,24,58,.86)',
+      '--input-bg': '#140f24', '--txt': '#fbf8ff', '--muted': '#a99fc4',
+      '--accent': '#ff4fa3', '--accent-2': '#4fd1ff', '--accent-3': '#ffe0f0',
+      '--on-accent': '#1d0212', '--line': 'rgba(230,200,255,.12)', '--line-strong': 'rgba(230,200,255,.24)',
+      '--radius-card': '8px', '--radius-sheet': '12px'
+    }
+  },
   /* ---------------- padrão ---------------- */
   {
     id: 'neon',

@@ -1459,6 +1459,7 @@ async function loadMeta(game, opts) {
 /* ---------- skins dos consoles ---------- */
 const skinBrandOf = skin => {
   const c = (skin.console || '') + ' ' + skin.id;
+  if (/LaunchBox|Big Box/i.test(c)) return 'LaunchBox';
   if (/Nintendo|NES|SNES|Game Boy|GameCube|Wii|Switch|3DS|DS/i.test(c)) return 'Nintendo';
   if (/PlayStation|PSP|Vita|PS\b/i.test(c)) return 'PlayStation';
   if (/Xbox/i.test(c)) return 'Xbox';
@@ -1483,9 +1484,49 @@ function applySkinId(id, opts) {
   }
 }
 
+/** Miniatura das interfaces LaunchBox / Big Box: o desenho da tela, com as cores da variante. */
+function miniLaunchBox(skin) {
+  const v = skin.vars || {};
+  const cor = { bg: v['--bg'] || '#111', p: v['--panel-2'] || '#333', p1: v['--panel'] || '#222', a: v['--accent'] || '#39f', m: v['--muted'] || '#888' };
+  const i = (bg, extra) => { const n = el('i'); n.style.background = bg; if (extra) Object.assign(n.style, extra); return n; };
+  const caixa = (cls, filhos) => { const d = el('div', cls); filhos.forEach(f => d.appendChild(f)); return d; };
+  const t = skin.dashboard;
+  const box = el('div', 'skin-mini ' + ({ 'lb-caixas': 'mini-lb', 'lb-lista': 'mini-lb mini-lista', 'bb-parede': 'mini-parede', 'bb-roda': 'mini-roda', 'bb-texto': 'mini-texto' }[t] || 'mini-lb'));
+  if (t === 'lb-caixas' || t === 'lb-lista') {
+    box.appendChild(caixa('s', [i(cor.p1, { height: '100%' })]));
+    const m = el('div', 'm');
+    if (t === 'lb-lista') for (let k = 0; k < 8; k++) m.appendChild(i(k === 2 ? cor.a : cor.p, { opacity: k === 2 ? 1 : .7 }));
+    else for (let k = 0; k < 8; k++) m.appendChild(i(k === 1 ? cor.a : cor.p));
+    box.appendChild(m);
+    box.appendChild(caixa('d', [i('#000', { aspectRatio: '16/9' }), i(cor.m, { height: '3px', opacity: .7 }), i(cor.a, { height: '5px', width: '70%' }), i(cor.p, { height: '3px' }), i(cor.p, { height: '3px' })]));
+  } else if (t === 'bb-parede') {
+    for (let k = 0; k < 18; k++) box.appendChild(i(k === 7 ? cor.a : cor.p, k === 7 ? { transform: 'scale(1.15)' } : null));
+  } else if (t === 'bb-roda') {
+    box.appendChild(caixa('e', [i('#000', { aspectRatio: '16/9', border: '1px solid ' + cor.p }), i(cor.m, { height: '4px', width: '60%' })]));
+    const r = el('div', 'r');
+    [.35, .6, 1, .6, .35].forEach((o, k) => r.appendChild(i(k === 2 ? cor.a : cor.m, { opacity: o, width: k === 2 ? '90%' : '70%' })));
+    box.appendChild(r);
+  } else {
+    const l = el('div', 'l');
+    for (let k = 0; k < 6; k++) l.appendChild(i(k === 2 ? cor.a : cor.m, { opacity: k === 2 ? 1 : .45 }));
+    box.appendChild(l);
+    box.appendChild(caixa('e', [i('#000', { aspectRatio: '16/9', border: '1px solid ' + cor.p }), i(cor.p, { height: '4px' }), i(cor.p, { height: '4px', width: '70%' })]));
+  }
+  return box;
+}
+
 function skinPreviewNode(skin) {
   const wrap = el('div', 'skin-preview');
   wrap.style.background = skin.vars['--bg'] || '#111';
+  if (/^(lb|bb)-/.test(skin.dashboard || '')) {
+    if (skin.colorido) wrap.style.background = 'linear-gradient(120deg, #3a1450, #10304f 55%, #0f3d2e)';
+    wrap.appendChild(miniLaunchBox(skin));
+    wrap.appendChild(el('span', 'skin-tag', (DASHBOARD_TIPOS[skin.dashboard] || {}).nome || skin.dashboard));
+    const dots = el('div', 'skin-dots');
+    (skin.swatch || []).forEach(col => { const d = el('i'); d.style.background = col; dots.appendChild(d); });
+    wrap.appendChild(dots);
+    return wrap;
+  }
   // temas de dashboard: mostra o papel de parede e o tipo de layout
   if (skin.art) {
     wrap.style.backgroundImage = `url("${skin.art}")`;
@@ -1547,8 +1588,13 @@ function temaAtual() {
 
 function montarDashboard(games) {
   Dashboards.montar(games, {
+    favoritos: (ui.state && ui.state.favorites) || [],
     onAbrir: jogo => openDetail(jogo),
     onJogar: jogo => launch(jogo),
+    onFavoritar: async jogo => {
+      const r = await api.toggleFavorite(jogo.id);
+      if (r.ok) { ui.state.favorites = r.data; render(); }
+    },
     onContexto: (ev, jogo, alvo) => { if (menuDoJogo) menuDoJogo(ev, jogo, alvo); }
   });
 }
@@ -1622,7 +1668,7 @@ function renderSkinGrid(brand) {
   const RGH = new Set(['tema-aurora', 'tema-fsd', 'tema-xexmenu', 'tema-industrial']);
   const list = SKINS.filter(s => {
     if (!brand || brand === 'todos') return true;
-    if (brand === 'dashboard') return !!s.dashboard && !RGH.has(s.id);
+    if (brand === 'dashboard') return !!s.dashboard && !RGH.has(s.id) && skinBrandOf(s) !== 'LaunchBox';
     if (brand === 'rgh') return RGH.has(s.id);
     if (brand === 'cor') return !s.dashboard;
     return skinBrandOf(s) === brand;
@@ -2926,6 +2972,11 @@ function pollGamepad() {
     } else if (j) {
       launch(j);
     }
+  }
+
+  if (!openModal && typeof Dashboards !== 'undefined' && Dashboards.ativo) {
+    if (edge(4, 'lb')) Dashboards.trocarGrupo(-1);
+    if (edge(5, 'rb')) Dashboards.trocarGrupo(1);
   }
 
   if (edge(1, 'b') && openModal) closeAll();
