@@ -70,12 +70,16 @@ const T = tmp('sessoes');
       assert.strictEqual(r.status, 0, 'saída: ' + r.stdout + ' erro: ' + r.stderr);
       assert.ok(/a\.json\|350/.test(r.stdout), 'entradas: ' + r.stdout + ' erro: ' + r.stderr);
     });
-    await t('zip: Expand-Archive extrai o arquivo', () => {
+    await t('zip: o Windows extrai o arquivo com o conteúdo certo', () => {
+      // (o Expand-Archive do PowerShell do servidor do GitHub tem um defeito
+      //  próprio; o .NET é o que o Explorador de Arquivos usa)
       const destino = path.join(T, 'aberto');
-      const r = spawnSync('powershell.exe', ['-NoProfile', '-Command', `$ErrorActionPreference = 'Stop'; Expand-Archive -LiteralPath '${zipArq}' -DestinationPath '${destino}' -Force; Get-ChildItem -Recurse -Name '${destino}'`], { encoding: 'utf8' });
+      const ps = `Add-Type -AssemblyName System.IO.Compression.FileSystem; [IO.Compression.ZipFile]::ExtractToDirectory('${zipArq}', '${destino}')`;
+      const r = spawnSync('powershell.exe', ['-NoProfile', '-Command', ps], { encoding: 'utf8' });
       const a = path.join(destino, 'a.json');
-      assert.ok(fs.existsSync(a), 'status ' + r.status + ' saída: ' + r.stdout + ' erro: ' + r.stderr);
+      assert.ok(fs.existsSync(a), 'status ' + r.status + ' erro: ' + r.stderr);
       assert.strictEqual(fs.readFileSync(a, 'utf8'), '{"x":1}'.repeat(50));
+      assert.ok(fs.readFileSync(path.join(destino, 'capas', 'ícone.png')).equals(png));
     });
   } else if (spawnSync('unzip', ['-v']).status === 0) {
     await t('zip: unzip do sistema aceita o arquivo', () => {
