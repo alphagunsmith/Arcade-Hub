@@ -465,6 +465,9 @@ const Rondel = (() => {
       if (document.body.dataset.layout !== 'rondel') return;
       const digitando = document.activeElement && /input|textarea|select/i.test(document.activeElement.tagName);
       if (digitando) return;
+      // ficha, ajustes ou outra janela por cima: as teclas são dela, não da roda
+      if (document.querySelector('.modal-layer:not([hidden])')) return;
+      if (typeof ModoTV !== 'undefined' && ModoTV.ativo) return;
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); proximo(); }
       else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); anterior(); }
       else if (e.key === 'Enter') {

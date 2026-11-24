@@ -995,6 +995,9 @@ function markInstalled(list) {
 /* Store                                                               */
 /* ------------------------------------------------------------------ */
 
+/** Chaves de API que ficam cifradas no library.json (no Windows, pela conta do usuário). */
+const CHAVES_CIFRADAS = ['youtubeKey', 'sgdbKey'];
+
 class Store {
   constructor(dataDir) {
     this.dir = dataDir || path.join(os.homedir(), '.arcade-hub');
@@ -1003,9 +1006,10 @@ class Store {
   }
   load() {
     if (this.data) return this.data;
-    let data = null;
-    try { data = JSON.parse(fs.readFileSync(this.file, 'utf8')); } catch { /* primeira execução */ }
+    const data = this._lerComRecuperacao();
     const settings = { ...DEFAULT_SETTINGS, ...(data && data.settings ? data.settings : {}) };
+    // chaves de API ficam cifradas no disco; na memória, em texto
+    for (const k of CHAVES_CIFRADAS) settings[k] = decifrar(settings[k]);
     settings.emulators = { ...defaultEmulators(), ...(settings.emulators || {}) };
     this.data = {
       settings,
@@ -1017,6 +1021,47 @@ class Store {
     };
     return this.data;
   }
+  /**
+   * Lê o library.json. Se ele estiver danificado (queda de energia, disco), NÃO
+   * começa com a biblioteca vazia: guarda o arquivo estragado e usa a cópia da
+   * gravação anterior (.bak) ou a gravação interrompida (.tmp). Antes, o app
+   * abria vazio e a próxima gravação apagava tudo de vez.
+   */
+  _lerComRecuperacao() {
+    const ler = f => {
+      const d = JSON.parse(fs.readFileSync(f, 'utf8'));
+      if (!d || typeof d !== 'object' || (d.games && !Array.isArray(d.games))) throw new Error('formato inválido');
+      return d;
+    };
+    this.recuperado = null;
+    try {
+      const d = ler(this.file);
+      this._principalBom = true;
+      return d;
+    } catch (e) {
+      this._principalBom = false;
+      const existe = e.code !== 'ENOENT';
+      let danificado = null;
+      if (existe) {
+        danificado = path.join(this.dir, `library.danificado-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
+        try { fs.copyFileSync(this.file, danificado); } catch { danificado = null; }
+      }
+      for (const alt of [this.file + '.bak', this.file + '.tmp']) {
+        try {
+          const d = ler(alt);
+          this.recuperado = { de: path.basename(alt), danificado: danificado && path.basename(danificado), jogos: (d.games || []).length };
+          console.warn(`[arcade-hub] library.json ${existe ? 'danificado' : 'sumiu'}: recuperado de ${path.basename(alt)}`);
+          return d;
+        } catch { /* tenta a próxima */ }
+      }
+      if (existe) {
+        this.recuperado = { de: null, danificado: danificado && path.basename(danificado), jogos: 0 };
+        console.error('[arcade-hub] library.json danificado e sem cópia: começando vazio, o arquivo foi guardado em', danificado);
+      }
+      return null;                     // primeira execução
+    }
+  }
+
   /**
    * Agenda a gravação. Várias mudanças seguidas (ex.: buscar notas de 80 jogos)
    * viram UMA gravação, em vez de reescrever o library.json inteiro a cada jogo.
@@ -1034,8 +1079,14 @@ class Store {
     this._dirty = false;
     const d = this.load();
     try { fs.mkdirSync(this.dir, { recursive: true }); } catch { /* noop */ }
-    const json = JSON.stringify(d);
+    const cifradas = {};
+    for (const k of CHAVES_CIFRADAS) cifradas[k] = cifrar(d.settings[k]);
+    const json = JSON.stringify({ ...d, settings: { ...d.settings, ...cifradas } });
     const tmp = this.file + '.tmp';
+    // a versão anterior (se estava boa) vira a cópia de segurança
+    if (this._principalBom) {
+      try { fs.copyFileSync(this.file, this.file + '.bak'); } catch { /* primeira gravação */ }
+    }
     try {
       fs.writeFileSync(tmp, json, 'utf8');
       fs.renameSync(tmp, this.file);
@@ -1044,6 +1095,7 @@ class Store {
       fs.writeFileSync(this.file, json, 'utf8');
       try { fs.unlinkSync(tmp); } catch { /* noop */ }
     }
+    this._principalBom = true;
     return true;
   }
   get settings() { return this.load().settings; }
@@ -1222,9 +1274,13 @@ function runScanAsync(store, opts) {
   const settings = JSON.parse(JSON.stringify(store.settings));
   const coletar = () => new Promise((resolve, reject) => {
     let electron;
-    try { electron = require('electron'); } catch { return reject(new Error('fora do Electron')); }
-    if (!electron.utilityProcess) return reject(new Error('utilityProcess indisponível'));
-    const child = electron.utilityProcess.fork(path.join(__dirname, 'scan-worker.js'), [], { serviceName: 'Arcade Hub - varredura' });
+    const semProcesso = msg => Object.assign(new Error(msg), { semProcesso: true });
+    try { electron = require('electron'); } catch { return reject(semProcesso('fora do Electron')); }
+    if (!electron || !electron.utilityProcess) return reject(semProcesso('utilityProcess indisponível'));
+    let child;
+    try {
+      child = electron.utilityProcess.fork(path.join(__dirname, 'scan-worker.js'), [], { serviceName: 'Arcade Hub - varredura' });
+    } catch (e) { return reject(semProcesso('não abriu o processo de varredura: ' + (e && e.message))); }
     let acabou = false;
     const fim = (fn, v) => { if (acabou) return; acabou = true; clearTimeout(timer); try { child.kill(); } catch { /* já saiu */ } fn(v); };
     const timer = setTimeout(() => fim(reject, new Error('varredura demorou demais')), 10 * 60 * 1000);
@@ -1234,7 +1290,11 @@ function runScanAsync(store, opts) {
   });
   scanEmAndamento = coletar()
     .catch(err => {
-      console.warn('[arcade-hub] varredura em processo separado falhou, usando a síncrona:', err && err.message);
+      // Só refaz aqui (no processo da janela) se o processo separado nem conseguiu
+      // começar. Se ele demorou demais ou quebrou no meio, refazer aqui congelaria
+      // o app pelo mesmo tempo: melhor avisar o erro.
+      if (!err || !err.semProcesso) throw err;
+      console.warn('[arcade-hub] varredura em processo separado indisponível, usando a síncrona:', err.message);
       return collectScan(store.settings, opts);
     })
     .then(({ collected, report }) => finishScan(store, collected, report, opts))
@@ -2004,7 +2064,8 @@ function register(ipcMain, deps) {
       launchers: launchersCacheados(),
       sessoes: [...sessoesAtivas].map(([id, x]) => ({ id, ...x })),
       versions: { app: app.getVersion(), electron: process.versions.electron, os: `${os.platform()} ${os.release()}` },
-      dataDir: store.dir
+      dataDir: store.dir,
+      avisoBiblioteca: store.recuperado || null
     };
   };
 
@@ -2662,13 +2723,7 @@ function register(ipcMain, deps) {
     } catch (e) { return fail(e); }
   });
 
-  ipcMain.handle('window:minimize', e => { BrowserWindow.fromWebContents(e.sender).minimize(); return ok(true); });
-  ipcMain.handle('window:maximize', e => {
-    const w = BrowserWindow.fromWebContents(e.sender);
-    w.isMaximized() ? w.unmaximize() : w.maximize();
-    return ok(w.isMaximized());
-  });
-  ipcMain.handle('window:close', e => { BrowserWindow.fromWebContents(e.sender).close(); return ok(true); });
+  // (os botões da janela usam o 'win:action' do main.js)
 
   ipcMain.handle('detect:launchers:fresh', () => { limparCacheLojas(); return ok({ launchers: launchersCacheados() }); });
 

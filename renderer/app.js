@@ -2602,8 +2602,9 @@ function wire() {
       return;                      // teclas imprimíveis seguem para o campo
     }
 
-    // tema de dashboard ativo? as setas/Enter são dele
-    if (Dashboards.ativo && Dashboards.tecla(e)) { e.preventDefault(); return; }
+    // tema de dashboard ativo? as setas/Enter são dele — mas só sem janela aberta
+    // por cima (antes, com a ficha aberta, as setas trocavam o jogo lá atrás)
+    if (!modalAberto && Dashboards.ativo && Dashboards.tecla(e)) { e.preventDefault(); return; }
 
     if (e.key === '/' || (e.key === 'f' && (e.ctrlKey || e.metaKey))) { e.preventDefault(); abrirBusca(); return; }
     if (e.key === 'Escape') {
@@ -2634,13 +2635,14 @@ function wire() {
       const cards = gridCards();
       if (!cards.length) return;
       e.preventDefault();
-      let cols = 0;
+      // colunas = cards na primeira fileira (o primeiro conta: antes ficava uma a menos
+      // e ↓ caía na coluna ao lado)
+      let cols = 1;
       const first = cards[0].getBoundingClientRect();
       for (let i = 1; i < cards.length; i++) {
         const r = cards[i].getBoundingClientRect();
         if (Math.abs(r.top - first.top) < 4) cols++; else break;
       }
-      if (!cols) cols = 5;
       const ativo = document.activeElement && document.activeElement.classList.contains('card')
         ? document.activeElement
         : null;
@@ -2743,32 +2745,48 @@ async function confirmarRemocao(game) {
   }
 }
 
-/** Diálogo de confirmação (o window.confirm nativo destoa do visual). */
-function pedirConfirmacao({ titulo, texto, acao }) {
+/**
+ * Diálogo de confirmação (o window.confirm nativo destoa do visual).
+ * O foco começa em "Cancelar": um Enter distraído não remove nada.
+ * Com `soAviso`, mostra só um botão "Entendi".
+ */
+function pedirConfirmacao({ titulo, texto, acao, soAviso }) {
   return new Promise(resolve => {
     const layer = el('div', 'modal-layer');
     layer.innerHTML = `
       <div class="modal-backdrop"></div>
       <div class="sheet narrow" role="alertdialog" aria-modal="true">
         <h2>${escapeHtml(titulo)}</h2>
-        <p class="muted small">${escapeHtml(texto)}</p>
+        <p class="muted small" style="white-space:pre-line">${escapeHtml(texto)}</p>
         <div class="row end">
-          <button class="ghost-btn" data-nao>Cancelar</button>
-          <button class="primary-btn danger" data-sim>${escapeHtml(acao || 'Confirmar')}</button>
+          ${soAviso ? '' : '<button class="ghost-btn" data-nao>Cancelar</button>'}
+          <button class="primary-btn${soAviso ? '' : ' danger'}" data-sim>${escapeHtml(acao || (soAviso ? 'Entendi' : 'Confirmar'))}</button>
         </div>
       </div>`;
     const fechar = v => { layer.remove(); document.removeEventListener('keydown', tecla, true); resolve(v); };
     const tecla = ev => {
-      if (ev.key === 'Escape') { ev.stopPropagation(); fechar(false); }
-      if (ev.key === 'Enter') { ev.stopPropagation(); fechar(true); }
+      if (ev.key === 'Escape') { ev.stopPropagation(); ev.preventDefault(); fechar(false); }
+      // Enter aciona o botão em foco (o navegador faz o clique); nada de "confirmar" global
     };
-    layer.querySelector('[data-nao]').onclick = () => fechar(false);
+    const nao = layer.querySelector('[data-nao]');
+    if (nao) nao.onclick = () => fechar(false);
     layer.querySelector('[data-sim]').onclick = () => fechar(true);
     layer.querySelector('.modal-backdrop').onclick = () => fechar(false);
     document.addEventListener('keydown', tecla, true);
     document.body.appendChild(layer);
-    setTimeout(() => layer.querySelector('[data-sim]').focus(), 30);
+    setTimeout(() => (nao || layer.querySelector('[data-sim]')).focus(), 30);
   });
+}
+
+/** O library.json estava danificado: conta o que aconteceu (uma vez, ao abrir). */
+function avisarRecuperacao(aviso) {
+  if (!aviso) return;
+  const texto = aviso.de
+    ? `O arquivo da biblioteca estava danificado (provavelmente uma queda de energia). Recuperei a gravação anterior, com ${aviso.jogos} jogo(s); só as últimas mudanças podem ter se perdido.` +
+      (aviso.danificado ? `\n\nO arquivo danificado foi guardado como ${aviso.danificado}, na pasta de dados do app.` : '')
+    : `O arquivo da biblioteca estava danificado e não havia cópia de segurança. A biblioteca começou vazia: use "Escanear" para achar os jogos de novo, ou importe um backup em Ajustes.` +
+      (aviso.danificado ? `\n\nO arquivo danificado foi guardado como ${aviso.danificado}, na pasta de dados do app, caso queira recuperá-lo.` : '');
+  pedirConfirmacao({ titulo: aviso.de ? 'Biblioteca recuperada' : 'Biblioteca danificada', texto, soAviso: true });
 }
 
 /** Itens de menu de um jogo. */
@@ -2894,6 +2912,90 @@ function padMove(dx, dy) {
   padFocus(cards[next]);
 }
 
+/* ---------- controle dentro das janelas (ficha, ajustes, skins…) ---------- */
+const FOCAVEIS = 'button:not([disabled]), input:not([type=hidden]):not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], summary, [tabindex]:not([tabindex="-1"])';
+
+function janelaDoTopo() {
+  const abertas = $$('.modal-layer:not([hidden])');
+  return abertas[abertas.length - 1] || null;
+}
+
+function focaveisDa(janela) {
+  return [...janela.querySelectorAll(FOCAVEIS)].filter(n => {
+    if (n.closest('[hidden]') || n.closest('details:not([open]) > :not(summary)')) return false;
+    const r = n.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  });
+}
+
+function focoDoPadNoModal() {
+  const j = janelaDoTopo();
+  const a = document.activeElement;
+  return j && a && j.contains(a) && a.classList.contains('pad-foco') ? a : null;
+}
+
+function focarComPad(n) {
+  document.querySelectorAll('.pad-foco').forEach(x => x.classList.remove('pad-foco'));
+  if (!n) return;
+  n.classList.add('pad-foco');
+  n.focus({ preventScroll: true });
+  n.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  n.addEventListener('blur', () => n.classList.remove('pad-foco'), { once: true });
+}
+
+/** A no controle: clica botões, marca caixas, abre/fecha seções. */
+function acionarComPad(n) {
+  if (n.matches('input[type=checkbox], input[type=radio], button, a, summary')) { n.click(); return; }
+  if (n.matches('select')) { padMudarValor(n, 1); return; }
+  // campo de texto: o controle não digita; A só deixa o cursor lá para o teclado
+}
+
+/** ← → em barras deslizantes e listas de opções mudam o valor. */
+function padMudarValor(n, d) {
+  if (n.matches('input[type=range]')) { d > 0 ? n.stepUp() : n.stepDown(); }
+  else if (n.matches('select')) {
+    const total = n.options.length;
+    if (!total) return;
+    n.selectedIndex = (n.selectedIndex + d + total) % total;
+  } else return;
+  n.dispatchEvent(new Event('input', { bubbles: true }));
+  n.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function padNoModal(dx, dy) {
+  const j = janelaDoTopo();
+  if (!j) return;
+  const itens = focaveisDa(j);
+  if (!itens.length) return;
+  const atual = focoDoPadNoModal();
+  if (!atual) {
+    // primeiro toque: começa no botão principal (Jogar na ficha), senão no primeiro item
+    const play = j.querySelector('#d-play:not([disabled])');
+    focarComPad(play && itens.includes(play) ? play : itens[0]);
+    return;
+  }
+  if (dx && atual.matches('input[type=range], select')) { padMudarValor(atual, dx); return; }
+  const r = atual.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  let melhor = null, nota = Infinity;
+  for (const n of itens) {
+    if (n === atual) continue;
+    const q = n.getBoundingClientRect();
+    const ddx = q.left + q.width / 2 - cx, ddy = q.top + q.height / 2 - cy;
+    // só o que está naquela direção; prefere o mais alinhado
+    if (dx && (Math.sign(ddx) !== dx || Math.abs(ddx) < 4)) continue;
+    if (dy && (Math.sign(ddy) !== dy || Math.abs(ddy) < 4)) continue;
+    const s = dx ? Math.abs(ddx) + Math.abs(ddy) * 3 : Math.abs(ddy) + Math.abs(ddx) * 0.6;
+    if (s < nota) { nota = s; melhor = n; }
+  }
+  if (!melhor && dy) {
+    // sem nada na direção: segue a ordem da página (desce/sobe a lista)
+    const i = itens.indexOf(atual);
+    melhor = itens[Math.max(0, Math.min(itens.length - 1, i + dy))];
+  }
+  if (melhor) focarComPad(melhor);
+}
+
 /** Jogo que o controle está apontando, no layout ativo. */
 function jogoFocado() {
   if (typeof Dashboards !== 'undefined' && Dashboards.ativo) return Dashboards.jogoAtual || null;
@@ -2926,11 +3028,8 @@ function pollGamepad() {
   if (now - pad.last > 190) {
     if (dx || dy) {
       pad.last = now;
-      if (openModal) {
-        if (dy) closeAll();          // B/baixo fecha
-      } else {
-        padMove(dx, dy);
-      }
+      if (openModal) padNoModal(dx, dy);   // anda pelos botões e campos da janela
+      else padMove(dx, dy);
     } else if (now - pad.last > 400) {
       pad.cols = 0;                  // recalcula colunas quando a janela muda
     }
@@ -2953,9 +3052,13 @@ function pollGamepad() {
 
   if (edge(0, 'a')) {
     if (openModal) {
-      // dentro da ficha, A continua sendo "jogar"
-      const play = document.querySelector('#modal-game:not([hidden]) #d-play');
-      if (play) play.click();
+      // A aciona o que o direcional escolheu; sem nada escolhido, na ficha é "jogar"
+      const foco = focoDoPadNoModal();
+      if (foco) acionarComPad(foco);
+      else {
+        const play = document.querySelector('#modal-game:not([hidden]) #d-play');
+        if (play) play.click();
+      }
     } else {
       const j = jogoFocado();
       if (j) openDetail(j);
@@ -2979,7 +3082,12 @@ function pollGamepad() {
     if (edge(5, 'rb')) Dashboards.trocarGrupo(1);
   }
 
-  if (edge(1, 'b') && openModal) closeAll();
+  if (edge(1, 'b') && openModal) {
+    // B numa confirmação (Remover? / aviso) responde "Cancelar", não fecha tudo
+    const topo = janelaDoTopo();
+    const resposta = topo && (topo.querySelector('[data-nao]') || (!topo.id && topo.querySelector('[data-sim]')));
+    if (resposta) resposta.click(); else closeAll();
+  }
   if (edge(16, 'guia') && typeof ModoTV !== 'undefined') { closeAll(); ModoTV.abrir(); }
   if (edge(9, 'start')) runScan();
   if (edge(8, 'select') && !openModal) playRandom();
@@ -3229,6 +3337,13 @@ function renderStats() {
   box.appendChild(cartao(`Instalados e ainda sem tempo de jogo (${parados.length})`, parados.length ? chips : el('p', 'stats-vazio', 'Você já jogou tudo o que está instalado. 🎉')));
 }
 
+/* soltar um arquivo na janela não pode trocar a tela do app por ele */
+['dragover', 'drop'].forEach(tipo => document.addEventListener(tipo, e => {
+  if (e.target && e.target.closest && e.target.closest('[data-aceita-soltar]')) return;
+  e.preventDefault();
+  if (tipo === 'dragover' && e.dataTransfer) e.dataTransfer.dropEffect = 'none';
+}));
+
 /* ---------- boot ---------- */
 (async function boot() {
   wire();
@@ -3238,6 +3353,7 @@ function renderStats() {
   if (r.ok) {
     ui.state = r.data;
     applySkinId(currentSkinId());
+    if (r.data.avisoBiblioteca) setTimeout(() => avisarRecuperacao(r.data.avisoBiblioteca), 600);
   } else {
     toast('Não consegui carregar a biblioteca', 'err');
     ui.state = { games: [], favorites: [], hidden: [], settings: { emulators: {} } };

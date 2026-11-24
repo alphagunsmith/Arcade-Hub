@@ -59,6 +59,7 @@
   },
   "scripts": {
     "start": "electron .",
+    "test": "node test/run.js",
     "dist": "electron-builder --win nsis portable zip --x64"
   },
   "dependencies": {

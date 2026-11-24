@@ -24,6 +24,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Testes (se algum falhar, nada é publicado)
+        run: npm test
       - name: Gerar instalador e publicar
         run: npx electron-builder --win nsis portable zip --x64 --publish always
         env:

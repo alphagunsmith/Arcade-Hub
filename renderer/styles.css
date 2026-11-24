@@ -2333,3 +2333,6 @@ body[data-layout="dashboard"][data-dashboard^="bb-"] .content { padding: 0; over
 .mini-roda .r i { height: 5px; }
 .mini-texto .l { width: 38%; display: flex; flex-direction: column; gap: 4px; justify-content: center; } .mini-texto .l i { height: 5px; }
 .mini-texto .e { flex: 1; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+
+/* foco do controle dentro das janelas */
+.pad-foco { outline: 3px solid var(--accent) !important; outline-offset: 2px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent) !important; }

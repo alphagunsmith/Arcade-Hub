@@ -695,6 +695,12 @@ function iniciarServidorVideos(dir, porta) {
   const permitidas = [path.join(raiz, 'videos'), path.join(raiz, 'trailers')];
 
   const server = http.createServer((req, res) => {
+    // só o próprio app: um site aberto no navegador que "aponte" um domínio para
+    // 127.0.0.1 (DNS rebinding) chega aqui com outro Host e é recusado
+    if (!/^(127\.0\.0\.1|localhost)(:\d+)?$/i.test(String(req.headers.host || ''))) {
+      res.writeHead(403); return res.end();
+    }
+    if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405); return res.end(); }
     const st = /^\/stream\/([0-9a-f]{24})$/.exec((req.url || '').split('?')[0]);
     if (st) {
       const t = transmissoes.get(st[1]);

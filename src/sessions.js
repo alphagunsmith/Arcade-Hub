@@ -8,39 +8,55 @@
  * fica DENTRO da pasta do jogo. Enquanto houver, a sessão está aberta.
  *
  *  - lista processos só enquanto há jogo sendo vigiado (custo zero no resto do tempo)
- *  - Windows: PowerShell (Get-Process); Linux: /proc/<pid>/exe (usado nos testes)
+ *  - Windows: um PowerShell aberto durante o jogo (processos-win.js), que também
+ *    vê jogos abertos como administrador; plano B: Get-Process
+ *  - Linux: /proc/<pid>/exe (usado nos testes)
  *  - uma sessão só termina depois de 2 checagens seguidas sem o jogo (evita
  *    cortar a sessão quando o jogo reinicia sozinho, ex.: depois de um patch)
  */
 const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
+const { ListadorPersistente } = require('./processos-win');
 
 const norm = p => String(p || '').replace(/\\/g, '/').replace(/\/+$/, '').toLowerCase();
 
+let listador = null;   // PowerShell que fica aberto enquanto há jogo vigiado (só Windows)
+
 /** Caminhos (normalizados) dos executáveis em execução agora. */
-function listarProcessos() {
+async function listarProcessos() {
   if (process.platform === 'win32') {
-    return new Promise(resolve => {
-      execFile('powershell.exe', [
-        '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command',
-        '[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Process | Where-Object { $_.Path } | ForEach-Object { $_.Path }'
-      ], { windowsHide: true, timeout: 20000, maxBuffer: 16 * 1024 * 1024 }, (err, stdout) => {
-        if (err && !stdout) return resolve(null);              // null = não deu para saber
-        resolve(String(stdout || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean).map(norm));
-      });
-    });
+    if (!listador) listador = new ListadorPersistente();
+    if (listador.confiavel) {
+      const lista = await listador.listar();
+      if (lista) return lista.map(norm);
+      if (listador.confiavel) return null;      // falha passageira: o vigia tenta de novo
+    }
+    return listarViaGetProcess();               // plano B: o jeito antigo
   }
   if (process.platform === 'linux') {
     const out = [];
     let pids = [];
-    try { pids = fs.readdirSync('/proc').filter(n => /^\d+$/.test(n)); } catch { return Promise.resolve(null); }
+    try { pids = fs.readdirSync('/proc').filter(n => /^\d+$/.test(n)); } catch { return null; }
     for (const pid of pids) {
       try { out.push(norm(fs.readlinkSync(`/proc/${pid}/exe`))); } catch { /* processo sumiu ou sem permissão */ }
     }
-    return Promise.resolve(out);
+    return out;
   }
-  return Promise.resolve(null);
+  return null;
+}
+
+/** Plano B no Windows: Get-Process (não vê jogos abertos como administrador). */
+function listarViaGetProcess() {
+  return new Promise(resolve => {
+    execFile('powershell.exe', [
+      '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command',
+      '[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Process | Where-Object { $_.Path } | ForEach-Object { $_.Path }'
+    ], { windowsHide: true, timeout: 20000, maxBuffer: 16 * 1024 * 1024 }, (err, stdout) => {
+      if (err && !stdout) return resolve(null);              // null = não deu para saber
+      resolve(String(stdout || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean).map(norm));
+    });
+  });
 }
 
 /**
@@ -139,4 +155,4 @@ class VigiaDeSessoes {
   }
 }
 
-module.exports = { VigiaDeSessoes, listarProcessos, pastaVigiavel, norm };
+module.exports = { VigiaDeSessoes, listarProcessos, listarViaGetProcess, pastaVigiavel, norm };

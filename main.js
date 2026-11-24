@@ -9,13 +9,15 @@ const lib = require('./src/lib');
 // um único processo por instância (evita dois launchers brigando pelo library.json)
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
+  // já tem um Arcade Hub aberto: ele vem para a frente e este sai sem carregar
+  // nada (nem a biblioteca), para os dois nunca gravarem o mesmo arquivo
   app.quit();
-} else {
-  app.on('second-instance', () => {
-    const win = BrowserWindow.getAllWindows()[0];
-    if (win) { if (win.isMinimized()) win.restore(); win.focus(); }
-  });
+  return;
 }
+app.on('second-instance', () => {
+  const win = BrowserWindow.getAllWindows()[0];
+  if (win) { if (win.isMinimized()) win.restore(); if (!win.isVisible()) win.show(); win.focus(); }
+});
 
 if (process.platform === 'win32') app.setAppUserModelId('com.arcadehub.launcher');
 
@@ -81,9 +83,17 @@ function createWindow() {
     if (/^https?:/i.test(url)) shell.openExternal(url);
     return { action: 'deny' };
   });
+  // a janela só mostra a interface do app. Arrastar um arquivo para ela (uma
+  // imagem, uma página .html) trocava a tela por ele — e a página teria acesso
+  // às funções do app. Agora qualquer outra navegação é barrada.
+  const paginaDoApp = require('url').pathToFileURL(path.join(__dirname, 'renderer', 'index.html')).href;
   win.webContents.on('will-navigate', (e, url) => {
-    if (!url.startsWith('file://')) { e.preventDefault(); if (/^https?:/i.test(url)) shell.openExternal(url); }
+    if (url.split('#')[0] === paginaDoApp) return;
+    e.preventDefault();
+    if (/^https?:/i.test(url)) shell.openExternal(url);
   });
+  win.webContents.on('will-redirect', (e, url) => { if (url.split('#')[0] !== paginaDoApp) e.preventDefault(); });
+  win.webContents.on('will-attach-webview', e => e.preventDefault());
   // se a interface travar, avisa em vez de mostrar uma janela morta em silêncio
   win.on('unresponsive', () => console.warn('[arcade-hub] janela não está respondendo'));
 
@@ -100,6 +110,11 @@ app.whenReady().then(() => {
       cb({ requestHeaders: d.requestHeaders });
     }
   );
+
+  // o app não usa câmera, microfone, localização nem notificações do navegador
+  const PERMITIDAS = new Set(['fullscreen', 'clipboard-sanitized-write', 'mediaKeySystem']);
+  session.defaultSession.setPermissionRequestHandler((_wc, permissao, cb) => cb(PERMITIDAS.has(permissao)));
+  session.defaultSession.setPermissionCheckHandler((_wc, permissao) => PERMITIDAS.has(permissao));
 
   hub = lib.register(ipcMain, { shell, dialog, BrowserWindow, app, store });
   ligarBandejaDuranteOJogo();
