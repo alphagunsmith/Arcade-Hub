@@ -234,6 +234,11 @@ const api = (() => {
     limparSumidos: () => { const fora = state.games.filter(g => g.problem && /não encontrado/.test(g.problem)); state.games = state.games.filter(g => !fora.includes(g)); return reply({ removidos: fora.map(g => g.title), state }); },
     discordSalvar: patch => { state.settings.discord = { ...(state.settings.discord || {}), ...patch }; return reply({ discord: state.settings.discord, estado: 'sem-discord' }); },
     discordEstado: () => reply({ estado: 'sem-discord' }),
+    dualsenseEstado: () => reply({ estado: state._ds || 'ligado', msg: '', ligado: state._ds !== 'desligado',
+      resumo: state._ds === 'desligado' ? null : { controle: true, nome: 'DualSense', via: 'USB', xbox: { ligado: true, ativo: true, status: 'Controle de Xbox virtual ativo' }, ia: { tem_chave: false, status: 'Visão IA: coloque sua chave da API para ativar' }, jogo: '', fonte: 'som do jogo + tipo', arma: '' } }),
+    dualsenseSalvar: patch => { state._ds = patch.ligado ? 'ligado' : 'desligado'; return reply({ estado: state._ds, msg: '', ligado: !!patch.ligado }); },
+    dualsenseAbrir: () => state._ds === 'desligado' ? Promise.resolve({ ok: false, error: 'Ligue o DualSense Auto primeiro' }) : reply(true),
+    onDualSenseEstado: () => () => {},
     onDiscordAviso: () => () => {},
     onDiscordEstado: () => () => {},
     win: { min: () => {}, max: () => {}, close: () => {} }
@@ -1030,6 +1035,69 @@ function ligarDiscord(s) {
   $('#dc-appid').value = d.appId || '';
   $('#dc-salvar').onclick = () => salvar({ appId: $('#dc-appid').value });
   mostrarEstadoDiscord();
+}
+
+/** DualSense Auto: estado em Ajustes › DualSense, no menu ≡ e no Modo TV. */
+const TEXTO_DUALSENSE = {
+  ligado: ['ok', 'Ligado'],
+  iniciando: ['', 'Abrindo…'],
+  desligado: ['', 'Desligado'],
+  'ja-aberto': ['aviso', 'Já existe um DualSense Auto aberto fora do Arcade Hub'],
+  ausente: ['aviso', 'Não veio nesta instalação (só existe na versão para Windows)'],
+  erro: ['erro', 'Com erro']
+};
+function textoDualSense(e) {
+  const d = e || ui.dualsense || {};
+  const [cls, txt] = TEXTO_DUALSENSE[d.estado] || ['', '…'];
+  return { cls, txt, msg: d.msg || '' };
+}
+function mostrarEstadoDualSense() {
+  const t = textoDualSense();
+  const menu = $('#menu-ds-estado');
+  if (menu) menu.textContent = t.txt;
+  const box = $('#ds-estado');
+  if (!box) return;
+  box.className = 'dc-estado ' + t.cls;
+  const est = (ui.dualsense || {}).estado;
+  box.textContent = t.msg && est !== 'ligado' ? `${t.txt}: ${t.msg}` : t.txt;
+  const abrir = $('#ds-abrir');
+  if (abrir) abrir.disabled = est !== 'ligado';
+}
+async function atualizarResumoDualSense() {
+  const r = await api.dualsenseEstado();
+  const box = $('#ds-resumo');
+  if (!r || !r.ok) return;
+  ui.dualsense = { estado: r.data.estado, msg: r.data.msg };
+  mostrarEstadoDualSense();
+  if (!box) return;
+  box.innerHTML = '';
+  const x = r.data.resumo;
+  if (!x) return;
+  const linha = t => { const p = document.createElement('div'); p.textContent = t; box.appendChild(p); };
+  linha(x.controle ? `Controle: ${x.nome || 'DualSense'} (${x.via})` : 'Controle: conecte o DualSense (USB ou Bluetooth)');
+  if (x.xbox) linha('Xbox virtual: ' + (x.xbox.ligado ? x.xbox.status : 'desligado'));
+  if (x.ia) linha(x.ia.status);
+  if (x.jogo) linha(`Jogo: ${x.jogo}${x.fonte ? ' · dados: ' + x.fonte : ''}${x.arma ? ' · arma: ' + x.arma : ''}`);
+}
+async function abrirPainelDualSense() {
+  const r = await api.dualsenseAbrir();
+  if (!r || !r.ok) toast((r && r.error) || 'Não consegui abrir o painel', 'err');
+}
+async function ligarDesligarDualSense(ligar) {
+  const r = await api.dualsenseSalvar({ ligado: ligar });
+  if (!r || !r.ok) { toast((r && r.error) || 'Não consegui salvar', 'err'); return null; }
+  ui.state.settings.dualsense = { ...(ui.state.settings.dualsense || {}), ligado: r.data.ligado };
+  ui.dualsense = { estado: r.data.estado, msg: r.data.msg };
+  mostrarEstadoDualSense();
+  return r.data;
+}
+function ligarDualSense(s) {
+  const d = { ligado: true, ...(s.dualsense || {}) };
+  $('#ds-ligado').checked = d.ligado !== false;
+  $('#ds-ligado').onchange = e => ligarDesligarDualSense(e.target.checked);
+  $('#ds-abrir').onclick = abrirPainelDualSense;
+  mostrarEstadoDualSense();
+  atualizarResumoDualSense();
 }
 
 /* ---------- corrigir caminho de um jogo cujo arquivo sumiu ---------- */
@@ -2412,6 +2480,7 @@ function openSettings() {
   $('#opt-sgdb').value = s.sgdbKey || '';
   ligarFontesDeVideo(s);
   ligarDiscord(s);
+  ligarDualSense(s);
   $('#btn-limpar-sumidos').onclick = limparJogosSumidos;
   $('#opt-launchers').checked = s.includeStoreLaunchers !== false;
   $('#opt-autoscan').checked = s.autoScan !== false;
@@ -2588,6 +2657,7 @@ function ligarCasca() {
   $('#btn-menu').onclick = e => { e.stopPropagation(); alternarMenu(); };
   $('#btn-tv').onclick = e => { e.stopPropagation(); fecharMenu(); ModoTV.abrir(); };
   $('#btn-eco').onclick = e => { e.stopPropagation(); fecharMenu(); Ecossistema.abrirPainel(); };
+  $('#btn-dualsense').onclick = e => { e.stopPropagation(); fecharMenu(); abrirPainelDualSense(); };
   $('#btn-busca').onclick = e => { e.stopPropagation(); fecharMenu(); alternarBusca(); };
 
   // clique no fundo escuro fecha; clique dentro do painel não
@@ -3535,6 +3605,16 @@ function renderStats() {
   // Discord: estado da conexão e avisos (amigo entrando, convite recebido…)
   ui.discordEstado = ui.state.discordEstado || '';
   if (api.onDiscordEstado) api.onDiscordEstado(e => { ui.discordEstado = e; mostrarEstadoDiscord(); });
+  // DualSense Auto: o estado muda sozinho (abrindo, caiu, outro aberto…)
+  ui.dualsense = ui.state.dualsense || { estado: '', msg: '' };
+  mostrarEstadoDualSense();
+  if (api.onDualSenseEstado) api.onDualSenseEstado(e => {
+    const antes = ui.dualsense && ui.dualsense.estado;
+    ui.dualsense = e;
+    mostrarEstadoDualSense();
+    if (e.estado === 'ligado') atualizarResumoDualSense();
+    if (antes && antes !== e.estado && (e.estado === 'erro' || e.estado === 'ja-aberto')) toast('DualSense Auto: ' + (e.msg || textoDualSense(e).txt), 'err');
+  });
   if (api.onDiscordAviso) api.onDiscordAviso(a => {
     if (typeof ModoTV !== 'undefined' && ModoTV.ativo && ModoTV.aviso) ModoTV.aviso(a.texto);
     else toast(a.texto, a.tipo === 'erro' ? 'err' : 'ok');

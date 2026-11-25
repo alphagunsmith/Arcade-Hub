@@ -1,5 +1,16 @@
 # Novidades
 
+## 1.4.0
+
+- **O DualSense Auto agora vem dentro do Arcade Hub.** Vibração e gatilhos adaptáveis inteligentes em qualquer jogo, controle de Xbox virtual e instalação de mods. Ele já vem pronto no instalador, sem precisar de Python nem do iniciar.bat.
+  - **Abre junto com o Arcade Hub** e fecha junto. Ao fechar, os gatilhos voltam ao normal. Se o Arcade Hub travar, ele fecha sozinho em 2 segundos.
+  - **O painel abre numa janela do Arcade Hub:** menu ≡ › DualSense Auto, ou Ajustes › DualSense, onde também dá para desligar. No Modo TV fica em Sistema › DualSense Auto.
+  - **Se cair, abre de novo sozinho.** Se o DualSense Auto antigo, avulso, estiver aberto, o Arcade Hub avisa em vez de abrir um segundo, que brigaria pelo controle.
+  - **A janela do Arcade Hub não conta como jogo:** a visão IA não tira print do launcher nem gasta a sua chave com ele.
+  - **Sem controle fantasma:** o Xbox virtual só aparece enquanto o DualSense está conectado.
+  - **As chaves da IA e do Nexus ficam cifradas** neste PC (proteção do Windows).
+  - **Seus dados ficam em %APPDATA%\Arcade Hub\dualsense:** armas pesquisadas, perfis, mods instalados e backup dos arquivos originais dos jogos. Assim, as atualizações não apagam nada.
+
 ## 1.3.2
 
 - **Remover jogos em qualquer skin:** no rondel, nos temas de console, no LaunchBox e no Big Box, o clique direito num jogo não abria o menu dele, e sim o menu geral, que não tem "Remover". Agora abre o menu do jogo em todas.

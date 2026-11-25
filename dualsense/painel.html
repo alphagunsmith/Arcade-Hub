@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DualSense Auto</title>
+<style>
+  :root {
+    --fundo: #1b2030;
+    --placa: #232a3d;
+    --placa-2: #2a3249;
+    --linha: #353e58;
+    --texto: #e7eaf3;
+    --apagado: #8d97b2;
+    --macio: #5fd3c6;
+    --duro: #ffb454;
+    --max: #ff5d7d;
+    --ok: #6fdca0;
+    --luz: 96 140 255;
+    --cond: "Bahnschrift", "Barlow Semi Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+    --corpo: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--fundo); color: var(--texto); font: 15px/1.5 var(--corpo); }
+  body { min-height: 100vh; }
+  button, input, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid rgb(var(--luz)); outline-offset: 2px; }
+
+  /* ---------- topo ---------- */
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    padding: 18px 28px 0;
+  }
+  .marca { font-family: var(--cond); font-weight: 600; font-size: 22px; letter-spacing: .01em; font-stretch: 80%; }
+  .marca span { color: var(--apagado); font-weight: 400; }
+  .estados { display: flex; gap: 8px; flex-wrap: wrap; }
+  .estado {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
+    background: var(--placa); border: 1px solid var(--linha); font-size: 13px; color: var(--apagado);
+  }
+  .estado b { color: var(--texto); font-weight: 500; }
+  .ponto { width: 8px; height: 8px; border-radius: 50%; background: var(--linha); flex: none; }
+  .ponto.ok { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+  .ponto.espera { background: var(--duro); }
+  .ponto.erro { background: var(--max); }
+
+  /* ---------- cabine: L2 | centro | R2 ---------- */
+  .cabine {
+    position: relative; margin: 18px 28px 0; padding: 34px 28px 28px;
+    background: var(--placa); border: 1px solid var(--linha); border-radius: 22px;
+    display: grid; grid-template-columns: 190px minmax(0, 1fr) 190px; grid-template-areas: "l c r"; gap: 32px;
+  }
+  .barra-luz {
+    position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%);
+    width: min(320px, 40%); height: 6px; border-radius: 6px;
+    background: rgb(var(--luz)); box-shadow: 0 0 18px 2px rgb(var(--luz) / .55);
+    transition: background .15s, box-shadow .15s, opacity .15s;
+  }
+
+  .gatilho { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+  .gatilho.l { grid-area: l; }
+  .gatilho.r { grid-area: r; }
+  .gatilho .nome {
+    font-family: var(--cond); font-weight: 700; font-size: 64px; line-height: .9; font-stretch: 75%;
+    color: var(--texto);
+  }
+  .gatilho.r .nome, .gatilho.r .efeito, .gatilho.r .leitura { text-align: right; }
+  .gatilho .efeito { font-size: 14px; color: var(--apagado); min-height: 21px; }
+  .gatilho .efeito b { color: var(--texto); font-weight: 600; }
+  .curso {
+    position: relative; height: 330px; border-radius: 14px; background: var(--placa-2);
+    border: 1px solid var(--linha); padding: 8px; display: grid; grid-template-rows: repeat(10, 1fr); gap: 4px;
+    overflow: hidden;
+  }
+  .zona { position: relative; display: flex; justify-content: center; align-items: center; }
+  .zona i {
+    display: block; height: 100%; width: 0; border-radius: 5px; background: var(--macio);
+    transition: width .12s ease-out, background .12s;
+  }
+  .curso.vibra .zona i { animation: tremer var(--per, .05s) linear infinite alternate; }
+  @keyframes tremer { from { transform: translateX(-2px); } to { transform: translateX(2px); } }
+  .clique {
+    position: absolute; left: 4px; right: 4px; height: 0; border-top: 2px dashed var(--texto); opacity: .7;
+    display: none;
+  }
+  .pressao {
+    position: absolute; left: 0; right: 0; top: 0; height: 0;
+    background: rgb(var(--luz) / .07); border-bottom: 2px solid rgb(var(--luz));
+    transition: height .05s linear; pointer-events: none;
+  }
+  .leitura { font-family: var(--cond); font-size: 15px; color: var(--apagado); font-variant-numeric: tabular-nums; }
+  .leitura b { color: var(--texto); font-size: 20px; font-weight: 600; }
+
+  .centro { grid-area: c; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+  .contexto { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--apagado); }
+  .contexto strong { color: var(--texto); font-weight: 600; }
+  .chip { padding: 3px 10px; border-radius: 999px; background: var(--placa-2); border: 1px solid var(--linha); font-size: 13px; }
+  .chip.mod { border-color: rgb(var(--luz) / .6); color: var(--texto); }
+  h1.arma {
+    margin: 0; font-family: var(--cond); font-weight: 700; font-stretch: 75%;
+    font-size: clamp(44px, 6.2vw, 84px); line-height: .95; letter-spacing: -.01em;
+    overflow-wrap: anywhere;
+  }
+  .detalhes { margin: -6px 0 0; font-size: 18px; color: var(--texto); }
+  .origem { margin: 0; font-size: 13px; color: var(--apagado); max-width: 70ch; }
+
+  .motores { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; }
+  .medidor .rotulo { display: flex; justify-content: space-between; font-size: 13px; color: var(--apagado); margin-bottom: 6px; }
+  .medidor .rotulo b { color: var(--texto); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .trilho { height: 12px; border-radius: 6px; background: var(--placa-2); overflow: hidden; }
+  .trilho i { display: block; height: 100%; width: 0; border-radius: 6px; background: rgb(var(--luz)); transition: width .06s linear; }
+  .medidor.fino { grid-column: 1 / -1; }
+  .medidor.fino .trilho { height: 5px; }
+  .medidor.fino .trilho i { background: var(--apagado); }
+
+  .ambiente { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 4px; }
+  .sensor {
+    background: var(--placa-2); border-radius: 14px; padding: 14px; min-height: 118px;
+    display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
+  }
+  .sensor h3 { margin: 0; font-size: 13px; font-weight: 500; color: var(--apagado); }
+  .sensor .valor { font-family: var(--cond); font-size: 26px; font-weight: 600; font-stretch: 80%; line-height: 1.05; }
+  .gotas { display: flex; gap: 5px; }
+  .gotas svg path { fill: var(--linha); transition: fill .2s; }
+  .gotas svg.cheia path { fill: var(--macio); }
+  .bussola { width: 64px; height: 64px; align-self: center; }
+  .bussola path { fill: none; stroke: var(--linha); stroke-width: 7; stroke-linecap: round; }
+  .bussola path.ativo { stroke: var(--max); }
+  .bussola circle { fill: var(--apagado); }
+  .coracao { width: 30px; height: 30px; }
+  .coracao path { fill: var(--linha); }
+  .coracao.baixa path { fill: var(--max); }
+  .coracao.baixa { animation: bater .8s ease-in-out infinite; }
+  @keyframes bater { 0%, 100% { transform: scale(1); } 12% { transform: scale(1.18); } 26% { transform: scale(1); } 38% { transform: scale(1.1); } }
+
+  /* ---------- abas ---------- */
+  .abas { margin: 22px 28px 0; display: flex; gap: 4px; border-bottom: 1px solid var(--linha); }
+  .abas button {
+    background: none; border: 0; padding: 10px 16px 12px; color: var(--apagado); cursor: pointer;
+    border-bottom: 3px solid transparent; margin-bottom: -1px; font-weight: 500;
+  }
+  .abas button[aria-selected="true"] { color: var(--texto); border-bottom-color: rgb(var(--luz)); }
+  .painel { margin: 0 28px; padding: 22px 0 40px; display: none; }
+  .painel.ativo { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px 40px; }
+  .campo { display: flex; flex-direction: column; gap: 8px; max-width: 520px; }
+  .campo > label, .campo > .titulo { font-weight: 600; }
+  .campo small { color: var(--apagado); font-size: 13px; }
+  .linha-campo { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  input[type="range"] { width: 100%; accent-color: rgb(var(--luz)); }
+  input[type="password"], input[type="number"], input[type="url"], select {
+    background: var(--placa); border: 1px solid var(--linha); border-radius: 10px; padding: 9px 12px; min-width: 0;
+  }
+  input[type="password"], input[type="url"] { flex: 1; }
+  input[type="number"] { width: 90px; }
+  .botao {
+    background: var(--placa-2); border: 1px solid var(--linha); border-radius: 10px; padding: 9px 16px; cursor: pointer;
+    font-weight: 500;
+  }
+  .botao:hover { border-color: var(--apagado); }
+  .botao.principal { background: rgb(var(--luz) / .18); border-color: rgb(var(--luz) / .7); }
+  .botao.perigo { color: var(--max); }
+  .chave { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .chave input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .chave .trilho-chave {
+    width: 44px; height: 24px; border-radius: 12px; background: var(--placa-2); border: 1px solid var(--linha);
+    position: relative; flex: none; transition: background .15s;
+  }
+  .chave .trilho-chave::after {
+    content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--apagado); transition: transform .15s, background .15s;
+  }
+  .chave input:checked + .trilho-chave { background: rgb(var(--luz) / .35); }
+  .chave input:checked + .trilho-chave::after { transform: translateX(20px); background: var(--texto); }
+  .chave input:focus-visible + .trilho-chave { outline: 2px solid rgb(var(--luz)); outline-offset: 2px; }
+  .lista-mods { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .lista-mods li { background: var(--placa); border: 1px solid var(--linha); border-radius: 12px; padding: 12px 14px; }
+  .lista-mods li b { display: block; }
+  .lista-mods li span { color: var(--apagado); font-size: 13px; }
+  .aviso { color: var(--apagado); font-size: 13px; max-width: 60ch; }
+
+  #aba-baixar.ativo { display: block; }
+  .nexus-topo { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px 40px; margin-bottom: 28px; }
+  .jogo-mods { margin-bottom: 26px; }
+  .jogo-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--linha); padding-bottom: 8px; margin-bottom: 10px; }
+  .jogo-cab h2 { margin: 0; font-family: var(--cond); font-stretch: 80%; font-size: 26px; font-weight: 600; }
+  .jogo-cab .pasta { color: var(--apagado); font-size: 13px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .jogo-cab .pasta code { font-family: inherit; color: var(--texto); overflow-wrap: anywhere; }
+  .jogo-cab .pasta .falta { color: var(--duro); }
+  .link-botao { background: none; border: 0; padding: 0; color: rgb(var(--luz)); cursor: pointer; text-decoration: underline; font-size: 13px; }
+  .mod { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 20px; align-items: center;
+    padding: 14px 16px; border-radius: 14px; background: var(--placa); border: 1px solid var(--linha); margin-bottom: 8px; }
+  .mod.destaque { border-color: rgb(var(--luz) / .55); }
+  .mod.req { background: transparent; padding: 10px 16px; }
+  .mod .titulo-mod { font-weight: 600; }
+  .mod.req .titulo-mod { font-weight: 500; }
+  .mod .desc { color: var(--apagado); font-size: 13px; max-width: 75ch; }
+  .mod .situacao-mod { font-size: 13px; margin-top: 4px; }
+  .mod .situacao-mod.ok { color: var(--ok); }
+  .mod .situacao-mod.erro { color: var(--max); }
+  .mod .situacao-mod.andando { color: var(--duro); }
+  .mod .acoes { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .mod .barra { height: 4px; border-radius: 2px; background: var(--placa-2); margin-top: 6px; max-width: 320px; overflow: hidden; }
+  .mod .barra i { display: block; height: 100%; background: rgb(var(--luz)); }
+  .rotulo-req { color: var(--apagado); font-size: 13px; margin: 12px 0 6px 2px; }
+  @media (max-width: 640px) { .mod { grid-template-columns: 1fr; } .mod .acoes { justify-content: flex-start; } }
+  #aba-leitor.ativo { display: block; }
+  .soltar {
+    border: 2px dashed var(--linha); border-radius: 18px; padding: 48px 24px; text-align: center;
+    background: var(--placa); transition: border-color .15s, background .15s; cursor: pointer;
+  }
+  .soltar.sobre { border-color: rgb(var(--luz)); background: rgb(var(--luz) / .08); }
+  .soltar h2 { margin: 0 0 6px; font-family: var(--cond); font-stretch: 80%; font-size: 30px; font-weight: 600; }
+  .soltar p { margin: 0 0 16px; color: var(--apagado); }
+  .plano { background: var(--placa); border: 1px solid var(--linha); border-radius: 18px; padding: 22px 24px; }
+  .plano h2 { margin: 0 0 4px; font-family: var(--cond); font-stretch: 80%; font-size: 28px; font-weight: 600; overflow-wrap: anywhere; }
+  .plano .sub { color: var(--apagado); margin: 0 0 18px; }
+  .fatos { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 18px; margin: 0 0 16px; }
+  .fatos dt { color: var(--apagado); }
+  .fatos dd { margin: 0; overflow-wrap: anywhere; }
+  .ops { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0 6px; }
+  .ops th { text-align: left; color: var(--apagado); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--linha); }
+  .ops td { padding: 6px 8px; border-bottom: 1px solid var(--placa-2); overflow-wrap: anywhere; }
+  .avisos { margin: 12px 0 0; padding-left: 18px; color: var(--duro); }
+  .reqs { margin: 12px 0 0; padding-left: 18px; }
+  details.leia { margin-top: 14px; }
+  details.leia summary { cursor: pointer; color: var(--apagado); }
+  details.leia pre { white-space: pre-wrap; font: 13px/1.5 var(--corpo); color: var(--apagado); max-height: 260px; overflow: auto;
+    background: var(--placa-2); padding: 12px; border-radius: 10px; }
+  .barra-envio { height: 6px; border-radius: 3px; background: var(--placa-2); max-width: 420px; margin: 14px auto 0; overflow: hidden; }
+  .barra-envio i { display: block; height: 100%; width: 0; background: rgb(var(--luz)); }
+  .linha-botoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translate(-50%, 20px); opacity: 0;
+    background: var(--placa-2); border: 1px solid var(--linha); padding: 10px 18px; border-radius: 12px;
+    transition: opacity .2s, transform .2s; pointer-events: none;
+  }
+  .toast.ver { opacity: 1; transform: translate(-50%, 0); }
+  .fechado {
+    position: fixed; inset: 0; background: rgb(27 32 48 / .92); display: none; place-items: center; text-align: center;
+  }
+  .fechado.ver { display: grid; }
+  .fechado p { font-size: 18px; max-width: 40ch; }
+
+  @media (max-width: 960px) {
+    .cabine { grid-template-columns: 1fr 1fr; grid-template-areas: "l r" "c c"; }
+    .ambiente { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .curso { height: 220px; }
+  }
+  @media (max-width: 560px) {
+    header, .cabine, .abas, .painel { margin-left: 12px; margin-right: 12px; }
+    .cabine { padding: 28px 16px 20px; gap: 20px; }
+    .gatilho .nome { font-size: 48px; }
+    .motores { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .curso.vibra .zona i { background-image: repeating-linear-gradient(90deg, transparent 0 4px, rgb(0 0 0 / .35) 4px 6px); }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="marca">DualSense Auto <span>painel</span></div>
+  <div class="estados" aria-live="polite">
+    <span class="estado"><i class="ponto" id="p-controle"></i><b id="t-controle">Procurando o controle</b></span>
+    <span class="estado"><i class="ponto" id="p-xbox"></i><b id="t-xbox">Xbox virtual</b></span>
+    <span class="estado"><i class="ponto" id="p-mods"></i><b id="t-mods">Nenhum mod</b></span>
+    <span class="estado"><i class="ponto" id="p-ia"></i><b id="t-ia">Visão IA</b></span>
+  </div>
+</header>
+
+<section class="cabine" aria-label="O que o controle está sentindo agora">
+  <div class="barra-luz" id="barra-luz" title="Cor atual da barra de luz do controle"></div>
+
+  <div class="gatilho l">
+    <div class="nome">L2</div>
+    <div class="efeito" id="l2-efeito"><b>Livre</b></div>
+    <div class="curso" id="l2-curso" aria-hidden="true"></div>
+    <div class="leitura">Apertado <b id="l2-pos">0%</b></div>
+  </div>
+
+  <div class="centro">
+    <div class="contexto">
+      <strong id="jogo">Nenhum jogo aberto</strong>
+      <span class="chip" id="situacao">a pé</span>
+      <span class="chip" id="fonte">sem dados</span>
+    </div>
+    <h1 class="arma" id="arma">Sem arma na mão</h1>
+    <p class="detalhes" id="detalhes">Abra um jogo para começar.</p>
+    <p class="origem" id="origem"></p>
+
+    <div class="motores">
+      <div class="medidor">
+        <div class="rotulo">Motor pesado (esquerdo) <b id="m-esq-v">0%</b></div>
+        <div class="trilho"><i id="m-esq"></i></div>
+      </div>
+      <div class="medidor">
+        <div class="rotulo">Motor leve (direito) <b id="m-dir-v">0%</b></div>
+        <div class="trilho"><i id="m-dir"></i></div>
+      </div>
+      <div class="medidor fino">
+        <div class="rotulo">Vibração pedida pelo jogo <b id="m-jogo-v">0%</b></div>
+        <div class="trilho"><i id="m-jogo"></i></div>
+      </div>
+    </div>
+
+    <div class="ambiente">
+      <div class="sensor">
+        <h3>Chuva ou neve</h3>
+        <div class="gotas" id="gotas"></div>
+        <div class="valor" id="chuva">Sem chuva</div>
+      </div>
+      <div class="sensor">
+        <h3>Terreno</h3>
+        <div class="valor" id="terreno">Não identificado</div>
+      </div>
+      <div class="sensor">
+        <h3>De onde veio o dano</h3>
+        <svg class="bussola" viewBox="0 0 64 64" role="img" aria-label="Direção do último dano" id="bussola">
+          <path data-dir="frente"   d="M18 14 A24 24 0 0 1 46 14"/>
+          <path data-dir="direita"  d="M50 18 A24 24 0 0 1 50 46"/>
+          <path data-dir="tras"     d="M46 50 A24 24 0 0 1 18 50"/>
+          <path data-dir="esquerda" d="M14 46 A24 24 0 0 1 14 18"/>
+          <circle cx="32" cy="32" r="4"/>
+        </svg>
+        <div class="valor" id="dano" style="font-size:18px">Nenhum</div>
+      </div>
+      <div class="sensor">
+        <h3>Vida</h3>
+        <svg class="coracao" id="coracao" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3.1 4.5 6.7 4.5c2 0 3.6 1.1 4.4 2.6l.9 1.5.9-1.5c.8-1.5 2.4-2.6 4.4-2.6 3.6 0 5.8 3.7 4.3 7.2C19.5 16.4 12 21 12 21z"/>
+        </svg>
+        <div class="valor" id="vida">Normal</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gatilho r">
+    <div class="nome">R2</div>
+    <div class="efeito" id="r2-efeito"><b>Livre</b></div>
+    <div class="curso" id="r2-curso" aria-hidden="true"></div>
+    <div class="leitura">Apertado <b id="r2-pos">0%</b></div>
+  </div>
+</section>
+
+<nav class="abas" role="tablist" aria-label="Configurações">
+  <button role="tab" aria-selected="true" aria-controls="aba-ajustes" id="tab-ajustes">Ajustes</button>
+  <button role="tab" aria-selected="false" aria-controls="aba-ia" id="tab-ia">IA e Xbox</button>
+  <button role="tab" aria-selected="false" aria-controls="aba-baixar" id="tab-baixar">Baixar mods</button>
+  <button role="tab" aria-selected="false" aria-controls="aba-leitor" id="tab-leitor">Instalar mod</button>
+  <button role="tab" aria-selected="false" aria-controls="aba-mods" id="tab-mods">Jogos e mods</button>
+</nav>
+
+<section class="painel ativo" id="aba-ajustes" role="tabpanel" aria-labelledby="tab-ajustes">
+  <div class="campo">
+    <label for="rumble">Intensidade da vibração <span id="rumble-v"></span></label>
+    <input type="range" id="rumble" min="0" max="2" step="0.05">
+  </div>
+  <div class="campo">
+    <label for="gatilhos">Força dos gatilhos <span id="gatilhos-v"></span></label>
+    <input type="range" id="gatilhos" min="0" max="1.5" step="0.05">
+  </div>
+  <div class="campo">
+    <label for="perfil">Tipo de jogo</label>
+    <select id="perfil">
+      <option value="auto">Detectar sozinho</option>
+      <option value="tiro">Tiro</option>
+      <option value="corrida">Corrida</option>
+      <option value="acao">Ação e aventura</option>
+      <option value="generico">Genérico</option>
+      <option value="desligado">Gatilhos desligados</option>
+    </select>
+    <small>Usado quando não há mod nem visão IA para este jogo.</small>
+  </div>
+  <div class="campo">
+    <div class="titulo">Ensinar o tipo deste jogo</div>
+    <div class="linha-campo">
+      <select id="ensinar" aria-label="Tipo para salvar">
+        <option value="tiro">Tiro</option>
+        <option value="corrida">Corrida</option>
+        <option value="acao">Ação e aventura</option>
+        <option value="generico">Genérico</option>
+        <option value="desligado">Gatilhos desligados</option>
+      </select>
+      <button class="botao" id="b-ensinar">Salvar para este jogo</button>
+    </div>
+    <small id="ensinar-dica">O app lembra a escolha da próxima vez que você abrir o jogo.</small>
+  </div>
+</section>
+
+<section class="painel" id="aba-ia" role="tabpanel" aria-labelledby="tab-ia">
+  <div class="campo">
+    <label for="chave">Chave da API do Claude</label>
+    <div class="linha-campo">
+      <input type="password" id="chave" placeholder="Cole a chave aqui" autocomplete="off">
+      <button class="botao principal" id="b-chave">Salvar chave</button>
+    </div>
+    <small id="chave-estado">Crie a chave em console.anthropic.com.</small>
+  </div>
+  <div class="campo">
+    <label class="chave"><input type="checkbox" id="visao_ativa"><span class="trilho-chave"></span>Ler a tela com IA</label>
+    <small>Identifica arma, clima, terreno e dano. Pausa sozinha quando um mod manda os dados.</small>
+    <label class="chave"><input type="checkbox" id="pesquisar_web"><span class="trilho-chave"></span>Pesquisar cada arma nova na web</label>
+    <div class="linha-campo">
+      <label for="intervalo_visao_s">Ler a tela a cada</label>
+      <input type="number" id="intervalo_visao_s" min="2" max="30"> segundos
+    </div>
+    <small id="ia-estado"></small>
+  </div>
+  <div class="campo">
+    <label class="chave"><input type="checkbox" id="emular_xbox"><span class="trilho-chave"></span>Emular controle de Xbox</label>
+    <small id="xbox-estado"></small>
+    <div class="linha-campo"><button class="botao" id="b-driver">Instalar driver do Xbox</button></div>
+    <p class="aviso">Para o jogo não ver dois controles, esconda o DualSense com o HidHide e libere nele o programa .venv\Scripts\pythonw.exe desta pasta. Na Steam, desative o Steam Input do jogo.</p>
+  </div>
+</section>
+
+<section class="painel" id="aba-baixar" role="tabpanel" aria-labelledby="tab-baixar">
+  <div class="nexus-topo">
+    <div class="campo">
+      <label for="nexus-chave">Sua chave do Nexus Mods</label>
+      <div class="linha-campo">
+        <input type="password" id="nexus-chave" placeholder="Cole a chave aqui" autocomplete="off">
+        <button class="botao principal" id="b-nexus-chave">Conectar</button>
+      </div>
+      <small id="nexus-conta">No site do Nexus: seu perfil, Site preferences, aba API Keys, "Personal API Key" no fim da página.</small>
+    </div>
+    <div class="campo">
+      <label class="chave"><input type="checkbox" id="nxm-ligar"><span class="trilho-chave"></span>Receber os links "Mod Manager Download" do site</label>
+      <small id="nxm-nota">Necessário em conta grátis: o app abre a página do mod, você clica em "Slow download" e ele termina sozinho. Se você usa Vortex ou Mod Organizer, desligar isto devolve os links para eles.</small>
+    </div>
+    <div class="campo">
+      <label for="nexus-link">Adicionar outro mod pelo link</label>
+      <div class="linha-campo">
+        <input type="url" id="nexus-link" placeholder="https://www.nexusmods.com/jogo/mods/1234" autocomplete="off">
+        <button class="botao" id="b-nexus-link">Adicionar</button>
+      </div>
+      <small>Mods fora da lista são só baixados; a instalação segue a página do mod.</small>
+    </div>
+  </div>
+  <div id="lista-jogos"></div>
+</section>
+
+<section class="painel" id="aba-leitor" role="tabpanel" aria-labelledby="tab-leitor">
+  <div id="leitor-area"></div>
+  <input type="file" id="leitor-arquivo" accept=".zip,.7z,.rar" hidden>
+  <div class="campo" style="margin-top:28px; max-width:none">
+    <div class="titulo">Instalados por aqui</div>
+    <ul class="lista-mods" id="leitor-instalados"></ul>
+  </div>
+</section>
+
+<section class="painel" id="aba-mods" role="tabpanel" aria-labelledby="tab-mods">
+  <div class="campo">
+    <div class="titulo">Mods conectados</div>
+    <ul class="lista-mods">
+      <li><b>Receptor de mods do DSX</b><span id="mods-dsx"></span></li>
+      <li><b>Call of Duty: Infinite Warfare</b><span id="mods-iw7">Esperando o jogo abrir pelo jogar_com_dualsense.bat</span></li>
+      <li><b>Banco de armas</b><span id="mods-armas"></span></li>
+    </ul>
+  </div>
+  <div class="campo">
+    <div class="titulo">Como instalar os mods</div>
+    <small>Cyberpunk 2077, CoD: Infinite Warfare e Dying Light: The Beast têm o passo a passo no guia.</small>
+    <div class="linha-campo"><button class="botao" id="b-guia">Abrir guia dos mods</button></div>
+  </div>
+  <div class="campo">
+    <div class="titulo">Desligar o DualSense Auto</div>
+    <small>Fechar esta janela não desliga o app: ele continua controlando o DualSense. Use este botão para desligar de vez.</small>
+    <div class="linha-campo"><button class="botao perigo" id="b-desligar">Desligar o app</button></div>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+<div class="fechado" id="fechado"><p>O DualSense Auto foi desligado. Para abrir de novo, use o iniciar.bat.</p></div>
+
+<script>
+const TOKEN = "__TOKEN__";
+const $ = (id) => document.getElementById(id);
+const NOMES_SITUACAO = { a_pe: "a pé", veiculo: "dirigindo", menu: "no menu", cutscene: "em cena", outro: "outro" };
+const NOMES_TIPO = { pistola: "Pistola", revolver: "Revólver", smg: "Submetralhadora", fuzil: "Fuzil",
+  metralhadora: "Metralhadora", escopeta: "Escopeta", sniper: "Rifle de precisão", arco: "Arco",
+  lancador: "Lançador", granada: "Granada", energia: "Arma de energia", corpo_a_corpo: "Corpo a corpo", nenhuma: "" };
+const NOMES_TERRENO = { asfalto: "Asfalto", terra: "Terra", lama: "Lama", cascalho: "Cascalho", grama: "Grama",
+  areia: "Areia", neve: "Neve", gelo: "Gelo", agua: "Água", zebra: "Zebra", metal: "Metal", madeira: "Madeira",
+  desconhecido: "Não identificado" };
+const NOMES_DANO = { frente: "Pela frente", tras: "Pelas costas", esquerda: "Pela esquerda", direita: "Pela direita" };
+
+// ---------- monta os cursos dos gatilhos
+for (const lado of ["l2", "r2"]) {
+  const c = $(lado + "-curso");
+  for (let i = 0; i < 10; i++) {
+    const z = document.createElement("div");
+    z.className = "zona";
+    z.appendChild(document.createElement("i"));
+    c.appendChild(z);
+  }
+  const k = document.createElement("div"); k.className = "clique"; c.appendChild(k);
+  const p = document.createElement("div"); p.className = "pressao"; c.appendChild(p);
+}
+for (let i = 0; i < 5; i++) {
+  $("gotas").insertAdjacentHTML("beforeend",
+    '<svg width="14" height="18" viewBox="0 0 14 18" aria-hidden="true"><path d="M7 0C7 0 0 8 0 11.5A7 7 0 0 0 14 11.5C14 8 7 0 7 0z"/></svg>');
+}
+
+function corForca(f) {
+  // macio (verde-água) -> duro (âmbar) -> máximo (rosa)
+  const t = Math.max(0, Math.min(1, (f - 1) / 7));
+  const a = t < 0.5 ? [95, 211, 198] : [255, 180, 84];
+  const b = t < 0.5 ? [255, 180, 84] : [255, 93, 125];
+  const u = t < 0.5 ? t * 2 : (t - 0.5) * 2;
+  return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * u)).join(",")})`;
+}
+
+function desenhaGatilho(lado, info, pos) {
+  const c = $(lado + "-curso");
+  const zonas = c.querySelectorAll(".zona i");
+  info.zonas.forEach((f, i) => {
+    zonas[i].style.width = (f / 8 * 100) + "%";
+    zonas[i].style.background = corForca(f);
+  });
+  const vibra = info.nome === "Vibração";
+  c.classList.toggle("vibra", vibra);
+  if (vibra) c.style.setProperty("--per", (1 / Math.max(4, Math.min(60, info.freq || 20)) / 2) + "s");
+  const clique = c.querySelector(".clique");
+  if (info.clique !== undefined) {
+    clique.style.display = "block";
+    clique.style.top = `calc(8px + (100% - 16px) * ${info.clique / 10})`;
+  } else clique.style.display = "none";
+  c.querySelector(".pressao").style.height = (pos * 100) + "%";
+  let txt = `<b>${info.nome}</b>`;
+  if (vibra && info.freq) txt += ` a ${info.freq} Hz`;
+  const max = Math.max(...info.zonas);
+  if (max && !vibra) txt += `, força ${max} de 8`;
+  $(lado + "-efeito").innerHTML = txt;
+  $(lado + "-pos").textContent = Math.round(pos * 100) + "%";
+}
+
+function medidor(id, v) {
+  $(id).style.width = (v * 100) + "%";
+  $(id + "-v").textContent = Math.round(v * 100) + "%";
+}
+
+function estado(id, classe, texto) {
+  $("p-" + id).className = "ponto " + classe;
+  $("t-" + id).textContent = texto;
+}
+
+let primeiro = true, falhas = 0;
+
+function render(s) {
+  const [r, g, b] = s.luz;
+  const brilho = Math.max(r, g, b);
+  // cor pura da luz (sem o brilho), para a barra; versão clareada, para o destaque da interface
+  const pura = brilho < 30 ? [96, 140, 255] : [r, g, b].map(v => Math.round(v * 255 / brilho));
+  const suave = pura.map(v => Math.round(v + (231 - v) * 0.28));
+  document.documentElement.style.setProperty("--luz", suave.join(" "));
+  const forca = brilho < 30 ? 0.35 : 0.45 + 0.55 * brilho / 255;
+  $("barra-luz").style.background = `rgb(${pura.join(" ")})`;
+  $("barra-luz").style.opacity = forca;
+  $("barra-luz").style.boxShadow = `0 0 ${8 + 18 * forca}px 2px rgb(${pura.join(" ")} / ${0.25 + 0.4 * forca})`;
+
+  // estados do topo
+  const c = s.controle;
+  estado("controle", c.conectado ? "ok" : "espera", c.conectado ? `${c.nome} por ${c.via}` : "Procurando o DualSense");
+  const x = s.xbox;
+  estado("xbox", !x.ligado ? "" : x.ativo ? "ok" : "erro",
+    !x.ligado ? "Xbox virtual desligado" : x.ativo ? "Xbox virtual ativo" : "Xbox virtual sem driver");
+  estado("mods", s.mods.ativo ? "ok" : "", s.mods.ativo ? `Mod conectado: ${s.mods.ativo === "DSX" ? "protocolo DSX" : s.mods.ativo}` : "Nenhum mod");
+  const ia = s.ia, cf = s.config;
+  let iaTxt = "Visão IA desligada", iaCl = "";
+  if (cf.visao_ativa && !ia.tem_chave) { iaTxt = "Visão IA sem chave"; iaCl = "espera"; }
+  else if (cf.visao_ativa && ia.status.includes("pausada")) { iaTxt = "Visão IA pausada (mod)"; iaCl = ""; }
+  else if (cf.visao_ativa && ia.status.includes("erro")) { iaTxt = "Visão IA com erro"; iaCl = "erro"; }
+  else if (cf.visao_ativa) { iaTxt = "Visão IA ligada"; iaCl = "ok"; }
+  estado("ia", iaCl, iaTxt);
+
+  // centro
+  const inf = s.info || {};
+  $("jogo").textContent = inf.jogo && inf.jogo !== "?" ? inf.jogo : (s.jogo.exe || "Nenhum jogo aberto");
+  $("situacao").textContent = NOMES_SITUACAO[inf.situacao] || "a pé";
+  const fonte = inf.fonte_dados || "sem dados";
+  $("fonte").textContent = "dados: " + fonte;
+  $("fonte").classList.toggle("mod", fonte.startsWith("mod"));
+  const veic = inf.situacao === "veiculo";
+  const tipo = NOMES_TIPO[inf.tipo] || "";
+  if (veic) {
+    $("arma").textContent = "Dirigindo";
+    $("detalhes").textContent = "Gatilhos e vibração seguem o terreno sob as rodas.";
+  } else if (inf.arma) {
+    $("arma").textContent = inf.arma;
+    let d = tipo || "Arma";
+    d += inf.automatica ? ", automática" : ", semiautomática";
+    if (inf.cadencia) d += `, ${inf.cadencia} tiros por minuto`;
+    $("detalhes").textContent = d;
+  } else {
+    $("arma").textContent = tipo ? tipo : "Sem arma na mão";
+    $("detalhes").textContent = s.jogo.exe ? "Gatilhos leves até aparecer uma arma." : "Abra um jogo para começar.";
+  }
+  let origem = inf.fonte ? `Setup do gatilho: ${inf.fonte}.` : "";
+  if (inf.resumo) origem += " " + inf.resumo;
+  if (ia.pesquisa) origem += (origem ? " " : "") + ia.pesquisa;
+  $("origem").textContent = origem;
+
+  desenhaGatilho("l2", s.gatilhos.l2, s.gatilhos.l2_pos);
+  desenhaGatilho("r2", s.gatilhos.r2, s.gatilhos.r2_pos);
+  medidor("m-esq", s.motores.esq);
+  medidor("m-dir", s.motores.dir);
+  medidor("m-jogo", s.motores.jogo);
+
+  const chuva = inf.chuva || 0;
+  $("gotas").querySelectorAll("svg").forEach((g, i) => g.classList.toggle("cheia", chuva > i / 5 + 0.02));
+  $("chuva").textContent = chuva > 0.02 ? Math.round(chuva * 100) + "%" : "Sem chuva";
+  $("terreno").textContent = veic ? (NOMES_TERRENO[inf.superficie] || "Não identificado") : "A pé";
+  const recente = s.dano.dir && s.dano.idade < 2.5;
+  $("bussola").querySelectorAll("path").forEach(p => {
+    const on = recente && p.dataset.dir === s.dano.dir;
+    p.classList.toggle("ativo", on);
+    p.style.opacity = on ? Math.max(0.35, 1 - s.dano.idade / 2.5) : 1;
+  });
+  $("dano").textContent = recente ? NOMES_DANO[s.dano.dir] || "Atingido" : "Nenhum";
+  $("coracao").classList.toggle("baixa", !!inf.vida_baixa);
+  $("vida").textContent = inf.vida_baixa ? "Baixa" : "Normal";
+
+  // abas: só preenche os controles na primeira vez (para não brigar com você)
+  if (primeiro) {
+    $("rumble").value = s.ajustes.rumble; $("gatilhos").value = s.ajustes.gatilhos;
+    $("perfil").value = s.ajustes.perfil;
+    for (const k of ["visao_ativa", "pesquisar_web", "emular_xbox"]) $(k).checked = cf[k];
+    $("intervalo_visao_s").value = cf.intervalo_visao_s;
+    primeiro = false;
+  }
+  $("rumble-v").textContent = Math.round($("rumble").value * 100) + "%";
+  $("gatilhos-v").textContent = Math.round($("gatilhos").value * 100) + "%";
+  $("chave-estado").textContent = ia.tem_chave ? "Chave salva neste computador." :
+    "Sem chave, o app funciona só com mods e com a vibração do jogo.";
+  $("ia-estado").textContent = ia.status.replace(/^Visão IA: /, "");
+  $("xbox-estado").textContent = x.status;
+  $("mods-dsx").textContent = s.mods.dsx + (s.mods.pacotes ? `. ${s.mods.pacotes} comandos recebidos.` : "");
+  if (s.mods.arquivos.length) $("mods-iw7").textContent = s.mods.arquivos.join(" ");
+  $("mods-armas").textContent = ia.armas === 1 ? "1 arma com setup salvo." : `${ia.armas} armas com setup salvo.`;
+}
+
+async function atualizar() {
+  try {
+    const r = await fetch("/api/estado", { headers: { "X-Token": TOKEN }, cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    render(await r.json());
+    falhas = 0;
+  } catch (e) {
+    if (++falhas > 15) $("fechado").classList.add("ver");
+  }
+}
+setInterval(atualizar, 100);
+atualizar();
+
+// ---------- ações
+let toastT;
+function aviso(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("ver");
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("ver"), 2600);
+}
+async function enviar(caminho, corpo) {
+  try {
+    const r = await fetch(caminho, { method: "POST", headers: { "X-Token": TOKEN, "Content-Type": "application/json" },
+      body: JSON.stringify(corpo || {}) });
+    const j = await r.json();
+    if (j.msg) aviso(j.msg);
+    return j;
+  } catch (e) { aviso("O app não respondeu. Ele ainda está aberto?"); }
+}
+const ajuste = (chave, valor) => enviar("/api/ajuste", { chave, valor });
+$("rumble").addEventListener("input", e => ajuste("rumble", +e.target.value));
+$("gatilhos").addEventListener("input", e => ajuste("gatilhos", +e.target.value));
+$("perfil").addEventListener("change", e => ajuste("perfil", e.target.value));
+for (const k of ["visao_ativa", "pesquisar_web", "emular_xbox"]) $(k).addEventListener("change", e => ajuste(k, e.target.checked));
+$("intervalo_visao_s").addEventListener("change", e => ajuste("intervalo_visao_s", +e.target.value));
+$("b-chave").addEventListener("click", async () => { await enviar("/api/chave", { chave: $("chave").value }); $("chave").value = ""; });
+$("b-ensinar").addEventListener("click", () => enviar("/api/ensinar", { perfil: $("ensinar").value }));
+$("b-driver").addEventListener("click", () => enviar("/api/driver"));
+$("b-guia").addEventListener("click", () => enviar("/api/guia"));
+$("b-desligar").addEventListener("click", async () => {
+  if (!confirm("Desligar o DualSense Auto? O controle volta ao normal.")) return;
+  await enviar("/api/desligar"); setTimeout(() => $("fechado").classList.add("ver"), 400);
+});
+
+// ---------- baixar mods
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let nxmPrimeiro = true;
+function linhaMod(m) {
+  const t = m.tarefa;
+  let sit = "", cls = "";
+  const andando = t && !t.erro && !/^Instalado|^Baixado/.test(t.estado) && (Date.now() / 1000 - t.t) < 900;
+  if (t && (t.erro || andando)) { sit = t.estado; cls = t.erro ? "erro" : "andando"; }
+  else if (m.instalado) { sit = m.instalar === "manual" ? `Baixado${m.versao ? " (versão " + m.versao + ")" : ""}` :
+    `Instalado${m.versao ? ", versão " + m.versao : ""}`; cls = "ok"; }
+  else if (t) { sit = t.estado; cls = "ok"; }
+  const barra = andando && t.progresso != null ? `<div class="barra"><i style="width:${Math.round(t.progresso * 100)}%"></i></div>` : "";
+  let acoes = "";
+  if (!andando) {
+    if (!m.instalado) acoes += `<button class="botao principal" data-acao="instalar" data-id="${m.id}">${m.instalar === "manual" ? "Baixar" : m.instalar === "local" ? "Instalar" : "Baixar e instalar"}</button>`;
+    else if (m.instalar === "manual") acoes += `<button class="botao" data-acao="pasta" data-id="${m.id}">Abrir pasta</button>`;
+    else acoes += `<button class="botao" data-acao="instalar" data-id="${m.id}">Reinstalar</button>`;
+    if (m.instalado) acoes += `<button class="botao perigo" data-acao="remover" data-id="${m.id}">Remover</button>`;
+  }
+  if (m.pagina) acoes += `<button class="botao" data-acao="pagina" data-id="${m.id}">Ver página</button>`;
+  const req = m.requisitos.length ? `<div class="desc">Também instala: ${esc(m.requisitos.join(", "))}.</div>` : "";
+  return `<div class="mod${m.destaque ? " destaque" : ""}${m.requisito ? " req" : ""}">
+    <div><div class="titulo-mod">${esc(m.nome)}</div>${m.requisito ? "" : `<div class="desc">${esc(m.desc)}</div>`}${req}
+      ${sit ? `<div class="situacao-mod ${cls}">${esc(sit)}</div>` : ""}${barra}</div>
+    <div class="acoes">${acoes}</div></div>`;
+}
+function renderMods(d) {
+  const c = d.conta;
+  $("nexus-conta").textContent = c.erro ? c.erro : c.nome ? `Conectado como ${c.nome}, conta ${c.premium ? "Premium: downloads diretos" : "grátis: cada download pede um clique no site"}.` :
+    'No site do Nexus: seu perfil, Site preferences, aba API Keys, "Personal API Key" no fim da página.';
+  if (nxmPrimeiro) { $("nxm-ligar").checked = d.nxm.nosso; nxmPrimeiro = false; }
+  $("nxm-ligar").disabled = !d.nxm.windows;
+  let html = "";
+  for (const j of d.jogos) {
+    const principais = j.mods.filter(m => !m.requisito), reqs = j.mods.filter(m => m.requisito);
+    const pasta = j.pasta ? `Pasta: <code>${esc(j.pasta)}</code>` : `<span class="falta">Pasta do jogo não encontrada</span>`;
+    const linhaPasta = j.precisa_pasta ? `<div class="pasta">${pasta}<button class="link-botao" data-acao="trocar-pasta" data-dom="${esc(j.dominio)}">${j.pasta ? "Trocar" : "Informar pasta"}</button></div>` : "";
+    html += `<div class="jogo-mods"><div class="jogo-cab"><h2>${esc(j.nome)}</h2>${linhaPasta}</div>
+      ${principais.map(linhaMod).join("")}
+      ${reqs.length ? `<div class="rotulo-req">Requisitos</div>${reqs.map(linhaMod).join("")}` : ""}</div>`;
+  }
+  $("lista-jogos").innerHTML = html;
+}
+async function atualizarMods() {
+  try {
+    const r = await fetch("/api/mods", { headers: { "X-Token": TOKEN }, cache: "no-store" });
+    if (r.ok) renderMods(await r.json());
+  } catch (e) { }
+}
+setInterval(() => { if ($("aba-baixar").classList.contains("ativo")) atualizarMods(); }, 1000);
+$("lista-jogos").addEventListener("click", async (e) => {
+  const b = e.target.closest("button[data-acao]");
+  if (!b) return;
+  const id = b.dataset.id, a = b.dataset.acao;
+  if (a === "instalar") await enviar("/api/mods/instalar", { id });
+  else if (a === "remover") { if (confirm("Remover este mod? Os arquivos originais do jogo voltam para o lugar.")) await enviar("/api/mods/remover", { id }); }
+  else if (a === "pagina") await enviar("/api/mods/abrir", { id, alvo: "pagina" });
+  else if (a === "pasta") await enviar("/api/mods/abrir", { id, alvo: "pasta" });
+  else if (a === "trocar-pasta") {
+    const p = prompt("Cole o caminho da pasta do jogo (onde fica o executável):");
+    if (p !== null) await enviar("/api/mods/pasta", { dominio: b.dataset.dom, pasta: p });
+  }
+  atualizarMods();
+});
+$("b-nexus-chave").addEventListener("click", async () => {
+  $("nexus-conta").textContent = "Verificando a chave...";
+  await enviar("/api/mods/chave", { chave: $("nexus-chave").value }); $("nexus-chave").value = ""; atualizarMods();
+});
+$("b-nexus-link").addEventListener("click", async () => { await enviar("/api/mods/link", { url: $("nexus-link").value }); $("nexus-link").value = ""; atualizarMods(); });
+$("nxm-ligar").addEventListener("change", e => enviar("/api/mods/nxm", { ligar: e.target.checked }));
+
+// ---------- leitor de mods
+let leitorFase = null, enviando = false;
+function leitorVazio(extra) {
+  return `<div class="soltar" id="soltar" tabindex="0" role="button" aria-label="Escolher arquivo do mod">
+    <h2>Solte aqui o arquivo do mod</h2>
+    <p>.zip, .7z ou .rar. O app descobre o jogo, acha a pasta e mostra o plano antes de instalar.</p>
+    <span class="botao principal">Escolher arquivo</span>${extra || ""}</div>`;
+}
+function leiaHtml(t) { return t ? `<details class="leia"><summary>Leia-me do mod</summary><pre>${esc(t)}</pre></details>` : ""; }
+function seletorJogo(jogos, atual) {
+  const ops = jogos.map(j => `<option value="${esc(j.pasta)}"${j.nome === atual ? " selected" : ""}>${esc(j.nome)} (${esc(j.loja)})</option>`).join("");
+  return `<div class="linha-campo"><select id="leitor-jogo" aria-label="Jogo de destino">${atual ? "" : '<option value="">Escolha o jogo</option>'}${ops}</select>
+    <button class="link-botao" data-acao="leitor-outra-pasta">Outra pasta</button></div>`;
+}
+function renderLeitor(d) {
+  if (enviando) return;
+  const area = $("leitor-area");
+  const chave = d.fase + (d.msg || "") + (d.jogo || "") + (d.total || "");
+  if (chave !== leitorFase) {
+    leitorFase = chave;
+    let h = "";
+    if (d.fase === "vazio") h = leitorVazio();
+    else if (d.fase === "analisando" || d.fase === "instalando")
+      h = `<div class="plano"><h2>${esc(d.arquivo || "Mod")}</h2><p class="sub">${esc(d.msg || "Trabalhando")}...</p>
+        <div class="barra-envio"><i style="width:100%;opacity:.5"></i></div></div>`;
+    else if (d.fase === "sem_jogo")
+      h = `<div class="plano"><h2>${esc(d.arquivo)}</h2><p class="sub">${esc(d.msg)}</p>
+        <dl class="fatos"><dt>Tipo de mod</dt><dd>${esc(d.familia)}</dd><dt>Jogo</dt><dd>${seletorJogo(d.jogos, null)}</dd></dl>
+        ${leiaHtml(d.leia)}<div class="linha-botoes"><button class="botao" data-acao="leitor-cancelar">Cancelar</button></div></div>`;
+    else if (d.fase === "pronto") {
+      const iguais = d.ops.every(o => o.de === o.para);
+      const linhas = d.ops.map(o => iguais ? `<tr><td>${esc(o.para)}</td></tr>` : `<tr><td>${esc(o.de)}</td><td>${esc(o.para)}</td></tr>`).join("");
+      const cab = iguais ? "<th>Arquivos, na mesma estrutura dentro da pasta do jogo</th>" : "<th>Do mod</th><th>Para a pasta do jogo</th>";
+      const mais = d.total > d.ops.length ? `<p class="sub">e mais ${d.total - d.ops.length} arquivos.</p>` : "";
+      h = `<div class="plano"><h2>${esc(d.arquivo)}</h2><p class="sub">${esc(d.explicacao || "")}</p>
+        <dl class="fatos">
+          <dt>Jogo</dt><dd>${seletorJogo(d.jogos, d.jogo)}<small style="color:var(--apagado)">Descoberto por: ${esc(d.como_achou)}</small></dd>
+          <dt>Pasta</dt><dd>${esc(d.pasta)}</dd>
+          <dt>Tipo de mod</dt><dd>${esc(d.familia)}</dd>
+          <dt>Plano feito por</dt><dd>${esc(d.fonte)}</dd>
+          <dt>Arquivos</dt><dd>${d.total} para copiar${d.substitui ? `, ${d.substitui} substituem arquivos do jogo (vão para o backup)` : ""}</dd>
+        </dl>
+        <table class="ops"><thead><tr>${cab}</tr></thead><tbody>${linhas}</tbody></table>${mais}
+        ${d.requisitos && d.requisitos.length ? `<div class="titulo" style="margin-top:12px;font-weight:600">Precisa também</div><ul class="reqs">${d.requisitos.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
+        ${d.avisos && d.avisos.length ? `<ul class="avisos">${d.avisos.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
+        ${leiaHtml(d.leia)}
+        <div class="linha-botoes"><button class="botao principal" data-acao="leitor-instalar">Instalar no jogo</button>
+          <button class="botao" data-acao="leitor-cancelar">Cancelar</button></div></div>`;
+    } else if (d.fase === "instalado")
+      h = `<div class="plano"><h2>Pronto</h2><p class="sub">${esc(d.msg)}</p>
+        ${d.avisos && d.avisos.length ? `<ul class="avisos">${d.avisos.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
+        <div class="linha-botoes"><button class="botao principal" data-acao="leitor-cancelar">Instalar outro mod</button></div></div>`;
+    else if (d.fase === "erro")
+      h = `<div class="plano"><h2>${esc(d.arquivo || "Não deu certo")}</h2><p class="sub" style="color:var(--max)">${esc(d.msg)}</p>
+        ${leiaHtml(d.leia)}<div class="linha-botoes"><button class="botao" data-acao="leitor-cancelar">Tentar outro arquivo</button></div></div>`;
+    area.innerHTML = h;
+  }
+  $("leitor-instalados").innerHTML = d.instalados.length ? d.instalados.map(m =>
+    `<li><b>${esc(m.nome)}</b><span>${esc(m.jogo)}, ${m.arquivos} arquivos, em ${esc(m.quando)}</span>
+      <div class="linha-botoes" style="margin-top:8px"><button class="botao perigo" data-acao="leitor-remover" data-id="${esc(m.id)}">Remover</button></div></li>`).join("")
+    : '<li><span>Nenhum mod instalado por aqui ainda.</span></li>';
+}
+async function atualizarLeitor() {
+  try {
+    const r = await fetch("/api/leitor", { headers: { "X-Token": TOKEN }, cache: "no-store" });
+    if (r.ok) renderLeitor(await r.json());
+  } catch (e) { }
+}
+setInterval(() => { if ($("aba-leitor").classList.contains("ativo")) atualizarLeitor(); }, 700);
+function enviarArquivo(arq) {
+  if (!arq) return;
+  abrirAba($("tab-leitor"));
+  enviando = true; leitorFase = null;
+  $("leitor-area").innerHTML = `<div class="plano"><h2>${esc(arq.name)}</h2><p class="sub">Enviando o arquivo para o app...</p>
+    <div class="barra-envio"><i id="envio-barra"></i></div></div>`;
+  const x = new XMLHttpRequest();
+  x.open("POST", "/api/leitor/enviar");
+  x.setRequestHeader("X-Token", TOKEN);
+  x.setRequestHeader("X-Nome", encodeURIComponent(arq.name));
+  x.upload.onprogress = e => { if (e.lengthComputable && $("envio-barra")) $("envio-barra").style.width = (e.loaded / e.total * 100) + "%"; };
+  x.onloadend = () => { enviando = false; atualizarLeitor(); };
+  x.send(arq);
+}
+$("leitor-arquivo").addEventListener("change", e => { enviarArquivo(e.target.files[0]); e.target.value = ""; });
+document.addEventListener("dragover", e => { e.preventDefault(); const z = $("soltar"); if (z) z.classList.add("sobre"); });
+document.addEventListener("dragleave", e => { if (e.target.id === "soltar") e.target.classList.remove("sobre"); });
+document.addEventListener("drop", e => { e.preventDefault(); const z = $("soltar"); if (z) z.classList.remove("sobre");
+  if (e.dataTransfer.files.length) enviarArquivo(e.dataTransfer.files[0]); });
+$("aba-leitor").addEventListener("click", async e => {
+  if (e.target.closest("#soltar")) { $("leitor-arquivo").click(); return; }
+  const b = e.target.closest("[data-acao]");
+  if (!b) return;
+  const a = b.dataset.acao;
+  if (a === "leitor-cancelar") await enviar("/api/leitor/cancelar");
+  else if (a === "leitor-instalar") { b.disabled = true; await enviar("/api/leitor/instalar"); }
+  else if (a === "leitor-remover") { if (confirm("Remover este mod? Os arquivos originais do jogo voltam para o lugar.")) await enviar("/api/mods/remover", { id: b.dataset.id }); }
+  else if (a === "leitor-outra-pasta") {
+    const p = prompt("Cole o caminho da pasta do jogo (onde fica o executável):");
+    if (p) await enviar("/api/leitor/jogo", { pasta: p });
+  }
+  leitorFase = null; atualizarLeitor();
+});
+$("aba-leitor").addEventListener("keydown", e => { if (e.target.id === "soltar" && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); $("leitor-arquivo").click(); } });
+$("aba-leitor").addEventListener("change", async e => {
+  if (e.target.id === "leitor-jogo" && e.target.value) { await enviar("/api/leitor/jogo", { pasta: e.target.value }); leitorFase = null; atualizarLeitor(); }
+});
+
+// abas com teclado
+const abas = [...document.querySelectorAll('[role="tab"]')];
+function abrirAba(btn) {
+  abas.forEach(b => {
+    const on = b === btn;
+    b.setAttribute("aria-selected", on);
+    b.tabIndex = on ? 0 : -1;
+    $(b.getAttribute("aria-controls")).classList.toggle("ativo", on);
+  });
+  if (btn.id === "tab-baixar") atualizarMods();
+  if (btn.id === "tab-leitor") { leitorFase = null; atualizarLeitor(); }
+}
+abas.forEach((b, i) => {
+  b.tabIndex = i === 0 ? 0 : -1;
+  b.addEventListener("click", () => abrirAba(b));
+  b.addEventListener("keydown", e => {
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      const n = abas[(i + (e.key === "ArrowRight" ? 1 : abas.length - 1)) % abas.length];
+      abrirAba(n); n.focus();
+    }
+  });
+});
+</script>
+</body>
+</html>

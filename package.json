@@ -1,7 +1,7 @@
 {
   "name": "arcade-hub",
   "productName": "Arcade Hub",
-  "version": "1.3.2",
+  "version": "1.4.0",
   "description": "Todos os seus jogos (Steam, Epic, GOG, portateis e emuladores) em um so lugar.",
   "main": "main.js",
   "author": "Arcade Hub",
@@ -23,6 +23,15 @@
       "src/**/*",
       "renderer/**/*",
       "assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "build/dualsense/DualSenseAuto",
+        "to": "dualsense",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "win": {
       "target": [

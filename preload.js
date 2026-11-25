@@ -71,6 +71,14 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
   limparSumidos: () => call('library:limparSumidos'),
   discordSalvar: patch => call('discord:salvar', patch),
   discordEstado: () => call('discord:estado'),
+  dualsenseEstado: () => call('dualsense:estado'),
+  dualsenseSalvar: patch => call('dualsense:salvar', patch),
+  dualsenseAbrir: () => call('dualsense:abrir'),
+  onDualSenseEstado: cb => {
+    const handler = (_e, p) => cb(p);
+    ipcRenderer.on('dualsense:estado', handler);
+    return () => ipcRenderer.removeListener('dualsense:estado', handler);
+  },
   onDiscordAviso: cb => {
     const handler = (_e, p) => cb(p);
     ipcRenderer.on('discord:aviso', handler);

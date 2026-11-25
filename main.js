@@ -215,7 +215,14 @@ function registrarIpcDeAtualizacao() {
   ipcMain.handle('update:install', () => {
     if (!autoUpdater || estadoAtualizacao.estado !== 'pronto') return { ok: false, error: 'Nenhuma atualização pronta para instalar.' };
     try { if (hub) hub.fecharSessoes(); store.flush(); } catch { /* segue */ }
-    setImmediate(() => autoUpdater.quitAndInstall(false, true));
+    setImmediate(async () => {
+      // o instalador precisa trocar o DualSenseAuto.exe: ele fecha antes
+      if (hub && hub.dualsenseRodando && hub.dualsenseRodando()) {
+        dualsenseFechado = true;
+        await hub.pararDualSense().catch(() => {});
+      }
+      autoUpdater.quitAndInstall(false, true);
+    });
     return { ok: true };
   });
 }
@@ -262,7 +269,18 @@ process.on('unhandledRejection', err => {
 });
 
 // sessões ainda abertas (jogo rodando quando o launcher fecha) entram no tempo de jogo
-app.on('before-quit', () => { try { if (hub) hub.fecharSessoes(); } catch (e) { console.error('[arcade-hub] falha ao gravar sessões:', e); } });
+// O DualSense Auto fecha primeiro, com calma: ele devolve os gatilhos ao normal e
+// solta o .exe dele (a atualização precisa substituir esse arquivo). Leva < 1 s.
+let dualsenseFechado = false;
+app.on('before-quit', e => {
+  if (!dualsenseFechado && hub && hub.dualsenseRodando && hub.dualsenseRodando()) {
+    e.preventDefault();
+    dualsenseFechado = true;
+    hub.pararDualSense().catch(() => {}).finally(() => app.quit());
+    return;
+  }
+  try { if (hub) hub.fecharSessoes(); } catch (err) { console.error('[arcade-hub] falha ao gravar sessões:', err); }
+});
 
 // grava o que ainda estiver pendente (o store junta gravações em lote)
 app.on('will-quit', () => { try { store.flush(); } catch (e) { console.error('[arcade-hub] falha ao gravar a biblioteca:', e); } });

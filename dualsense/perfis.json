@@ -1,0 +1,37 @@
+{
+  "padrao": "generico",
+  "jogos": {
+    "cs2.exe": "tiro",
+    "valorant-win64-shipping.exe": "tiro",
+    "r5apex.exe": "tiro",
+    "r5apex_dx12.exe": "tiro",
+    "cod.exe": "tiro",
+    "bf2042.exe": "tiro",
+    "fortniteclient-win64-shipping.exe": "tiro",
+    "pubg.exe": "tiro",
+    "tslgame.exe": "tiro",
+    "rainbowsix.exe": "tiro",
+    "destiny2.exe": "tiro",
+    "doometernalx64vk.exe": "tiro",
+    "forzahorizon5.exe": "corrida",
+    "forzahorizon4.exe": "corrida",
+    "forzamotorsport.exe": "corrida",
+    "acc.exe": "corrida",
+    "ac2-win64-shipping.exe": "corrida",
+    "f1_24.exe": "corrida",
+    "f1_25.exe": "corrida",
+    "nfsunbound.exe": "corrida",
+    "eldenring.exe": "acao",
+    "gta5.exe": "acao",
+    "gta5_enhanced.exe": "acao",
+    "rdr2.exe": "acao",
+    "cyberpunk2077.exe": "acao",
+    "witcher3.exe": "acao",
+    "minecraft.windows.exe": "generico"
+  },
+  "palavras_chave": {
+    "corrida": ["forza", "f1_", "race", "racing", "rally", "dirt", "assetto", "need for speed", "nfs", "drive", "kart", "truck", "beamng", "gran turismo", "wrc", "motogp"],
+    "tiro": ["counter-strike", "call of duty", "battlefield", "valorant", "apex", "overwatch", "shooter", "rainbow six", "halo", "doom", "pubg", "warzone", "fortnite", "escape from tarkov", "delta force", "the finals"],
+    "acao": ["souls", "elden", "god of war", "spider-man", "horizon", "assassin", "witcher", "cyberpunk", "resident evil", "devil may cry", "monster hunter", "ghost of", "last of us", "uncharted"]
+  }
+}

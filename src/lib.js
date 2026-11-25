@@ -22,6 +22,7 @@ const fontesVideo = require('./fontes-video');
 const conquistas = require('./conquistas');
 const consoleMod = require('./console');
 const discord = require('./discord');
+const dualsenseMod = require('./dualsense');
 
 /* Senhas guardadas cifradas pelo sistema (Windows DPAPI via safeStorage). */
 function cifrar(txt) {
@@ -236,6 +237,9 @@ const DEFAULT_SETTINGS = {
     convites: true,         // botão "Participar" para os amigos
     aceitarPedidos: true,   // pedido para participar: aceita sozinho
     portaNetplay: 55435     // porta do jogo online do RetroArch
+  },
+  dualsense: {
+    ligado: true            // DualSense Auto (vibração e gatilhos inteligentes) aberto junto com o Arcade Hub
   }
 };
 
@@ -1065,6 +1069,7 @@ class Store {
     // chaves de API ficam cifradas no disco; na memória, em texto
     for (const k of CHAVES_CIFRADAS) settings[k] = decifrar(settings[k]);
     settings.discord = { ...DEFAULT_SETTINGS.discord, ...(settings.discord || {}) };
+    settings.dualsense = { ...DEFAULT_SETTINGS.dualsense, ...(settings.dualsense || {}) };
     settings.emulators = { ...defaultEmulators(), ...(settings.emulators || {}) };
     this.data = {
       settings,
@@ -2100,6 +2105,70 @@ function register(ipcMain, deps) {
   const timerConquistas = setTimeout(iniciarConquistas, deps.atrasoConquistas != null ? deps.atrasoConquistas : 1500);
   if (timerConquistas.unref) timerConquistas.unref();
 
+  /* ---------------- DualSense Auto (vibração e gatilhos inteligentes) ---------------- */
+  const ds = deps.dualsense || new dualsenseMod.DualSenseAuto({
+    comando: dualsenseMod.comandoPadrao({ app, raiz: path.join(__dirname, '..') }),
+    dados: path.join(store.dir, 'dualsense'),
+    ignorar: [path.basename(process.execPath)]
+  });
+  ds.on('estado', e => enviar('dualsense:estado', e));
+  let janelaDs = null;
+  const abrirPainelDs = () => {
+    if (!ds.url) return false;
+    if (janelaDs && !janelaDs.isDestroyed()) {
+      if (janelaDs.isMinimized()) janelaDs.restore();
+      janelaDs.show(); janelaDs.focus();
+      return true;
+    }
+    const origem = ds.origem;
+    janelaDs = new BrowserWindow({
+      width: 1240, height: 860, minWidth: 720, minHeight: 520,
+      title: 'DualSense Auto', autoHideMenuBar: true, backgroundColor: '#0d0f14',
+      icon: path.join(__dirname, '..', 'assets', 'icon.ico'),
+      webPreferences: { partition: 'dualsense', sandbox: true, contextIsolation: true, nodeIntegration: false, webviewTag: false }
+    });
+    const wc = janelaDs.webContents;
+    // a janela só mostra o painel do DualSense Auto; links externos vão para o navegador
+    const doPainel = u => { try { return new URL(u).origin === origem; } catch { return false; } };
+    wc.setWindowOpenHandler(({ url }) => { if (/^https:/i.test(url)) shell.openExternal(url); return { action: 'deny' }; });
+    wc.on('will-navigate', (e, u) => { if (!doPainel(u)) { e.preventDefault(); if (/^https:/i.test(u)) shell.openExternal(u); } });
+    wc.on('will-redirect', (e, u) => { if (!doPainel(u)) e.preventDefault(); });
+    wc.on('will-attach-webview', e => e.preventDefault());
+    wc.session.setPermissionRequestHandler((_w, _p, cb) => cb(false));
+    wc.session.setPermissionCheckHandler(() => false);
+    janelaDs.on('closed', () => { janelaDs = null; });
+    janelaDs.loadURL(ds.url);
+    return true;
+  };
+  ds.on('estado', e => { if (e.estado !== 'ligado' && janelaDs && !janelaDs.isDestroyed()) janelaDs.close(); });
+  const ligarDsAoAbrir = () => {
+    const ligado = (store.settings.dualsense || {}).ligado !== false;
+    if (!ligado || deps.semDualSense) return;
+    // só no app instalado (em desenvolvimento: ARCADE_DUALSENSE=1)
+    if (!deps.dualsense && !(app && app.isPackaged) && !process.env.ARCADE_DUALSENSE) return;
+    ds.iniciar();
+  };
+  const timerDs = setTimeout(ligarDsAoAbrir, deps.atrasoDualSense != null ? deps.atrasoDualSense : 1200);
+  if (timerDs.unref) timerDs.unref();
+
+  ipcMain.handle('dualsense:estado', async () => {
+    try { return ok({ ...ds.publico(), ligado: (store.settings.dualsense || {}).ligado !== false, resumo: await ds.resumo() }); } catch (e) { return fail(e); }
+  });
+  ipcMain.handle('dualsense:salvar', async (_e, patch) => {
+    try {
+      const novo = { ...DEFAULT_SETTINGS.dualsense, ...(store.settings.dualsense || {}) };
+      if (patch && 'ligado' in patch) novo.ligado = !!patch.ligado;
+      store.saveSettings({ dualsense: novo });
+      if (novo.ligado) { ds.quedas = []; ds.iniciar(); } else await ds.parar();
+      return ok({ ...ds.publico(), ligado: novo.ligado });
+    } catch (e) { return fail(e); }
+  });
+  ipcMain.handle('dualsense:abrir', () => {
+    if (abrirPainelDs()) return ok(true);
+    return fail(ds.estado === 'iniciando' ? 'O DualSense Auto ainda está abrindo, tente em alguns segundos'
+      : ds.msg || 'Ligue o DualSense Auto primeiro');
+  });
+
   /* ---------------- Discord (status e convites, sem servidor) ---------------- */
   let cliente = null;
   let estadoDiscord = 'desligado';
@@ -2363,6 +2432,7 @@ function register(ipcMain, deps) {
       dataDir: store.dir,
       avisoBiblioteca: store.recuperado || null,
       discordEstado: estadoDiscord,
+      dualsense: ds.publico(),
       perfis: perfisDe(store.settings),
       perfilAtivo: perfilAtivoDe(store.settings),
       modoConsole: {
@@ -3177,7 +3247,8 @@ function register(ipcMain, deps) {
     if (t.unref) t.unref();
   }
 
-  return { state, fecharSessoes, varrerEmSegundoPlano, religarVigiasDePastas, vigia, sessoesAtivas };
+  return { state, fecharSessoes, varrerEmSegundoPlano, religarVigiasDePastas, vigia, sessoesAtivas,
+    dualsenseRodando: () => ds.rodando, pararDualSense: () => ds.parar() };
 }
 
 module.exports = {

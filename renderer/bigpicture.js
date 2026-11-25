@@ -509,6 +509,7 @@ const ModoTV = (() => {
       ['perfil', `Trocar de perfil${p ? ' (agora: ' + p.nome + ')' : ''}`, 'Quem está jogando conta o tempo e as conquistas'],
       ['escanear', 'Procurar jogos novos', 'Varre as pastas e as lojas de novo'],
       ['limpar', 'Remover jogos que não estão mais no PC', 'Desinstalados ou com o arquivo apagado'],
+      ['dualsense', `DualSense Auto: ${dsLigado() ? 'ligado' : 'desligado'}`, dsDescricao()],
       ['sons', `Sons do menu: ${typeof Som !== 'undefined' && Som.ligado ? 'ligados' : 'desligados'}`, ''],
       ['abertura', `Animação de abertura: ${aberturaLigada() ? 'ligada' : 'desligada'}`, ''],
       ['console', `Abrir com o Windows: ${mc.iniciarComWindows ? 'ligado' : 'desligado'}`, 'O PC liga direto no Arcade Hub, como um console'],
@@ -518,6 +519,13 @@ const ModoTV = (() => {
       ['sair', 'Ir para a área de trabalho', 'Sai do Modo TV (o Arcade Hub continua aberto)'],
       ['fechar', 'Fechar o Arcade Hub', '']
     ];
+  }
+  function dsLigado() { return ((ui.state.settings || {}).dualsense || {}).ligado !== false; }
+  function dsDescricao() {
+    const d = ui.dualsense || {};
+    if (d.estado === 'ligado') return 'Vibração e gatilhos inteligentes. A para desligar';
+    if (d.msg && d.estado !== 'desligado') return d.msg;
+    return 'Vibração e gatilhos adaptáveis inteligentes em qualquer jogo';
   }
   function renderSistemaTV() {
     const box = $t('.tv-sistema');
@@ -543,6 +551,12 @@ const ModoTV = (() => {
     if (acao === 'perfil') return trocarPerfil();
     if (acao === 'escanear' || acao === 'sons' || acao === 'abertura' || acao === 'sair' || acao === 'fechar') {
       await executarMenu(acao);
+      if (secao === 'sistema' && ativo) renderSistemaTV();
+      return;
+    }
+    if (acao === 'dualsense') {
+      const r = typeof ligarDesligarDualSense === 'function' ? await ligarDesligarDualSense(!dsLigado()) : null;
+      if (r) aviso(r.ligado ? 'DualSense Auto ligado' : 'DualSense Auto desligado');
       if (secao === 'sistema' && ativo) renderSistemaTV();
       return;
     }

@@ -51,6 +51,9 @@
           <button class="menu-acao" id="btn-settings" title="Pastas, emuladores, vídeos e opções gerais">Ajustes…</button>
           <button class="menu-acao" id="btn-skins" title="Layout e cores da interface">Escolher skins…</button>
         </div>
+        <button class="menu-acao menu-ds" id="btn-dualsense" title="Vibração e gatilhos adaptáveis inteligentes, controle de Xbox virtual e mods">
+          <span class="menu-ds-ico" aria-hidden="true">🎮</span><span class="menu-ds-txt"><b>DualSense Auto</b><small id="menu-ds-estado">…</small></span>
+        </button>
         <button class="menu-acao eco-menu-perfil" id="btn-eco" title="Perfis, conquistas e quem está jogando">
           <span class="eco-menu-avatar"></span><span class="eco-menu-txt"><b class="eco-menu-nome">Perfil</b><small class="eco-menu-pontos">Conquistas</small></span>
         </button>
@@ -369,6 +372,7 @@
         <button data-tab="emulators">Emuladores</button>
         <button data-tab="general">Geral</button>
         <button data-tab="discord">Discord</button>
+        <button data-tab="dualsense">DualSense</button>
         <button data-tab="diag">Diagnóstico</button>
         <button data-tab="about">Sobre</button>
       </div>
@@ -538,6 +542,19 @@
           <p class="muted small">Já vem pronto com o aplicativo "Arcade Hub" e não precisa mexer aqui. Só se quiser outro nome ou ícone no status: em discord.com/developers/applications crie um aplicativo, copie o <b>Application ID</b> e cole aqui; em <b>Rich Presence › Art Assets</b>, envie uma imagem com o nome <b>logo</b>. Deixe vazio para voltar ao padrão.</p>
           <div class="row"><input id="dc-appid" type="text" inputmode="numeric" placeholder="Application ID (só números)" style="flex:1" /><button class="ghost-btn" id="dc-salvar">Salvar</button></div>
         </details>
+      </div>
+
+      <div class="tab-panel" data-panel="dualsense" hidden>
+        <div class="field">
+          <label>DualSense Auto</label>
+          <p class="muted small">Vibração e gatilhos adaptáveis inteligentes em qualquer jogo de PC, controle de Xbox virtual (para jogos sem suporte ao DualSense) e instalação de mods. Ele vem junto com o Arcade Hub e abre com ele.</p>
+          <p class="dc-estado" id="ds-estado">…</p>
+          <div class="ds-resumo muted small" id="ds-resumo"></div>
+        </div>
+        <div class="field row-inline"><label class="switch"><input type="checkbox" id="ds-ligado" /><span></span>Ligar o DualSense Auto junto com o Arcade Hub</label></div>
+        <div class="row" style="margin:6px 0 14px"><button class="ghost-btn" id="ds-abrir">Abrir o painel do DualSense Auto</button></div>
+        <p class="muted small">No painel ficam a chave da IA (visão), os ajustes de vibração e gatilhos, o driver do controle de Xbox virtual e os mods. As chaves ficam cifradas neste PC e não entram no backup da biblioteca.</p>
+        <p class="muted small">Para o jogo não ver dois controles: desative o Steam Input do jogo, ou use o HidHide para esconder o DualSense "real". Nesse caso, libere no HidHide o <b>DualSenseAuto.exe</b> (na pasta de instalação do Arcade Hub, em <span class="mono">resources\dualsense</span>).</p>
       </div>
 
       <div class="tab-panel" data-panel="diag" hidden>
