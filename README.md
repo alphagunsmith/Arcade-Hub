@@ -45,9 +45,11 @@ A portable `.exe` and a `.zip` are also published with each release (these don't
 - **Playtime** is counted for every game opened through Arcade Hub — including store games and games that run elevated.
 - **Local profiles** for everyone at home ("Who's playing?"), each with their own playtime and **22 achievements** (bronze to platinum), plus statistics by month, platform and source.
 
-### Play with friends through Discord (no server)
-- **Discord Rich Presence**: your friends see what you're playing.
-- **Join from Discord**: for retro games, Arcade Hub hosts a **RetroArch netplay** session and friends click **Join** on Discord to enter the same match — it checks that both sides have the same ROM. Everything goes through the Discord app on each PC; there's no Arcade Hub server.
+### Play online with friends (P2P, no server)
+- **Invite codes**: for retro games, **Play online** hosts a **RetroArch netplay** match and creates an invite code (and an `arcadehub://` link) to send through any messenger. Your friend pastes it in **Play online… › Join with code** — Arcade Hub checks that both sides have the same ROM and connects directly between the two PCs.
+- **Password per match**, carried inside the code, so only invited friends can join.
+- **Automatic router port opening (UPnP)** through RetroArch, **games on your home network** listed automatically, and an optional **RetroArch relay** (São Paulo, New York or Madrid) for networks where a direct connection isn't possible (mobile internet, CGNAT).
+- **Discord** works too: Rich Presence shows what you're playing and friends can click **Join** on Discord to enter the same match. Everything goes through the Discord app on each PC.
 
 ### DualSense Auto (built in)
 Smart vibration and adaptive triggers for **any PC game**, bundled and managed by Arcade Hub (Settings › DualSense, or the ≡ menu):
@@ -77,6 +79,7 @@ Arcade Hub has no account and no telemetry. It only talks to services when a fea
 | GitHub | checking for and downloading updates (installed version) |
 | Discord (local app) | Rich Presence and invites, if Discord is open |
 | api.ipify.org | finding your public address when hosting an online match |
+| lobby.libretro.com and RetroArch relay servers | only when you choose the RetroArch relay for online play |
 | Anthropic API, Nexus Mods | DualSense Auto, only with your own keys |
 
 ## Building from source

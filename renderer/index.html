@@ -51,6 +51,7 @@
           <button class="menu-acao" id="btn-settings" title="Pastas, emuladores, vídeos e opções gerais">Ajustes…</button>
           <button class="menu-acao" id="btn-skins" title="Layout e cores da interface">Escolher skins…</button>
         </div>
+        <button class="menu-acao" id="btn-online" title="Entrar na partida de um amigo pelo código de convite">🌐 Jogar online…</button>
         <button class="menu-acao menu-ds" id="btn-dualsense" title="Vibração e gatilhos adaptáveis inteligentes, controle de Xbox virtual e mods">
           <span class="menu-ds-ico" aria-hidden="true">🎮</span><span class="menu-ds-txt"><b>DualSense Auto</b><small id="menu-ds-estado">…</small></span>
         </button>
@@ -215,7 +216,7 @@
             <svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>
             Jogar
           </button>
-          <button class="ghost-btn" id="d-online" hidden title="Abre a partida pelo RetroArch e deixa seus amigos entrarem pelo Discord">Jogar online</button>
+          <button class="ghost-btn" id="d-online" hidden title="Abre a partida pelo RetroArch e cria um código de convite para seus amigos (e o Participar do Discord)">Jogar online</button>
           <button class="ghost-btn" id="d-cover">Trocar capa</button>
           <button class="ghost-btn" id="d-refresh-meta" title="Buscar de novo no Metacritic / Wikidata / Steam">Atualizar ficha</button>
           <button class="ghost-btn" id="d-fav">Favoritar</button>
@@ -297,6 +298,37 @@
 
 
   <!-- MODAL: skins -->
+  <!-- jogo online sem Discord: código de convite, link e partidas na mesma rede -->
+  <div class="modal-layer" id="modal-online" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Jogar online">
+      <button class="close-x" data-close aria-label="Fechar">✕</button>
+      <h2>Jogar online</h2>
+      <section class="on-bloco" id="on-hospedando" hidden>
+        <h3 id="on-titulo"></h3>
+        <p class="dc-estado" id="on-estado">…</p>
+        <div class="row on-codigo-linha">
+          <input id="on-codigo" class="mono" readonly aria-label="Código de convite" />
+          <button class="primary-btn" id="on-copiar">Copiar código</button>
+          <button class="ghost-btn" id="on-copiar-link">Copiar link</button>
+        </div>
+        <p class="muted small" id="on-detalhes"></p>
+        <p class="muted small">Mande o código para o seu amigo (WhatsApp, Telegram, e-mail…). Ele cola em <b>Jogar online › Entrar com código</b>, ou clica no link. Os dois precisam do Arcade Hub, do RetroArch com o mesmo core e da <b>mesma ROM</b>.</p>
+      </section>
+      <section class="on-bloco" id="on-entrar">
+        <h3>Entrar com código</h3>
+        <div class="row">
+          <input id="on-colar" class="mono" placeholder="Cole aqui o código ou o link do convite" spellcheck="false" autocomplete="off" />
+          <button class="primary-btn" id="on-entrar-btn">Entrar</button>
+        </div>
+        <p class="muted small" id="on-previa"></p>
+        <h3>Partidas na sua rede</h3>
+        <div class="on-rede" id="on-rede"></div>
+        <div class="row"><button class="ghost-btn" id="on-procurar">Procurar de novo</button></div>
+      </section>
+    </div>
+  </div>
+
   <div class="modal-layer" id="modal-skins" hidden>
     <div class="modal-backdrop" data-close></div>
     <div class="sheet wide" role="dialog" aria-modal="true">
@@ -371,7 +403,7 @@
         <button data-tab="folders" class="active">Pastas</button>
         <button data-tab="emulators">Emuladores</button>
         <button data-tab="general">Geral</button>
-        <button data-tab="discord">Discord</button>
+        <button data-tab="discord">Online</button>
         <button data-tab="dualsense">DualSense</button>
         <button data-tab="diag">Diagnóstico</button>
         <button data-tab="about">Sobre</button>
@@ -526,6 +558,22 @@
       </div>
 
       <div class="tab-panel" data-panel="discord" hidden>
+        <div class="field">
+          <label>Jogar online sem o Discord</label>
+          <p class="muted small">Na ficha de uma ROM, <b>Jogar online</b> cria a partida e um <b>código de convite</b> para mandar por qualquer mensageiro. A conexão é direta entre os dois PCs (P2P), sem servidor do Arcade Hub. Para entrar: menu ≡ › <b>Jogar online…</b>.</p>
+        </div>
+        <div class="field row-inline"><label class="switch"><input type="checkbox" id="on-upnp" /><span></span>Abrir a porta no roteador automaticamente (UPnP)</label></div>
+        <div class="field row-inline"><label class="switch"><input type="checkbox" id="on-lan" /><span></span>Mostrar minhas partidas para quem está na mesma rede</label></div>
+        <div class="field">
+          <label for="on-relay">Conexão</label>
+          <div class="row"><select id="on-relay">
+            <option value="">Direta entre os PCs (recomendado)</option>
+            <option value="saopaulo">Retransmissão do RetroArch — São Paulo</option>
+            <option value="nyc">Retransmissão do RetroArch — Nova York</option>
+            <option value="madrid">Retransmissão do RetroArch — Madri</option>
+          </select></div>
+          <p class="muted small">Use a retransmissão só se a conexão direta não funcionar (roteador sem UPnP, internet móvel ou CGNAT). Ela passa pelos servidores públicos do RetroArch, a partida aparece na lista pública dele e fica protegida por senha. Precisa do RetroArch 1.10 ou mais novo.</p>
+        </div>
         <div class="field">
           <label>Discord</label>
           <p class="muted small">Seus amigos veem no Discord o que você está jogando e podem clicar em <b>Participar</b>. Tudo acontece pelo Discord aberto no seu PC: não passa por nenhum servidor do Arcade Hub.</p>

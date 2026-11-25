@@ -715,7 +715,7 @@ const ModoTV = (() => {
       aviso(`Abrindo ${g.title} online…`);
       const r = await api.launch(g.id, { online: true });
       if (!r.ok) { aviso(r.error || 'Não consegui abrir online'); somar('erro'); }
-      else aviso(ui.discordEstado === 'conectado' ? 'Pronto: seus amigos entram pelo "Participar" do Discord' : 'Aberto online (o Discord não está aberto para mandar o convite)');
+      else aviso('Partida aberta: preparando o código de convite…');
     }
   }
 

@@ -105,7 +105,18 @@ const esperar = async (cond, ms = 3000) => { for (let i = 0; i < ms / 25 && !con
   await t('convite de jogo online: ida e volta, até 128 caracteres', () => {
     const s = D.criarSegredo({ tipo: 'netplay', crc: 'A1B2C3D4', enderecos: ['26.10.20.30', '192.168.0.10', '189.40.1.2'], porta: 55435, core: 'snes9x_libretro.dll', plataforma: 'snes' });
     assert.ok(s.length <= 128);
-    assert.deepStrictEqual(D.lerSegredo(s), { tipo: 'netplay', crc: 'A1B2C3D4', enderecos: ['26.10.20.30', '192.168.0.10', '189.40.1.2'], porta: 55435, core: 'snes9x_libretro.dll', plataforma: 'snes' });
+    assert.deepStrictEqual(D.lerSegredo(s), { tipo: 'netplay', crc: 'A1B2C3D4', enderecos: ['26.10.20.30', '192.168.0.10', '189.40.1.2'], porta: 55435, core: 'snes9x_libretro.dll', plataforma: 'snes', senha: '' });
+  });
+  await t('convite com senha da partida e pela retransmissão do RetroArch', () => {
+    const base = { tipo: 'netplay', crc: 'A1B2C3D4', porta: 55435, core: 'mupen64plus_next_libretro.dll', plataforma: 'n64', senha: 'Senha_Forte-123' };
+    const d = D.criarSegredo({ ...base, enderecos: ['26.10.20.30', '192.168.0.10', '189.40.1.2'] });
+    assert.ok(d.length <= 128 && d.startsWith('2n|'));
+    assert.strictEqual(D.lerSegredo(d).senha, 'Senha_Forte-123');
+    const r = D.criarSegredo({ ...base, relay: { ip: '45.79.112.203', porta: 55435, sessao: 'q3Hx9P0aZr1mN8sT4uVwYb==' } });
+    assert.ok(r.length <= 128 && r.startsWith('2r|'));
+    assert.deepStrictEqual(D.lerSegredo(r).relay, { ip: '45.79.112.203', porta: 55435, sessao: 'q3Hx9P0aZr1mN8sT4uVwYb==' });
+    assert.strictEqual(D.lerSegredo('2r|A1B2C3D4|45.79.1.2:55435|ses sao;rm|x.dll|n64|Senha_Forte-123'), null);
+    assert.strictEqual(D.lerSegredo('2n|A1B2C3D4|1.2.3.4|55435|x.dll|snes|"; rm'), null);
   });
   await t('convite mal-intencionado é recusado (core com caminho, endereço com espaço, porta absurda)', () => {
     assert.strictEqual(D.lerSegredo('1n|A1B2C3D4|1.2.3.4|55435|../../evil.dll|snes'), null);

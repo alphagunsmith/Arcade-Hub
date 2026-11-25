@@ -1,0 +1,47 @@
+Código de convite	Invite code	Código de invitación	招待コード	邀请码
+Copiar código	Copy code	Copiar código	コードをコピー	复制邀请码
+Copiar link	Copy link	Copiar enlace	リンクをコピー	复制链接
+Mande o código para o seu amigo (WhatsApp, Telegram, e-mail…). Ele cola em <b>Jogar online › Entrar com código</b>, ou clica no link. Os dois precisam do Arcade Hub, do RetroArch com o mesmo core e da <b>mesma ROM</b>.	Send the code to your friend (WhatsApp, Telegram, email…). They paste it in <b>Play online › Join with code</b>, or click the link. Both of you need Arcade Hub, RetroArch with the same core and the <b>same ROM</b>.	Manda el código a tu amigo (WhatsApp, Telegram, correo…). Lo pega en <b>Jugar en línea › Entrar con código</b>, o hace clic en el enlace. Ambos necesitan Arcade Hub, RetroArch con el mismo core y la <b>misma ROM</b>.	コードを友だちに送ってください（WhatsApp、Telegram、メールなど）。友だちは <b>オンラインで遊ぶ › コードで参加</b> に貼り付けるか、リンクをクリックします。両方に Arcade Hub、同じコアの RetroArch、そして<b>同じ ROM</b> が必要です。	把邀请码发给好友（WhatsApp、Telegram、邮件…）。好友在<b>联机游玩 › 用邀请码加入</b>中粘贴，或点击链接。双方都需要 Arcade Hub、使用相同核心的 RetroArch，以及<b>相同的 ROM</b>。
+Entrar com código	Join with code	Entrar con código	コードで参加	用邀请码加入
+Cole aqui o código ou o link do convite	Paste the invite code or link here	Pega aquí el código o el enlace de la invitación	招待コードまたはリンクをここに貼り付け	在此粘贴邀请码或链接
+Entrar	Join	Entrar	参加	加入
+Partidas na sua rede	Games on your network	Partidas en tu red	ネットワーク内の対戦	你网络中的对局
+Procurar de novo	Search again	Buscar de nuevo	もう一度探す	重新查找
+Entrar na partida de um amigo pelo código de convite	Join a friend's game with an invite code	Entrar en la partida de un amigo con el código de invitación	招待コードで友だちの対戦に参加	用邀请码加入好友的对局
+Jogar online…	Play online…	Jugar en línea…	オンラインで遊ぶ…	联机游玩…
+Abre a partida pelo RetroArch e cria um código de convite para seus amigos (e o Participar do Discord)	Starts the match in RetroArch and creates an invite code for your friends (and Discord's Join)	Abre la partida en RetroArch y crea un código de invitación para tus amigos (y el Unirse de Discord)	RetroArch で対戦を開き、友だち用の招待コード（と Discord の参加）を作成します	用 RetroArch 开启对局，并为好友生成邀请码（以及 Discord 的加入）
+Online	Online	En línea	オンライン	联机
+Jogar online sem o Discord	Play online without Discord	Jugar en línea sin Discord	Discord なしでオンライン対戦	不用 Discord 联机
+Na ficha de uma ROM, <b>Jogar online</b> cria a partida e um <b>código de convite</b> para mandar por qualquer mensageiro. A conexão é direta entre os dois PCs (P2P), sem servidor do Arcade Hub. Para entrar: menu ≡ › <b>Jogar online…</b>.	On a ROM's info page, <b>Play online</b> creates the match and an <b>invite code</b> to send through any messenger. The connection goes directly between the two PCs (P2P), with no Arcade Hub server. To join: ≡ menu › <b>Play online…</b>.	En la ficha de una ROM, <b>Jugar en línea</b> crea la partida y un <b>código de invitación</b> para mandar por cualquier mensajería. La conexión es directa entre los dos PC (P2P), sin servidor de Arcade Hub. Para entrar: menú ≡ › <b>Jugar en línea…</b>.	ROM の詳細画面の <b>オンラインで遊ぶ</b> で対戦と<b>招待コード</b>を作成し、好きなメッセンジャーで送れます。接続は 2 台の PC 間で直接（P2P）行われ、Arcade Hub のサーバーは使いません。参加するには: ≡ メニュー › <b>オンラインで遊ぶ…</b>。	在 ROM 详情页中，<b>联机游玩</b>会创建对局和<b>邀请码</b>，可通过任意聊天软件发送。连接直接在两台电脑之间建立（P2P），不经过 Arcade Hub 服务器。加入方法：≡ 菜单 › <b>联机游玩…</b>。
+Abrir a porta no roteador automaticamente (UPnP)	Open the router port automatically (UPnP)	Abrir el puerto del router automáticamente (UPnP)	ルーターのポートを自動で開く（UPnP）	自动在路由器上开放端口（UPnP）
+Mostrar minhas partidas para quem está na mesma rede	Show my games to people on the same network	Mostrar mis partidas a quien esté en la misma red	同じネットワークの人に自分の対戦を表示する	向同一网络中的人显示我的对局
+Conexão	Connection	Conexión	接続	连接
+Direta entre os PCs (recomendado)	Direct between PCs (recommended)	Directa entre los PC (recomendado)	PC 間で直接（推奨）	电脑之间直连（推荐）
+Retransmissão do RetroArch — São Paulo	RetroArch relay — São Paulo	Retransmisión de RetroArch — São Paulo	RetroArch リレー — サンパウロ	RetroArch 中继 — 圣保罗
+Retransmissão do RetroArch — Nova York	RetroArch relay — New York	Retransmisión de RetroArch — Nueva York	RetroArch リレー — ニューヨーク	RetroArch 中继 — 纽约
+Retransmissão do RetroArch — Madri	RetroArch relay — Madrid	Retransmisión de RetroArch — Madrid	RetroArch リレー — マドリード	RetroArch 中继 — 马德里
+Use a retransmissão só se a conexão direta não funcionar (roteador sem UPnP, internet móvel ou CGNAT). Ela passa pelos servidores públicos do RetroArch, a partida aparece na lista pública dele e fica protegida por senha. Precisa do RetroArch 1.10 ou mais novo.	Use the relay only if the direct connection doesn't work (router without UPnP, mobile internet or CGNAT). It goes through RetroArch's public servers; the match shows up in RetroArch's public list and is password-protected. Requires RetroArch 1.10 or newer.	Usa la retransmisión solo si la conexión directa no funciona (router sin UPnP, internet móvil o CGNAT). Pasa por los servidores públicos de RetroArch; la partida aparece en su lista pública y queda protegida con contraseña. Necesita RetroArch 1.10 o más reciente.	直接接続がうまくいかない場合（UPnP 非対応のルーター、モバイル回線、CGNAT）にだけリレーを使ってください。RetroArch の公開サーバーを経由し、対戦は RetroArch の公開リストに表示されますが、パスワードで保護されます。RetroArch 1.10 以降が必要です。	仅在直连无法使用时（路由器不支持 UPnP、移动网络或 CGNAT）使用中继。它经过 RetroArch 的公共服务器，对局会出现在 RetroArch 的公开列表中，并受密码保护。需要 RetroArch 1.10 或更新版本。
+Preparando o convite…	Preparing the invite…	Preparando la invitación…	招待を準備しています…	正在准备邀请…
+Conectando na retransmissão do RetroArch…	Connecting to the RetroArch relay…	Conectando con la retransmisión de RetroArch…	RetroArch のリレーに接続しています…	正在连接 RetroArch 中继…
+Partida aberta: mande o código para o seu amigo	Match open: send the code to your friend	Partida abierta: manda el código a tu amigo	対戦を開きました: コードを友だちに送ってください	对局已开启：把邀请码发给好友
+Não deu para criar o convite	Couldn't create the invite	No se pudo crear la invitación	招待を作成できませんでした	无法创建邀请
+A partida terminou	The match ended	La partida terminó	対戦が終了しました	对局已结束
+Conexão: retransmissão do RetroArch ({0})	Connection: RetroArch relay ({0})	Conexión: retransmisión de RetroArch ({0})	接続: RetroArch リレー（{0}）	连接：RetroArch 中继（{0}）
+Conexão direta	Direct connection	Conexión directa	直接接続	直连
+porta {0}	port {0}	puerto {0}	ポート {0}	端口 {0}
+o RetroArch abre a porta no roteador (UPnP)	RetroArch opens the router port (UPnP)	RetroArch abre el puerto del router (UPnP)	RetroArch がルーターのポートを開きます（UPnP）	RetroArch 会在路由器上开放端口（UPnP）
+Amigos no Discord também podem clicar em "Participar"	Friends on Discord can also click "Join"	Los amigos en Discord también pueden hacer clic en "Unirse"	Discord の友だちは「参加」からも入れます	Discord 上的好友也可以点击“加入”
+Código copiado	Code copied	Código copiado	コードをコピーしました	已复制邀请码
+Link copiado	Link copied	Enlace copiado	リンクをコピーしました	已复制链接
+Procurando partidas na sua rede…	Looking for games on your network…	Buscando partidas en tu red…	ネットワーク内の対戦を探しています…	正在查找你网络中的对局…
+Nenhuma partida aberta na sua rede agora.	No games open on your network right now.	No hay partidas abiertas en tu red ahora.	今ネットワーク内に開いている対戦はありません。	你的网络中目前没有开启的对局。
+Esse código de convite não é válido (confira se copiou ele inteiro)	That invite code isn't valid (check that you copied all of it)	Ese código de invitación no es válido (revisa que lo copiaste completo)	その招待コードは無効です（全部コピーしたか確認してください）	该邀请码无效（请确认已完整复制）
+Partida de {0}: você tem a mesma ROM ({1})	{0} match: you have the same ROM ({1})	Partida de {0}: tienes la misma ROM ({1})	{0} の対戦: 同じ ROM があります（{1}）	{0} 对局：你有相同的 ROM（{1}）
+Partida de {0}: você precisa da mesma ROM na biblioteca	{0} match: you need the same ROM in your library	Partida de {0}: necesitas la misma ROM en la biblioteca	{0} の対戦: ライブラリに同じ ROM が必要です	{0} 对局：你的游戏库需要有相同的 ROM
+Cole o código do convite	Paste the invite code	Pega el código de la invitación	招待コードを貼り付けてください	请粘贴邀请码
+Código de convite: {0}… (Ajustes › Online no PC para copiar)	Invite code: {0}… (Settings › Online on the PC to copy it)	Código de invitación: {0}… (Ajustes › En línea en el PC para copiarlo)	招待コード: {0}…（コピーは PC の 設定 › オンライン から）	邀请码：{0}…（在电脑上的“设置 › 联机”中复制）
+Partida aberta: preparando o código de convite…	Match open: preparing the invite code…	Partida abierta: preparando el código de invitación…	対戦を開きました: 招待コードを準備しています…	对局已开启：正在准备邀请码…
+A retransmissão do RetroArch não respondeu. Feche o jogo e tente a conexão direta ou outro servidor.	The RetroArch relay didn't respond. Close the game and try the direct connection or another server.	La retransmisión de RetroArch no respondió. Cierra el juego y prueba la conexión directa u otro servidor.	RetroArch のリレーが応答しませんでした。ゲームを閉じて、直接接続か別のサーバーを試してください。	RetroArch 中继没有响应。请关闭游戏，改用直连或其他服务器。
+Este PC não está em nenhuma rede	This PC isn't on any network	Este PC no está en ninguna red	この PC はネットワークに接続されていません	此电脑未连接任何网络
+servidor de retransmissão desconhecido	unknown relay server	servidor de retransmisión desconocido	不明なリレーサーバー	未知的中继服务器
+Jogar online	Play online	Jugar en línea	オンラインで遊ぶ	联机游玩

@@ -2513,3 +2513,11 @@ body[data-layout="dashboard"][data-dashboard^="bb-"] .content { padding: 0; over
 [data-panel="discord"] input:focus { border-color: var(--accent); }
 [data-panel="discord"] #dc-porta { width: 110px !important; flex: none; }
 [data-panel="discord"] .row { display: flex; gap: 10px; align-items: center; }
+
+/* Jogar online (código de convite) */
+#modal-online .sheet { max-width: 640px; }
+.on-bloco { margin-top: 10px; }
+.on-bloco h3 { margin: 14px 0 6px; font-size: 14px; }
+.on-codigo-linha input, #on-colar { flex: 1; min-width: 0; font-size: 12px; }
+.on-rede { display: grid; gap: 6px; margin: 4px 0 8px; }
+.on-partida { text-align: left; justify-content: flex-start; }

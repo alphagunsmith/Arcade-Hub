@@ -239,6 +239,14 @@ const api = (() => {
     dualsenseSalvar: patch => { state._ds = patch.ligado ? 'ligado' : 'desligado'; return reply({ estado: state._ds, msg: '', ligado: !!patch.ligado }); },
     dualsenseAbrir: () => state._ds === 'desligado' ? Promise.resolve({ ok: false, error: 'Ligue o DualSense Auto primeiro' }) : reply(true),
     onDualSenseEstado: () => () => {},
+    onlineConvites: () => reply([]),
+    onlineLer: t => /AH2\./.test(t || '') ? reply({ titulo: 'Super Metroid', plataforma: 'snes', relay: false, temRom: false, jogo: '' }) : Promise.resolve({ ok: false, error: 'Esse código de convite não é válido (confira se copiou ele inteiro)' }),
+    onlineEntrar: () => Promise.resolve({ ok: false, error: 'Isto é só a pré-visualização no navegador. Abra o app (npm start) para abrir jogos de verdade.' }),
+    onlineProcurar: () => reply([]),
+    onlineSalvar: p => { state.settings.online = { ...(state.settings.online || {}), ...p }; return reply(state.settings.online); },
+    onlinePendente: () => reply(null),
+    onOnlineConvite: () => () => {},
+    onOnlineLink: () => () => {},
     onDiscordAviso: () => () => {},
     onDiscordEstado: () => () => {},
     win: { min: () => {}, max: () => {}, close: () => {} }
@@ -989,15 +997,131 @@ async function launch(game) {
   render();
 }
 
-/** ROM online pelo RetroArch: seus amigos entram pelo "Participar" do Discord. */
+/** ROM online pelo RetroArch: cria a partida, o código de convite e o "Participar" do Discord. */
 async function jogarOnline(game) {
   const r = await api.launch(game.id, { online: true });
   if (!r.ok) { toast(r.error || 'Não consegui abrir a partida online', 'err'); return false; }
-  const conectado = ui.discordEstado === 'conectado';
-  toast(conectado ? `${game.title} aberto online: seus amigos já podem clicar em "Participar" no Discord` : `${game.title} aberto online. O Discord não está aberto, então o convite não aparece para os amigos`, conectado ? 'ok' : 'err');
   game.playedAt = Date.now();
   render();
+  ui.conviteAberto = game.id;
+  abrirOnline({ convite: { gameId: game.id, titulo: game.title, estado: 'preparando' } });
   return true;
+}
+
+/* ---------- Jogar online: código de convite, link e partidas na rede ---------- */
+const TEXTO_CONVITE = {
+  preparando: ['', 'Preparando o convite…'],
+  retransmissao: ['', 'Conectando na retransmissão do RetroArch…'],
+  pronto: ['ok', 'Partida aberta: mande o código para o seu amigo'],
+  erro: ['erro', 'Não deu para criar o convite'],
+  encerrada: ['', 'A partida terminou']
+};
+function mostrarConvite(c) {
+  const box = $('#on-hospedando');
+  if (!box) return;
+  if (!c) { box.hidden = true; return; }
+  box.hidden = false;
+  $('#on-titulo').textContent = c.titulo || '';
+  const [cls, txt] = TEXTO_CONVITE[c.estado] || ['', '…'];
+  $('#on-estado').className = 'dc-estado ' + cls;
+  $('#on-estado').textContent = txt;
+  $('#on-codigo').value = c.codigo || '';
+  $('#on-copiar').disabled = !c.codigo;
+  $('#on-copiar-link').disabled = !c.link;
+  const det = [];
+  if (c.erro) det.push(c.erro);
+  if (c.estado === 'pronto') {
+    if (c.relay) det.push(`Conexão: retransmissão do RetroArch (${c.relay})`);
+    else { det.push('Conexão direta', `porta ${c.porta}`); if (c.upnp) det.push('o RetroArch abre a porta no roteador (UPnP)'); }
+    if (ui.discordEstado === 'conectado') det.push('Amigos no Discord também podem clicar em "Participar"');
+  }
+  $('#on-detalhes').textContent = det.join(' · ');
+  const copiar = async (texto, msg) => { try { await navigator.clipboard.writeText(texto); toast(msg, 'ok'); } catch { $('#on-codigo').select(); } };
+  $('#on-copiar').onclick = () => copiar(c.codigo, 'Código copiado');
+  $('#on-copiar-link').onclick = () => copiar(c.link, 'Link copiado');
+}
+async function procurarNaRede() {
+  const box = $('#on-rede');
+  box.innerHTML = '';
+  const p = document.createElement('p');
+  p.className = 'muted small';
+  p.textContent = 'Procurando partidas na sua rede…';
+  box.appendChild(p);
+  const r = api.onlineProcurar ? await api.onlineProcurar() : { ok: true, data: [] };
+  box.innerHTML = '';
+  const lista = (r && r.ok && r.data) || [];
+  if (!lista.length) {
+    const v = document.createElement('p');
+    v.className = 'muted small';
+    v.textContent = 'Nenhuma partida aberta na sua rede agora.';
+    box.appendChild(v);
+    return;
+  }
+  for (const x of lista) {
+    const b = document.createElement('button');
+    b.className = 'ghost-btn on-partida';
+    const t = document.createElement('b'); t.textContent = x.titulo || '?'; t.setAttribute('data-sem-traducao', '');
+    const s = document.createElement('span'); s.textContent = x.nome ? ` · ${x.nome}` : ''; s.setAttribute('data-sem-traducao', '');
+    b.append(t, s);
+    b.onclick = () => { $('#on-colar').value = x.codigo; entrarComCodigo(); };
+    box.appendChild(b);
+  }
+}
+async function previaDoCodigo() {
+  const v = $('#on-colar').value.trim();
+  const box = $('#on-previa');
+  if (!v) { box.textContent = ''; return; }
+  const r = await api.onlineLer(v);
+  if (!r || !r.ok) { box.textContent = (r && r.error) || 'Esse código de convite não é válido (confira se copiou ele inteiro)'; return; }
+  const d = r.data;
+  box.textContent = d.temRom ? `Partida de ${d.titulo || d.jogo}: você tem a mesma ROM (${d.jogo})` : `Partida de ${d.titulo}: você precisa da mesma ROM na biblioteca`;
+}
+async function entrarComCodigo() {
+  const v = $('#on-colar').value.trim();
+  if (!v) return toast('Cole o código do convite', 'err');
+  const btn = $('#on-entrar-btn');
+  btn.disabled = true;
+  const r = await api.onlineEntrar(v);
+  btn.disabled = false;
+  if (!r || !r.ok) return toast((r && r.error) || 'Não consegui entrar na partida', 'err');
+  toast(`Entrando no ${r.data.titulo} do seu amigo…`, 'ok');
+  closeModal($('#modal-online'));
+}
+async function abrirOnline(opts) {
+  const o = opts || {};
+  closeAll();
+  const m = $('#modal-online');
+  m.hidden = false;
+  let convite = o.convite || null;
+  if (!convite && api.onlineConvites) {
+    const r = await api.onlineConvites();
+    const lista = (r && r.ok && r.data) || [];
+    convite = lista[lista.length - 1] || null;
+  }
+  mostrarConvite(convite);
+  $('#on-colar').value = o.codigo || '';
+  $('#on-colar').oninput = () => previaDoCodigo();
+  $('#on-entrar-btn').onclick = entrarComCodigo;
+  $('#on-colar').onkeydown = e => { if (e.key === 'Enter') entrarComCodigo(); };
+  $('#on-procurar').onclick = procurarNaRede;
+  previaDoCodigo();
+  procurarNaRede();
+  if (!convite) setTimeout(() => $('#on-colar').focus(), 50);
+}
+/** Ajustes › Online: UPnP, rede de casa e retransmissão. */
+function ligarOnline(s) {
+  const on = { upnp: true, lan: true, relay: '', ...(s.online || {}) };
+  const salvar = async patch => {
+    const r = await api.onlineSalvar(patch);
+    if (!r || !r.ok) return toast((r && r.error) || 'Não consegui salvar', 'err');
+    ui.state.settings.online = r.data;
+  };
+  $('#on-upnp').checked = on.upnp !== false;
+  $('#on-lan').checked = on.lan !== false;
+  $('#on-relay').value = on.relay || '';
+  $('#on-upnp').onchange = e => salvar({ upnp: e.target.checked });
+  $('#on-lan').onchange = e => salvar({ lan: e.target.checked });
+  $('#on-relay').onchange = e => salvar({ relay: e.target.value });
 }
 
 /** Ajustes › Discord. */
@@ -2480,6 +2604,7 @@ function openSettings() {
   $('#opt-sgdb').value = s.sgdbKey || '';
   ligarFontesDeVideo(s);
   ligarDiscord(s);
+  ligarOnline(s);
   ligarDualSense(s);
   ligarIdioma(s);
   $('#btn-limpar-sumidos').onclick = limparJogosSumidos;
@@ -2659,6 +2784,7 @@ function ligarCasca() {
   $('#btn-tv').onclick = e => { e.stopPropagation(); fecharMenu(); ModoTV.abrir(); };
   $('#btn-eco').onclick = e => { e.stopPropagation(); fecharMenu(); Ecossistema.abrirPainel(); };
   $('#btn-dualsense').onclick = e => { e.stopPropagation(); fecharMenu(); abrirPainelDualSense(); };
+  $('#btn-online').onclick = e => { e.stopPropagation(); fecharMenu(); abrirOnline(); };
   $('#btn-busca').onclick = e => { e.stopPropagation(); fecharMenu(); alternarBusca(); };
 
   // clique no fundo escuro fecha; clique dentro do painel não
@@ -3644,6 +3770,18 @@ function conferirIdioma(s) {
   // Discord: estado da conexão e avisos (amigo entrando, convite recebido…)
   ui.discordEstado = ui.state.discordEstado || '';
   if (api.onDiscordEstado) api.onDiscordEstado(e => { ui.discordEstado = e; mostrarEstadoDiscord(); });
+  // jogo online: o convite fica pronto alguns segundos depois de abrir a partida
+  if (api.onOnlineConvite) api.onOnlineConvite(c => {
+    const m = $('#modal-online');
+    if (m && !m.hidden && (!ui.conviteAberto || ui.conviteAberto === c.gameId)) mostrarConvite(c);
+    if (typeof ModoTV !== 'undefined' && ModoTV.ativo && ModoTV.aviso) {
+      if (c.estado === 'pronto') ModoTV.aviso(`Código de convite: ${c.codigo.slice(0, 18)}… (Ajustes › Online no PC para copiar)`);
+      else if (c.estado === 'erro') ModoTV.aviso(c.erro || 'Não deu para criar o convite');
+    }
+  });
+  const abrirLink = c => { if (c && c.codigo) abrirOnline({ codigo: c.codigo }); };
+  if (api.onOnlineLink) api.onOnlineLink(abrirLink);
+  if (api.onlinePendente) api.onlinePendente().then(r => { if (r && r.ok && r.data) abrirLink({ codigo: r.data }); });
   // DualSense Auto: o estado muda sozinho (abrindo, caiu, outro aberto…)
   ui.dualsense = ui.state.dualsense || { estado: '', msg: '' };
   mostrarEstadoDualSense();

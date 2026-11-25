@@ -1,5 +1,20 @@
 # Novidades
 
+## 1.6.0
+
+- **Jogo online sem o Discord (P2P).** Na ficha de uma ROM, **Jogar online** abre a partida no RetroArch e cria um **código de convite**.
+  - **Como convidar:** copie o código ou o link e mande por WhatsApp, Telegram ou e-mail. O amigo cola em menu ≡ › **Jogar online…** › **Entrar com código**, ou clica no link (arcadehub://…), que abre o Arcade Hub já na tela de entrar.
+  - **Conexão direta entre os dois PCs**, sem servidor do Arcade Hub. Cada partida tem uma **senha** própria, que vai dentro do código: só entra quem recebeu o convite.
+  - **Porta do roteador aberta sozinha (UPnP):** o RetroArch cuida disso, sem você mexer no roteador.
+  - **Na mesma rede:** quem está na sua casa vê a partida em **Partidas na sua rede** e entra com um clique.
+  - **Retransmissão (opcional):** para quando a conexão direta não funciona, como em internet móvel ou CGNAT. Usa os servidores públicos do próprio RetroArch (São Paulo, Nova York ou Madri). Fica em Ajustes › Online.
+  - **A janela não some enquanto você hospeda**, para dar tempo de copiar o código.
+  - **O Discord continua funcionando junto:** o "Participar" agora também leva a senha da partida.
+- **Correções:**
+  - "Jogar online" pelo app não estava chegando ao RetroArch como partida online.
+  - "Usar este emulador" não sabia qual emulador tinha sido escolhido.
+  - Os ajustes do RetroArch usados na partida (senha, retransmissão) não são gravados no seu retroarch.cfg.
+
 ## 1.5.2
 
 - **O Arcade Hub agora abre no idioma do Windows, sozinho:** português, inglês, espanhol, japonês ou chinês. Para qualquer outro idioma do Windows, ele usa o inglês.

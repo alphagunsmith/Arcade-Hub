@@ -22,7 +22,8 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
   removeGame: id => call('game:remove', id),
   toggleFavorite: id => call('game:favorite', id),
   toggleHidden: id => call('game:hide', id),
-  launch: (id, opts) => call('game:launch', id, opts),
+  // o segundo argumento (online, conectar) precisa ir junto: o call() só leva um
+  launch: (id, opts) => ipcRenderer.invoke('game:launch', id, opts || {}),
 
   // ajustes
   saveSettings: patch => call('settings:save', patch),
@@ -76,6 +77,22 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
   discordSalvar: patch => call('discord:salvar', patch),
   discordEstado: () => call('discord:estado'),
   dualsenseEstado: () => call('dualsense:estado'),
+  onlineConvites: () => call('online:convites'),
+  onlineLer: texto => call('online:ler', texto),
+  onlineEntrar: texto => call('online:entrar', texto),
+  onlineProcurar: () => call('online:procurar'),
+  onlineSalvar: patch => call('online:salvar', patch),
+  onlinePendente: () => call('online:pendente'),
+  onOnlineConvite: cb => {
+    const handler = (_e, p) => cb(p);
+    ipcRenderer.on('online:convite', handler);
+    return () => ipcRenderer.removeListener('online:convite', handler);
+  },
+  onOnlineLink: cb => {
+    const handler = (_e, p) => cb(p);
+    ipcRenderer.on('online:link', handler);
+    return () => ipcRenderer.removeListener('online:link', handler);
+  },
   dualsenseSalvar: patch => call('dualsense:salvar', patch),
   dualsenseAbrir: () => call('dualsense:abrir'),
   onDualSenseEstado: cb => {
@@ -121,7 +138,7 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
   energia: acao => call('console:energia', acao),
   iniciarComWindows: ligar => call('console:iniciarComWindows', ligar),
   emuladores: opts => call('console:emuladores', opts),
-  usarEmulador: (plataforma, emulador) => call('console:usarEmulador', plataforma, emulador),
+  usarEmulador: (plataforma, emulador) => ipcRenderer.invoke('console:usarEmulador', plataforma, emulador),
   abrirSiteEmulador: emulador => call('console:abrirSite', emulador),
   prepararVideos: ids => call('video:preparar', ids),
   updateStatus: () => call('update:get'),

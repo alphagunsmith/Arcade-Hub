@@ -170,7 +170,9 @@ class ClienteDiscord extends EventEmitter {
 /* convite: o "segredo" que vai no status (máx. 128 caracteres)        */
 /* ------------------------------------------------------------------ */
 /*
- *  1n|CRC|end1,end2|porta|core|plataforma  jogo retrô online (RetroArch netplay)
+ *  2n|CRC|end1,end2|porta|core|plataforma|senha  jogo retrô online (RetroArch netplay, conexão direta)
+ *  2r|CRC|ip:porta|sessão|core|plataforma|senha  idem, pela retransmissão do RetroArch
+ *  1n|CRC|end1,end2|porta|core|plataforma        versão antiga (sem senha)
  *  1s|appId                                jogo da Steam: abre o mesmo jogo
  *  1t|plataforma|título                    outro jogo: procura pelo nome
  */
@@ -178,8 +180,10 @@ const RE_END = /^(\d{1,3}(\.\d{1,3}){3}|[0-9a-f:]{2,39}|[a-z0-9.-]{1,63})$/i;
 
 function criarSegredo(c) {
   let s = '';
-  if (c.tipo === 'netplay') {
-    s = ['1n', c.crc, (c.enderecos || []).slice(0, 3).join(','), c.porta, c.core, c.plataforma || ''].join('|');
+  if (c.tipo === 'netplay' && c.relay) {
+    s = ['2r', c.crc, `${c.relay.ip}:${c.relay.porta}`, c.relay.sessao, c.core, c.plataforma || '', c.senha || ''].join('|');
+  } else if (c.tipo === 'netplay') {
+    s = [c.senha ? '2n' : '1n', c.crc, (c.enderecos || []).slice(0, 3).join(','), c.porta, c.core, c.plataforma || ''].concat(c.senha ? [c.senha] : []).join('|');
   } else if (c.tipo === 'steam') {
     s = `1s|${c.appId}`;
   } else {
@@ -191,11 +195,22 @@ function criarSegredo(c) {
 /** Lê e valida o segredo que chegou de outra pessoa (nada daqui vira comando sem checar). */
 function lerSegredo(s) {
   const p = String(s || '').split('|');
-  if (p[0] === '1n' && p.length >= 5) {
+  const senhaOk = x => /^[A-Za-z0-9_-]{6,32}$/.test(x || '');
+  const crcOk = x => /^([0-9A-F]{8}|S[0-9A-F]{1,12})$/.test(x || '');
+  const plat = x => (/^[\w-]{0,20}$/.test(x || '') ? (x || '') : '');
+  if ((p[0] === '1n' || p[0] === '2n') && p.length >= 5) {
     const enderecos = p[2].split(',').filter(e => RE_END.test(e)).slice(0, 3);
     const porta = Number(p[3]);
-    if (!/^([0-9A-F]{8}|S[0-9A-F]{1,12})$/.test(p[1]) || !enderecos.length || !(porta > 0 && porta < 65536) || !/^[\w.-]{1,60}$/.test(p[4])) return null;
-    return { tipo: 'netplay', crc: p[1], enderecos, porta, core: p[4], plataforma: /^[\w-]{0,20}$/.test(p[5] || '') ? (p[5] || '') : '' };
+    if (!crcOk(p[1]) || !enderecos.length || !(porta > 0 && porta < 65536) || !/^[\w.-]{1,60}$/.test(p[4])) return null;
+    if (p[0] === '2n' && !senhaOk(p[6])) return null;
+    return { tipo: 'netplay', crc: p[1], enderecos, porta, core: p[4], plataforma: plat(p[5]), senha: p[0] === '2n' ? p[6] : '' };
+  }
+  if (p[0] === '2r' && p.length >= 7) {
+    const [ip, pr] = String(p[2]).split(':');
+    const porta = Number(pr);
+    if (!crcOk(p[1]) || !/^\d{1,3}(\.\d{1,3}){3}$/.test(ip || '') || !(porta > 0 && porta < 65536) ||
+      !/^[A-Za-z0-9+/=_-]{8,64}$/.test(p[3]) || !/^[\w.-]{1,60}$/.test(p[4]) || !senhaOk(p[6])) return null;
+    return { tipo: 'netplay', crc: p[1], enderecos: [], porta, core: p[4], plataforma: plat(p[5]), senha: p[6], relay: { ip, porta, sessao: p[3] } };
   }
   if (p[0] === '1s' && /^\d{1,12}$/.test(p[1] || '')) return { tipo: 'steam', appId: p[1] };
   if (p[0] === '1t' && p.length >= 3) {

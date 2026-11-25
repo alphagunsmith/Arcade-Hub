@@ -14,7 +14,10 @@ if (!gotLock) {
   app.quit();
   return;
 }
-app.on('second-instance', () => {
+app.on('second-instance', (_e, argv) => {
+  // link arcadehub://entrar/<código> clicado com o app já aberto
+  const link = (argv || []).find(a => /^arcadehub:/i.test(String(a)));
+  if (link && hub && hub.abrirLinkOnline) hub.abrirLinkOnline(link);
   const win = BrowserWindow.getAllWindows()[0];
   if (win) { if (win.isMinimized()) win.restore(); if (!win.isVisible()) win.show(); win.focus(); }
 });
@@ -117,6 +120,9 @@ app.whenReady().then(() => {
   session.defaultSession.setPermissionCheckHandler((_wc, permissao) => PERMITIDAS.has(permissao));
 
   hub = lib.register(ipcMain, { shell, dialog, BrowserWindow, app, store });
+  // aberto por um link arcadehub://entrar/<código>: a janela pega o código quando carregar
+  const linkInicial = process.argv.find(a => /^arcadehub:/i.test(String(a)));
+  if (linkInicial) hub.abrirLinkOnline(linkInicial);
   ligarBandejaDuranteOJogo();
   registrarIpcDeAtualizacao();
 
@@ -174,8 +180,10 @@ function criarBandeja(titulo) {
 }
 
 function ligarBandejaDuranteOJogo() {
-  lib.eventos.on('sessao:inicio', ({ title }) => {
+  lib.eventos.on('sessao:inicio', ({ title, online }) => {
     if (store.settings.minimizarAoJogar === false || !win || win.isDestroyed()) return;
+    // hospedando online: a janela fica, para você copiar o código de convite
+    if (online) return;
     try {
       criarBandeja(title);
       escondidoPeloJogo = true;

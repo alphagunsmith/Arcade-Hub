@@ -23,6 +23,7 @@ const conquistas = require('./conquistas');
 const consoleMod = require('./console');
 const discord = require('./discord');
 const dualsenseMod = require('./dualsense');
+const p2p = require('./p2p');
 const I18N = require('../renderer/i18n.js');
 
 /* ---------- idioma do processo principal (caixas de diálogo, bandeja) ---------- */
@@ -285,6 +286,11 @@ const DEFAULT_SETTINGS = {
   },
   dualsense: {
     ligado: true            // DualSense Auto (vibração e gatilhos inteligentes) aberto junto com o Arcade Hub
+  },
+  online: {                 // jogo online P2P (sem Discord): convite por código
+    upnp: true,             // o RetroArch abre a porta no roteador sozinho
+    lan: true,              // quem está na mesma rede vê a partida
+    relay: ''               // '' = conexão direta; 'saopaulo' | 'nyc' | 'madrid' = retransmissão do RetroArch
   }
 };
 
@@ -1115,6 +1121,7 @@ class Store {
     for (const k of CHAVES_CIFRADAS) settings[k] = decifrar(settings[k]);
     settings.discord = { ...DEFAULT_SETTINGS.discord, ...(settings.discord || {}) };
     settings.dualsense = { ...DEFAULT_SETTINGS.dualsense, ...(settings.dualsense || {}) };
+    settings.online = { ...DEFAULT_SETTINGS.online, ...(settings.online || {}) };
     // na 1.5.1 o padrão foi inglês fixo: quem não escolheu nada volta a seguir o Windows
     if (settings.idioma === 'en' && !settings.idiomaEscolhido) settings.idioma = 'auto';
     settings.emulators = { ...defaultEmulators(), ...(settings.emulators || {}) };
@@ -1485,12 +1492,18 @@ function planoNetplay(game, settings, modo) {
   const core = path.join(pastaCores, coreNome);
   if (!fs.existsSync(core)) return { kind: 'broken', reason: `falta o core ${coreNome} no RetroArch (baixe pelo "Atualizador online" do RetroArch)` };
   const porta = Math.max(1, Math.min(65535, Number(modo.porta) || 55435));
-  const nick = String(modo.nick || 'Jogador').replace(/[^\p{L}\p{N} _-]/gu, '').slice(0, 20) || 'Jogador';
+  const nick = String(modo.nick || 'Jogador').replace(/[^\p{L}\p{N} _-]/gu, '').slice(0, 24) || 'Jogador';
   const args = ['-L', core];
-  if (modo.hospedar) args.push('--host');
-  else args.push(`--connect=${modo.conectar}`);
-  args.push(`--port=${porta}`, `--nick=${nick}`, g.launch.rom);
-  return { kind: 'exe', target: ra.exe, args, cwd: path.dirname(ra.exe), label: 'RetroArch (online)', core: coreNome, porta };
+  const r = modo.relay && typeof modo.relay === 'object' ? modo.relay : null;   // entrar pela retransmissão
+  if (modo.hospedar) args.push('--host', `--port=${porta}`);
+  else if (r) args.push(`--connect=${r.ip}`, `--port=${r.porta}`, `--mitm-session=${r.sessao}`);
+  else args.push(`--connect=${modo.conectar}`, `--port=${porta}`);
+  args.push(`--nick=${nick}`, g.launch.rom);
+  // senha da partida, UPnP e retransmissão vão num .cfg extra (--appendconfig, posto pelo lancar)
+  const cfg = modo.senha || modo.hospedar ? p2p.configNetplay({
+    hospedar: !!modo.hospedar, senha: modo.senha, upnp: modo.upnp, relay: typeof modo.relay === 'string' ? modo.relay : '', apelido: nick
+  }) : '';
+  return { kind: 'exe', target: ra.exe, args, cwd: path.dirname(ra.exe), label: 'RetroArch (online)', core: coreNome, porta, cfg };
 }
 
 /** Identidade da ROM para achar a mesma do outro lado: CRC32 (ou o tamanho, se for enorme). */
@@ -2301,29 +2314,150 @@ function register(ipcMain, deps) {
     cliente.definirAtividade(atividade);
   };
 
-  /** Hospedando online: monta o convite com os endereços deste PC (rede de casa, VPN e internet). */
-  const prepararConvite = async (game, plan) => {
+  /* ---------------- jogo online P2P (código de convite, sem Discord) ---------------- */
+  const anuncioLan = new p2p.AnuncioLan({ porta: deps.portaLan });
+  const pastaNetplay = path.join(store.dir, 'netplay');
+  // .cfg de partidas antigas (senhas) não ficam para trás
+  try { for (const f of fs.readdirSync(pastaNetplay)) fs.rmSync(path.join(pastaNetplay, f), { force: true }); } catch { /* pasta ainda não existe */ }
+  let linkPendente = null;
+
+  /** O que a interface mostra da partida (sem a senha em separado: ela já está no código). */
+  const conviteDe = (game, on) => ({
+    gameId: game.id, titulo: game.title, estado: on.estado,
+    codigo: on.codigo || '', link: on.codigo ? p2p.linkDoCodigo(on.codigo) : '',
+    porta: on.porta, upnp: !!on.upnp, relay: on.relayNome || '', enderecos: on.enderecos || [], erro: on.erro || ''
+  });
+  const publicarConvite = game => {
+    const sess = sessoesAtivas.get(game.id);
+    if (sess && sess.online && !sess.online.convidado) enviar('online:convite', conviteDe(game, sess.online));
+  };
+
+  /** Hospedando online: monta o convite (código, link e Discord) com os endereços deste PC. */
+  const prepararConvite = async (game, plan, extra) => {
     const sess = sessoesAtivas.get(game.id);
     if (!sess) return;
+    const ex = extra || {};
+    sess.online = { estado: 'preparando', porta: plan.porta, upnp: ex.upnp !== false, senha: ex.senha, cfg: ex.cfg,
+      relayNome: ex.relay ? p2p.RELAYS[ex.relay] : '' };
+    publicarConvite(game);
     const locais = discord.enderecosLocais();
     const enderecos = [...locais.filter(x => x.tipo === 'vpn'), ...locais.filter(x => x.tipo === 'lan')].map(x => x.ip);
     // endereço público: um serviço de "qual é meu IP" (não é servidor do Arcade Hub)
     try {
       if (!ipPublico.ip || Date.now() - ipPublico.em > 600000) {
         const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 4000);
-        const r = await fetch('https://api.ipify.org', { signal: ctrl.signal }).finally(() => clearTimeout(t));
+        const r = await (deps.fetch || fetch)('https://api.ipify.org', { signal: ctrl.signal }).finally(() => clearTimeout(t));
         const ip = (await r.text()).trim();
         if (/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) ipPublico = { ip, em: Date.now() };
       }
     } catch { /* sem internet para descobrir: fica só VPN/rede de casa */ }
     if (ipPublico.ip) enderecos.push(ipPublico.ip);
+    let relay = null;
+    if (ex.relay) {
+      sess.online.estado = 'retransmissao';
+      publicarConvite(game);
+      relay = await p2p.sessaoDaRetransmissao(ex.apelido, {
+        fetch: deps.fetch, intervalo: deps.intervaloLobby, tentativas: deps.tentativasLobby,
+        cancelado: () => sessoesAtivas.get(game.id) !== sess
+      });
+    }
     const atual = sessoesAtivas.get(game.id);
-    if (!atual || !enderecos.length) return;
-    atual.online = {
-      segredo: discord.criarSegredo({ tipo: 'netplay', crc: chaveDaRom(game.launch.rom), enderecos: [...new Set(enderecos)], porta: plan.porta, core: plan.core, plataforma: game.platformKey }),
-      porta: plan.porta
-    };
+    if (atual !== sess) return;
+    if (ex.relay && !relay) {
+      sess.online.estado = 'erro';
+      sess.online.erro = 'A retransmissão do RetroArch não respondeu. Feche o jogo e tente a conexão direta ou outro servidor.';
+      return publicarConvite(game);
+    }
+    const unicos = [...new Set(enderecos)];
+    if (!relay && !unicos.length) {
+      sess.online.estado = 'erro';
+      sess.online.erro = 'Este PC não está em nenhuma rede';
+      return publicarConvite(game);
+    }
+    const crc = chaveDaRom(game.launch.rom);
+    const dados = { crc, plataforma: game.platformKey, core: plan.core, porta: plan.porta, enderecos: unicos, senha: ex.senha, relay, titulo: game.title };
+    Object.assign(sess.online, {
+      estado: 'pronto', enderecos: unicos, relay,
+      codigo: p2p.criarCodigo(dados),
+      segredo: discord.criarSegredo({ tipo: 'netplay', ...dados })
+    });
+    publicarConvite(game);
+    // partidas na mesma rede: responde a quem perguntar
+    if ((store.settings.online || {}).lan !== false && !relay) {
+      try { anuncioLan.iniciar({ codigo: sess.online.codigo, nome: (perfisDe(store.settings).find(p => p.id === perfilAtivoDe(store.settings)) || {}).nome || '' }); } catch { /* porta ocupada */ }
+    }
     atualizarPresenca();
+  };
+
+  /** A partida acabou: para o anúncio na rede e apaga o .cfg (tem a senha). */
+  function fimOnline(game, on) {
+    anuncioLan.parar();
+    if (on.cfg) { try { fs.rmSync(on.cfg, { force: true }); } catch { /* já apagado */ } }
+    if (!on.convidado) enviar('online:convite', { gameId: game.id, titulo: game.title, estado: 'encerrada' });
+  }
+
+  /** Acha na biblioteca a mesma ROM do convite (pelo CRC). */
+  const romDoConvite = c => {
+    const candidatas = store.games.filter(x => x.kind === 'rom' && x.launch && x.launch.rom && (!c.plataforma || x.platformKey === c.plataforma));
+    return candidatas.find(x => chaveDaRom(x.launch.rom) === c.crc) || null;
+  };
+
+  /** Entra numa partida pelo código (ou pelo convite do Discord, que tem os mesmos dados). */
+  const entrarNaPartida = async c => {
+    const g = romDoConvite(c);
+    if (!g) return { ok: false, error: 'Para entrar, você precisa da mesma ROM que seu amigo (a sua é diferente ou não está na biblioteca)' };
+    let endereco = '';
+    if (!c.relay) {
+      endereco = discord.escolherEndereco(c.enderecos, discord.enderecosLocais());
+      if (!endereco) return { ok: false, error: 'O convite veio sem endereço para conectar' };
+    }
+    const r = await lancar(g.id, { conectar: { endereco, porta: c.porta, core: c.core, senha: c.senha, relay: c.relay || null } });
+    return r.ok ? ok({ titulo: g.title, relay: !!c.relay }) : r;
+  };
+
+  ipcMain.handle('online:convites', () => ok([...sessoesAtivas.entries()]
+    .filter(([, s]) => s.online && !s.online.convidado)
+    .map(([id, s]) => conviteDe(store.games.find(g => g.id === id) || { id, title: s.title }, s.online))));
+  ipcMain.handle('online:ler', (_e, texto) => {
+    const c = p2p.lerCodigo(texto);
+    if (!c) return fail('Esse código de convite não é válido (confira se copiou ele inteiro)');
+    const g = romDoConvite(c);
+    return ok({ titulo: c.titulo, plataforma: c.plataforma, relay: !!c.relay, temRom: !!g, jogo: g ? g.title : '' });
+  });
+  ipcMain.handle('online:entrar', async (_e, texto) => {
+    const c = p2p.lerCodigo(texto);
+    if (!c) return fail('Esse código de convite não é válido (confira se copiou ele inteiro)');
+    try { return await entrarNaPartida(c); } catch (e) { return fail(e); }
+  });
+  ipcMain.handle('online:procurar', async () => {
+    try { return ok(await p2p.procurarNaRede({ porta: deps.portaLan, alvos: deps.alvosLan })); } catch (e) { return fail(e); }
+  });
+  ipcMain.handle('online:salvar', (_e, patch) => {
+    try {
+      const novo = { ...DEFAULT_SETTINGS.online, ...(store.settings.online || {}) };
+      const p = patch || {};
+      if ('upnp' in p) novo.upnp = !!p.upnp;
+      if ('lan' in p) novo.lan = !!p.lan;
+      if ('relay' in p) { const r = String(p.relay || ''); if (r && !p2p.RELAYS[r]) throw new Error('servidor de retransmissão desconhecido'); novo.relay = r; }
+      store.saveSettings({ online: novo });
+      return ok(novo);
+    } catch (e) { return fail(e); }
+  });
+  ipcMain.handle('online:pendente', () => { const c = linkPendente; linkPendente = null; return ok(c); });
+
+  // link arcadehub://entrar/<código> (mandado por mensagem): abre o Arcade Hub na tela de entrar
+  try {
+    if (app && typeof app.setAsDefaultProtocolClient === 'function' && !deps.semProtocolo) {
+      if (process.defaultApp && process.argv.length >= 2) app.setAsDefaultProtocolClient('arcadehub', process.execPath, [path.resolve(process.argv[1])]);
+      else app.setAsDefaultProtocolClient('arcadehub');
+    }
+  } catch { /* sem registro: o código colado continua funcionando */ }
+  const abrirLinkOnline = texto => {
+    const codigo = p2p.extrairCodigo(texto);
+    if (!codigo) return false;
+    linkPendente = codigo;
+    enviar('online:link', { codigo });
+    return true;
   };
 
   /** Um amigo clicou em "Participar" no Discord e o convite chegou aqui. */
@@ -2345,14 +2479,10 @@ function register(ipcMain, deps) {
       avisar(`Abrindo ${g.title} para jogar com seu amigo`, 'ok');
       return lancar(g.id);
     }
-    // netplay: a mesma ROM (pelo CRC) e conecta no endereço certo
-    const candidatas = store.games.filter(x => x.kind === 'rom' && x.launch && x.launch.rom && (!c.plataforma || x.platformKey === c.plataforma));
-    const g = candidatas.find(x => chaveDaRom(x.launch.rom) === c.crc);
-    if (!g) return avisar('Para entrar, você precisa da mesma ROM que seu amigo (a sua é diferente ou não está na biblioteca)', 'erro');
-    const endereco = discord.escolherEndereco(c.enderecos, discord.enderecosLocais());
-    if (!endereco) return avisar('O convite veio sem endereço para conectar', 'erro');
-    avisar(`Entrando no ${g.title} do seu amigo…`, 'ok');
-    const r = await lancar(g.id, { conectar: { endereco, porta: c.porta, core: c.core } });
+    // netplay: a mesma ROM (pelo CRC) e conecta no endereço certo (ou pela retransmissão)
+    const g = romDoConvite(c);
+    if (g) avisar(`Entrando no ${g.title} do seu amigo…`, 'ok');
+    const r = await entrarNaPartida(c);
     if (!r.ok) avisar(r.error || 'Não consegui entrar na partida', 'erro');
     return r;
   };
@@ -2362,16 +2492,17 @@ function register(ipcMain, deps) {
   const sessoesAtivas = new Map();          // gameId -> { title, inicio, origem }
   const pastasProibidas = () => [...(store.settings.folders || []), ...(store.settings.romFolders || [])];
 
-  const marcarInicio = (game, origem, inicio) => {
+  const marcarInicio = (game, origem, inicio, extra) => {
     if (sessoesAtivas.has(game.id)) return;
     sessoesAtivas.set(game.id, { title: game.title, inicio: inicio || Date.now(), origem, perfil: perfilAtivoDe(store.settings) });
-    eventos.emit('sessao:inicio', { id: game.id, title: game.title });
+    eventos.emit('sessao:inicio', { id: game.id, title: game.title, online: !!(extra && extra.online) });
     enviar('game:sessionStart', { id: game.id, title: game.title, origem });
     atualizarPresenca();
   };
   const encerrar = (game, ms, info) => {
     const sess = sessoesAtivas.get(game.id);
     const tinha = sessoesAtivas.delete(game.id);
+    if (sess && sess.online) fimOnline(game, sess.online);
     const res = registrarSessao(store, game.id, ms, sess && sess.perfil);
     if (res) setTimeout(() => checarConquistas(res.perfil), 50);
     atualizarPresenca();
@@ -2486,7 +2617,7 @@ function register(ipcMain, deps) {
       lastScan: d.lastScan,
       lastScanReport: d.lastScanReport || null,
       launchers: launchersCacheados(),
-      sessoes: [...sessoesAtivas].map(([id, x]) => ({ id, ...x })),
+      sessoes: [...sessoesAtivas].map(([id, x]) => ({ id, title: x.title, inicio: x.inicio, origem: x.origem, perfil: x.perfil, online: !!(x.online && !x.online.convidado) })),
       versions: { app: app.getVersion(), electron: process.versions.electron, os: `${os.platform()} ${os.release()}` },
       dataDir: store.dir,
       avisoBiblioteca: store.recuperado || null,
@@ -2768,8 +2899,11 @@ function register(ipcMain, deps) {
       if (!game) throw new Error('Jogo não encontrado');
       const dsc = store.settings.discord || {};
       const nick = (perfisDe(store.settings).find(p => p.id === perfilAtivoDe(store.settings)) || {}).nome;
-      const plan = o.online ? planoNetplay(game, store.settings, { hospedar: true, porta: dsc.portaNetplay, nick })
-        : o.conectar ? planoNetplay(game, store.settings, { conectar: o.conectar.endereco, porta: o.conectar.porta, core: o.conectar.core, nick })
+      const on = store.settings.online || {};
+      const senha = o.online ? p2p.novaSenha() : (o.conectar && o.conectar.senha) || '';
+      const apelido = o.online && on.relay ? p2p.apelidoUnico(nick) : nick;
+      const plan = o.online ? planoNetplay(game, store.settings, { hospedar: true, porta: dsc.portaNetplay, nick: apelido, senha, upnp: on.upnp !== false, relay: on.relay || '' })
+        : o.conectar ? planoNetplay(game, store.settings, { conectar: o.conectar.endereco, porta: o.conectar.porta, core: o.conectar.core, nick, senha, relay: o.conectar.relay || null })
           : buildLaunchPlan(game, store.settings);
       if (plan.kind === 'broken') {
         return { ok: false, error: plan.reason || 'Este jogo está incompleto' };
@@ -2800,9 +2934,17 @@ function register(ipcMain, deps) {
           store.updateGame(id, { playedAt: Date.now() });
           return ok({ plan, timed: vigiando ? 'pasta' : false });
         }
+        // partida online: senha, UPnP e retransmissão num .cfg extra do RetroArch
+        let cfgArq = '';
+        if (plan.cfg) {
+          fs.mkdirSync(pastaNetplay, { recursive: true });
+          cfgArq = path.join(pastaNetplay, `${Date.now()}-${crypto.randomBytes(4).toString('hex')}.cfg`);
+          fs.writeFileSync(cfgArq, plan.cfg, { mode: 0o600 });
+          plan.args = [...plan.args.slice(0, -1), `--appendconfig=${cfgArq}`, plan.args[plan.args.length - 1]];
+        }
         let child;
         try {
-          child = await iniciarProcesso(plan);
+          child = await (deps.iniciarProcesso || iniciarProcesso)(plan);
         } catch (err) {
           // jogo que exige administrador: o Windows abre pelo shell e mostra o pedido do UAC
           // (só dá sem argumentos, e aí o tempo de jogo não é medido)
@@ -2817,9 +2959,9 @@ function register(ipcMain, deps) {
         }
         const inicio = Date.now();
         session = { startedAt: inicio };
-        marcarInicio(game, 'processo', inicio);
-        if (o.online) prepararConvite(game, plan);
-        else if (o.conectar) { const sx = sessoesAtivas.get(game.id); if (sx) sx.online = { convidado: true }; atualizarPresenca(); }
+        marcarInicio(game, 'processo', inicio, { online: !!o.online });
+        if (o.online) prepararConvite(game, plan, { senha, apelido, upnp: on.upnp !== false, relay: on.relay || '', cfg: cfgArq });
+        else if (o.conectar) { const sx = sessoesAtivas.get(game.id); if (sx) sx.online = { convidado: true, cfg: cfgArq }; atualizarPresenca(); }
         child.on('exit', () => {
           const ms = Date.now() - inicio;
           // fechou rápido: era um launcher que abriu o jogo de verdade e saiu.
@@ -3316,7 +3458,7 @@ function register(ipcMain, deps) {
   }
 
   return { state, fecharSessoes, varrerEmSegundoPlano, religarVigiasDePastas, vigia, sessoesAtivas,
-    dualsenseRodando: () => ds.rodando, pararDualSense: () => ds.parar() };
+    dualsenseRodando: () => ds.rodando, pararDualSense: () => ds.parar(), abrirLinkOnline };
 }
 
 module.exports = {
