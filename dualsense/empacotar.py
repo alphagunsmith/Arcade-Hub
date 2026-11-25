@@ -71,7 +71,8 @@ def main():
            "--name", "DualSenseAuto", "--icon", os.path.join(RAIZ, "assets", "icon.ico"),
            "--distpath", SAIDA, "--workpath", os.path.join(BUILD, "pyinstaller"), "--specpath", BUILD,
            "--paths", FONTE, "--collect-submodules", "vgamepad",
-           "--hidden-import", "psutil", "--hidden-import", "mss"]
+           "--hidden-import", "psutil", "--hidden-import", "mss",
+           "--hidden-import", "armas_iw7", "--hidden-import", "armas_jogos"]
     for origem, destino in dados:
         cmd += ["--add-data", f"{origem}{sep}{destino}"]
     cmd.append(os.path.join(FONTE, "dualsense_auto.py"))
@@ -83,7 +84,10 @@ def main():
     precisa = [os.path.join(final, "DualSenseAuto.exe"), os.path.join(interno, "painel.html"),
                os.path.join(interno, "perfis.json"), os.path.join(interno, "i18n", "runtime.js"),
                os.path.join(interno, "i18n", "ja.json"),
-               os.path.join(interno, "mods", "cod_infinite_warfare", "iw7-mod", "custom_scripts", "dualsense_auto.gsc")]
+               os.path.join(interno, "mods", "cod_infinite_warfare", "iw7-mod", "custom_scripts", "dualsense_auto.gsc"),
+               os.path.join(interno, "mods", "titanfall2", "R2Northstar", "mods", "DualSenseAuto", "mod.json"),
+               os.path.join(interno, "mods", "gzdoom", "dualsense_auto", "zscript.zs"),
+               os.path.join(interno, "mods", "bo2_plutonium", "scripts", "zm", "dualsense_auto.gsc")]
     for p in precisa:
         if not os.path.exists(p):
             raise SystemExit(f"faltou no pacote: {p}")

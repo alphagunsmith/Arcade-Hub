@@ -1,5 +1,14 @@
 # Novidades
 
+## 1.10.0
+
+- **DualSense Auto: mods novos para Titanfall 2, Doom e Black Ops II.** Nos três, o próprio jogo conta ao app a arma na mão, cada disparo, o pente, o dano e a vida, sem visão IA e sem custo. Cada arma tem a sua configuração.
+  - **Titanfall 2 (pelo Northstar):** todas as armas de piloto e as dos 7 titãs. Exemplos: o Kraber tem ponto de disparo fundo; a Devotion e o Predator Cannon têm o cano girando; o Charge Rifle e o Railgun carregam o disparo.
+  - **Doom clássico (pelo GZDoom):** Doom, Doom II, Final Doom, SIGIL, Doom 64 para GZDoom e a maioria dos WADs. Também informa de que lado veio o dano. Abra o jogo pelo "Doom com DualSense.bat".
+  - **Black Ops II (pelo Plutonium):** multiplayer e zumbis, inclusive as armas melhoradas no Pack-a-Punch, com a direção do dano. Precisa do plugin t6-gsc-utils.
+  - Instale pelo painel: aba Baixar mods. O guia de cada jogo está no botão "Abrir guia dos mods".
+  - **Todas as armas desses jogos já aparecem na aba Armas** quando você abre o jogo, para ajustar antes de jogar. O que você editar não é desfeito.
+
 ## 1.9.0
 
 - **Cinco layouts novos para a biblioteca** (Visual do launcher › Layout), além de Grade e Rondel:

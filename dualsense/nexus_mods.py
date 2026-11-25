@@ -36,6 +36,10 @@ JOGOS = {
                       "raizes": ["bin", "r6", "red4ext", "archive", "engine", "mods", "tools"]},
     "iw7": {"nome": "Call of Duty: Infinite Warfare",
             "pastas": ["Call of Duty Infinite Warfare", "Call of Duty - Infinite Warfare"]},
+    "titanfall2": {"nome": "Titanfall 2", "pastas": ["Titanfall2", "Titanfall 2"]},
+    "gzdoom": {"nome": "Doom (GZDoom)", "pastas": ["GZDoom", "gzdoom"]},
+    "bo2": {"nome": "Call of Duty: Black Ops II (Plutonium)", "pastas": [],
+            "pasta_fixa": os.path.join("$LOCALAPPDATA", "Plutonium", "storage", "t6")},
     "reddeadredemption2": {"nome": "Red Dead Redemption 2", "pastas": ["Red Dead Redemption 2"]},
     "fallout4": {"nome": "Fallout 4", "pastas": ["Fallout 4"]},
     "skyrimspecialedition": {"nome": "Skyrim Special Edition", "pastas": ["Skyrim Special Edition"]},
@@ -65,6 +69,25 @@ CATALOGO = [
      "desc": "Script para o iw7-mod: arma, cadência real, cada tiro e direção exata do dano. "
              "Precisa do iw7-mod instalado na pasta do jogo.",
      "pagina": "https://github.com/auroramod/iw7-mod", "destaque": True},
+    {"id": "tf2_dualsense", "dominio": "titanfall2", "mod": 0, "instalar": "local", "origem": "titanfall2",
+     "nome": "Ponte DualSense Auto (nosso)",
+     "desc": "Mod do Northstar: cada arma de piloto e de titã com a sua configuração, cada tiro, pente e dano. "
+             "Precisa do Northstar instalado na pasta do jogo. Abra o jogo pelo NorthstarLauncher.exe.",
+     "confere": "NorthstarLauncher.exe", "falta": "Falta o Northstar nesta pasta (northstar.tf)",
+     "pagina": "https://northstar.tf", "destaque": True},
+    {"id": "gzdoom_dualsense", "dominio": "gzdoom", "mod": 0, "instalar": "local", "origem": "gzdoom",
+     "nome": "Ponte DualSense Auto (nosso)",
+     "desc": "Doom, Doom II, Final Doom, SIGIL, Doom 64 para GZDoom e WADs: cada arma com a sua configuração, "
+             "cada tiro e a direção do dano. Informe a pasta do GZDoom e abra pelo \"Doom com DualSense.bat\".",
+     "confere": "gzdoom.exe", "falta": "Não achei o gzdoom.exe nesta pasta",
+     "pagina": "https://zdoom.org/downloads", "destaque": True},
+    {"id": "bo2_dualsense", "dominio": "bo2", "mod": 0, "instalar": "local", "origem": "bo2_plutonium",
+     "nome": "Ponte DualSense Auto (nosso)",
+     "desc": "Script para o Plutonium (multiplayer e zumbis): cada arma com a sua configuração, inclusive as melhoradas, "
+             "cada tiro, pente e direção do dano. Precisa do plugin t6-gsc-utils na pasta Plutonium/plugins.",
+     "confere": os.path.join("..", "..", "plugins", "t6-gsc-utils.dll"),
+     "falta": "Falta o plugin t6-gsc-utils.dll em Plutonium/plugins (página do t6-gsc-utils)",
+     "pagina": "https://github.com/fedddddd/t6-gsc-utils", "destaque": True},
     {"id": "rdr2_dsx", "dominio": "reddeadredemption2", "mod": 2187, "instalar": "manual",
      "nome": "RDR2 DualSense 2.0 - DSX",
      "desc": "Gatilhos para armas, arco, laço, pesca e corpo a corpo; luz mostra vida e dead eye. "
@@ -208,6 +231,9 @@ def _normal(t):
 
 def achar_pasta_jogo(dominio):
     info = JOGOS.get(dominio, {})
+    if info.get("pasta_fixa"):               # ex.: o Plutonium guarda os scripts em %LOCALAPPDATA%
+        p = os.path.expandvars(info["pasta_fixa"])
+        return p if os.path.isdir(os.path.dirname(p)) else None
     for lib in bibliotecas_steam():
         for nome in info.get("pastas", []):
             p = os.path.join(lib, "steamapps", "common", nome)
@@ -413,7 +439,8 @@ class GerenciadorMods:
                 "baixado_em": (inst or {}).get("arquivo"), "tarefa": t or None,
             })
         for j in jogos.values():
-            j["precisa_pasta"] = any(m["instalar"] in ("raiz", "local") for m in j["mods"])
+            j["precisa_pasta"] = any(m["instalar"] in ("raiz", "local") for m in j["mods"]) and \
+                not JOGOS.get(j["dominio"], {}).get("pasta_fixa")
             j["mods"].sort(key=lambda m: (not m["destaque"], m["requisito"], m["nome"]))
         return {"conta": dict(self.conta, tem_chave=bool(self.cfg.get("nexus_key"))),
                 "nxm": nxm_status(), "jogos": list(jogos.values())}
@@ -446,14 +473,16 @@ class GerenciadorMods:
             raise RuntimeError("Não achei a pasta do jogo. Informe a pasta acima e tente de novo.")
 
         if item["instalar"] == "local":
-            origem = os.path.join(RECURSOS, "mods", "cod_infinite_warfare")
+            origem = os.path.join(RECURSOS, "mods", item.get("origem", "cod_infinite_warfare"))
             self.tarefa(cid, "Copiando arquivos")
+            os.makedirs(pasta, exist_ok=True)
             escritos = copiar_para_jogo(origem, pasta, cid)
             self.instalados[cid] = {"pasta": pasta, "arquivos": escritos, "versao": "incluído no app",
                                     "quando": time.strftime("%d/%m/%Y")}
             self._salvar_instalados()
-            aviso = "" if os.path.exists(os.path.join(pasta, "iw7-mod.exe")) else \
-                ". Falta o iw7-mod.exe nesta pasta (baixe no GitHub da AuroraMod)"
+            confere = item.get("confere", "iw7-mod.exe")
+            falta = item.get("falta", "Falta o iw7-mod.exe nesta pasta (baixe no GitHub da AuroraMod)")
+            aviso = "" if os.path.exists(os.path.normpath(os.path.join(pasta, confere))) else ". " + falta
             self.tarefa(cid, "Instalado" + aviso)
             return
 

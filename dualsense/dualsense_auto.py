@@ -49,8 +49,9 @@ from ds_hid import DualSense, FakeDualSense, PadState, Trig, build_output_report
 from xbox import XboxVirtual, to_xusb  # noqa: E402
 from cerebro import (Cerebro, load_config, save_config, template, extract_json,  # noqa: E402
                      png_encode)
-from fontes import FonteDSX, FonteArquivo, evento_iw7, perfil_iw7  # noqa: E402
+from fontes import FonteDSX, FonteArquivo, FonteEstado, evento_iw7, perfil_iw7  # noqa: E402
 import armas_iw7  # noqa: E402
+import armas_jogos  # noqa: E402
 from efeitos import (Terreno, Pulsos, Chuva, coracao, padrao_dano, padrao_coice,  # noqa: E402
                      spec_to_trig)
 
@@ -187,8 +188,21 @@ class Engine:
         # dados exatos vindos de mods
         self.game_dir = None
         self.fonte_dsx = FonteDSX(int(self.cfg.get("porta_mods", 6969)))
-        self.fontes_arq = [FonteArquivo("Call of Duty: Infinite Warfare", ["iw7-mod.exe", "iw7_ship.exe"],
-                                        os.path.join("dualsense", "eventos.txt"))]
+        J = armas_jogos.JOGOS
+        self.fontes_arq = [
+            FonteArquivo("Call of Duty: Infinite Warfare", ["iw7-mod.exe", "iw7_ship.exe"],
+                         os.path.join("dualsense", "eventos.txt")),
+            # Titanfall 2 + Northstar: o mod regrava R2Northstar/saves/DualSenseAuto/estado.txt
+            FonteEstado(J["titanfall2"]["nome"], J["titanfall2"]["exes"],
+                        os.path.join("R2Northstar", "saves", "DualSenseAuto", "estado.txt"), tabela="titanfall2"),
+            # Doom clássico no GZDoom: o mod escreve no log (+logfile dualsense_eventos.txt)
+            FonteArquivo(J["doom_gzdoom"]["nome"], J["doom_gzdoom"]["exes"], "dualsense_eventos.txt",
+                         filtro="DSA|", tabela="doom_gzdoom"),
+            # BO2 no Plutonium: o script grava em %LOCALAPPDATA%/Plutonium/storage/t6/dualsense
+            FonteArquivo(J["bo2"]["nome"], J["bo2"]["exes"],
+                         os.path.join("$LOCALAPPDATA", "Plutonium", "storage", "t6", "dualsense", "eventos.txt"), tabela="bo2"),
+        ]
+        self.semeados = set()
         self.ext = {}
         self.ext_fonte = None
         self.morte_t = 0.0
@@ -233,7 +247,21 @@ class Engine:
         if ev == "inicio":
             self.ext = {"t": now}
         elif ev == "arma" and len(a) >= 4:
-            nome = None if a[0] in ("none", "") else a[0]
+            nome = None if a[0].lower() in ("none", "", "nenhuma") else a[0]
+            tabela = getattr(self.ext_fonte, "tabela", None)
+            if tabela:
+                # Titanfall 2, Doom (GZDoom), BO2: tabela de armas de cada jogo
+                jogo = self.ext_fonte.jogo
+                if not nome:
+                    e.update(arma=None, tipo="nenhuma", rpm=0, automatica=False, classe=a[1], municao=-1)
+                    return
+                p = armas_jogos.perfil(tabela, a[0], a[1], a[2], a[3])
+                chave = p["nome"] if armas_jogos.identificar(tabela, a[0]) else a[0]
+                salvo = self.cerebro.armas.get(self.cerebro.chave(jogo, chave))
+                if armas_jogos.precisa_refazer(salvo):
+                    self.cerebro.salvar_arma(jogo, chave, p)
+                e.update(arma=chave, tipo=p["tipo"], rpm=p["cadencia_rpm"], automatica=p["automatica"], classe=a[1], municao=-1)
+                return
             tipo, rpm, auto = perfil_iw7(a[0], a[1], a[2], a[3])
             e.update(arma=nome, tipo=tipo if nome else "nenhuma", rpm=rpm, automatica=auto, classe=a[1], municao=-1)
             if nome:   # cada arma com a sua configuração, salva no banco de armas
@@ -308,6 +336,13 @@ class Engine:
         if exe != self.game_exe or title != self.game_title:
             self.game_exe, self.game_title = exe, title
             self.perfil_auto, self.motivo = classify(exe, title, self.profiles)
+        jid = armas_jogos.jogo_por_exe(exe)
+        if jid and jid not in self.semeados:      # todas as armas do jogo aparecem na aba Armas
+            self.semeados.add(jid)
+            try:
+                armas_jogos.semear(self.cerebro, jid)
+            except Exception:
+                pass
 
     def precisa_xbox(self, now):
         """O controle de Xbox virtual só existe enquanto um jogo está na frente.
@@ -779,9 +814,115 @@ def self_test():
     assert not _painel.salvar_arma_painel(eng, "nada|nada", {})
     print("CoD IW: cada arma com a sua configuração (KBAR-32, R-VN, KBS, editada, pente vazio): ok")
     print("mod do CoD Infinite Warfare (arma, cadência, dano nas costas): ok")
+    teste_mods_novos(eng, t)
     teste_mods()
     teste_leitor()
     print("AUTO-TESTE OK")
+
+
+def teste_mods_novos(eng, t):
+    """Titanfall 2 (Northstar), Doom (GZDoom) e BO2 (Plutonium): o mod de cada um até o gatilho."""
+    import tempfile as _tempfile
+    J = armas_jogos.JOGOS
+
+    # --- Titanfall 2: arquivo de estado regravado pelo Northstar
+    pasta = _tempfile.mkdtemp()
+    dest = os.path.join(pasta, "R2Northstar", "saves", "DualSenseAuto")
+    os.makedirs(dest)
+    arq = os.path.join(dest, "estado.txt")
+
+    def grava(txt):
+        with open(arq, "w") as f:
+            f.write(txt)
+        st = os.stat(arq)
+        os.utime(arq, ns=(st.st_atime_ns, st.st_mtime_ns + 1_000_000))
+
+    eng.game_exe, eng.game_dir = "Titanfall2.exe", pasta
+    grava("1|mp_weapon_rspn101|24|0|0|0|100|100|0|0|1")
+    eng.ler_fontes_arquivo(t + 100)
+    jtf = J["titanfall2"]["nome"]
+    assert eng.ext.get("arma") == "R-201" and eng.ext.get("rpm") == 810 and eng.ext.get("automatica"), eng.ext
+    assert eng.cerebro.armas[eng.cerebro.chave(jtf, "R-201")]["tabela"] == "titanfall2"
+    eng.last_shot = 0
+    grava("2|mp_weapon_rspn101|21|3|0|0|100|100|1|0|1")
+    eng.ler_fontes_arquivo(t + 100.1)
+    assert eng.last_shot == t + 100.1 and eng.ext.get("ads") and eng.ext.get("municao") == 21
+    grava("3|mp_titanweapon_predator_cannon|100|3|1|40|60|100|0|1|1")
+    eng.ler_fontes_arquivo(t + 101)
+    pc = eng.cerebro.armas[eng.cerebro.chave(jtf, "Legion: Predator Cannon")]
+    assert eng.ext.get("arma") == "Legion: Predator Cannon" and pc["giro"] and pc["r2"]["efeito"] == "rampa", pc
+    assert eng.last_hit == t + 101 and abs(eng.ext.get("vida") - 60) < 1
+    grava("4|mp_titanweapon_predator_cannon|100|3|1|40|0|100|0|1|0")
+    eng.ler_fontes_arquivo(t + 102)
+    assert eng.morte_t == t + 102
+    grava("4|meio")                                       # gravação pela metade: ignora sem erro
+    assert eng.fontes_arq[1].ler(pasta) == []
+    print("mod do Titanfall 2 (Northstar): arma de piloto e de titã, tiros, mira, dano e morte: ok")
+
+    # --- Doom no GZDoom: linhas DSA| no meio do log do jogo
+    pasta = _tempfile.mkdtemp()
+    log = os.path.join(pasta, "dualsense_eventos.txt")
+    open(log, "w").write("GZDoom g4.12 - abrindo\n")
+    eng.game_exe, eng.game_dir = "gzdoom.exe", pasta
+    eng.ler_fontes_arquivo(t + 110)
+    with open(log, "a") as f:
+        f.write("W_Init: Init WADfiles.\nDSA|inicio\nDSA|arma|SuperShotgun|?|0|20\nDSA|municao|20\nPlayer 1 entered\n")
+    eng.ler_fontes_arquivo(t + 110.1)
+    jd = J["doom_gzdoom"]["nome"]
+    assert eng.ext_fonte.jogo == jd and eng.ext.get("arma") == "Super Shotgun", eng.ext
+    ss = eng.cerebro.armas[eng.cerebro.chave(jd, "Super Shotgun")]
+    assert not ss["automatica"] and ss["r2"]["efeito"] == "arma" and ss["vibra_gatilho"] >= 7
+    eng.last_shot = 0
+    with open(log, "a") as f:
+        f.write("DSA|tiro\nDSA|municao|18\nDSA|dano|30|esquerda|70|100\n")
+    eng.ler_fontes_arquivo(t + 111)
+    assert eng.last_shot == t + 111 and eng.ultimo_dano[0] == "esquerda"
+    with open(log, "a") as f:
+        f.write("DSA|arma|BrutalPlasmaRifle|?|0|200\n")
+    eng.ler_fontes_arquivo(t + 112)
+    assert eng.ext.get("arma") == "Plasma Rifle" and eng.ext.get("automatica")
+    print("mod do Doom (GZDoom): log do jogo, arma de mod, tiros e dano pela esquerda: ok")
+
+    # --- BO2 no Plutonium: arquivo em %LOCALAPPDATA%
+    local = _tempfile.mkdtemp()
+    antes = os.environ.get("LOCALAPPDATA")
+    os.environ["LOCALAPPDATA"] = local
+    try:
+        pasta_ev = os.path.join(local, "Plutonium", "storage", "t6", "dualsense")
+        os.makedirs(pasta_ev)
+        ev = os.path.join(pasta_ev, "eventos.txt")
+        open(ev, "w").write("1|inicio\n")
+        eng.game_exe, eng.game_dir = "plutonium-bootstrapper-win32.exe", None
+        eng.ler_fontes_arquivo(t + 120)
+        with open(ev, "a") as f:
+            f.write("50|arma|raygun_mark2_upgraded_zm|?|0|0\n60|municao|0\n")
+        eng.ler_fontes_arquivo(t + 120.1)
+        jb = J["bo2"]["nome"]
+        assert eng.ext.get("arma") == "Ray Gun Mark II" and eng.ext.get("municao") == 0, eng.ext
+        rg = eng.cerebro.armas[eng.cerebro.chave(jb, "Ray Gun Mark II")]
+        assert rg["energia"] and rg["rajada"] == 3
+        _, _, _, right, _ = eng.compute(t + 120.2, 0, 0)
+        assert right[0] == 0x21, right                    # pente vazio: gatilho solto
+        # o que você editou na aba Armas não é desfeito quando a arma aparece de novo
+        ed = dict(rg, editado=True, cadencia_rpm=123)
+        eng.cerebro.salvar_arma(jb, "Ray Gun Mark II", ed)
+        with open(ev, "a") as f:
+            f.write("70|arma|knife_zm|?|0|0\n80|arma|raygun_mark2_zm|?|0|0\n")
+        eng.ler_fontes_arquivo(t + 121)
+        assert eng.cerebro.armas[eng.cerebro.chave(jb, "Ray Gun Mark II")]["cadencia_rpm"] == 123
+    finally:
+        if antes is None:
+            os.environ.pop("LOCALAPPDATA", None)
+        else:
+            os.environ["LOCALAPPDATA"] = antes
+    # todas as armas do jogo já aparecem na aba Armas ao abrir o jogo
+    n = armas_jogos.semear(eng.cerebro, "bo2")
+    assert n == len(J["bo2"]["armas"]) - 2, n           # Ray Gun Mark II (editada) e Knife já estavam
+    assert eng.cerebro.armas[eng.cerebro.chave(jb, "Ray Gun Mark II")]["cadencia_rpm"] == 123
+    import painel as _painel
+    ch = eng.cerebro.chave(jb, "DSR 50")
+    assert _painel.restaurar_arma(eng, ch) and eng.cerebro.armas[ch]["ferrolho"]
+    print("mod do BO2 (Plutonium): zumbis, arma melhorada, pente vazio, edição e lista completa: ok")
 
 
 def teste_mods():
@@ -918,6 +1059,36 @@ def teste_mods():
     esperar(["iw7_dualsense"])
     assert os.path.exists(os.path.join(iw, "iw7-mod", "custom_scripts", "dualsense_auto.gsc"))
     assert "iw7-mod.exe" in g.tarefas["iw7_dualsense"]["estado"]
+    # mods nossos de Titanfall 2, GZDoom e BO2 (este vai para a pasta do Plutonium)
+    tf = os.path.join(raiz, "Titanfall2")
+    gz = os.path.join(raiz, "gzdoom")
+    os.makedirs(tf)
+    os.makedirs(gz)
+    open(os.path.join(gz, "gzdoom.exe"), "w").close()
+    cfg["pastas_jogos"]["titanfall2"] = tf
+    cfg["pastas_jogos"]["gzdoom"] = gz
+    antes_la = os.environ.get("LOCALAPPDATA")
+    os.environ["LOCALAPPDATA"] = os.path.join(raiz, "AppDataLocal")
+    os.makedirs(os.path.join(raiz, "AppDataLocal", "Plutonium", "storage"))
+    try:
+        for cid in ("tf2_dualsense", "gzdoom_dualsense", "bo2_dualsense"):
+            g.instalar(cid)
+            esperar([cid])
+        assert os.path.exists(os.path.join(tf, "R2Northstar", "mods", "DualSenseAuto", "mod", "scripts", "vscripts", "dualsense_auto.nut"))
+        assert "Northstar" in g.tarefas["tf2_dualsense"]["estado"]          # falta o Northstar: avisa
+        assert os.path.exists(os.path.join(gz, "dualsense_auto", "zscript.zs")) and os.path.exists(os.path.join(gz, "Doom com DualSense.bat"))
+        assert g.tarefas["gzdoom_dualsense"]["estado"] == "Instalado"
+        t6 = os.path.join(raiz, "AppDataLocal", "Plutonium", "storage", "t6")
+        assert os.path.exists(os.path.join(t6, "scripts", "zm", "dualsense_auto.gsc"))
+        assert "t6-gsc-utils" in g.tarefas["bo2_dualsense"]["estado"]
+        assert not any(j["precisa_pasta"] for j in g.estado()["jogos"] if j["dominio"] == "bo2")
+        g.remover("gzdoom_dualsense")
+        assert not os.path.exists(os.path.join(gz, "dualsense_auto")) and os.path.exists(os.path.join(gz, "gzdoom.exe"))
+    finally:
+        if antes_la is None:
+            os.environ.pop("LOCALAPPDATA", None)
+        else:
+            os.environ["LOCALAPPDATA"] = antes_la
     # 6) zip malicioso é recusado
     ruim = os.path.join(raiz, "ruim.zip")
     with zipfile.ZipFile(ruim, "w") as z:

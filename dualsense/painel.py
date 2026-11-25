@@ -150,7 +150,7 @@ def lista_armas(eng):
         jogo, _, arma = k.partition("|")
         out.append({"chave": k, "jogo": p.get("jogo") or jogo, "arma": arma, "nome": p.get("nome") or arma,
                     "tipo": p.get("tipo", "fuzil"), "resumo": p.get("resumo", ""), "fonte": p.get("fonte", ""),
-                    "editado": bool(p.get("editado")), "automatico": bool(p.get("dados_jogo")),
+                    "editado": bool(p.get("editado")), "automatico": bool(p.get("dados_jogo") or p.get("tabela")),
                     "perfil": {c: p.get(c) for c in ("tipo", "r2", "l2", "automatica", "cadencia_rpm",
                                                      "vibra_gatilho", "coice")}})
     out.sort(key=lambda a: (a["jogo"], a["nome"].lower()))
@@ -171,13 +171,17 @@ def salvar_arma_painel(eng, chave, novo):
 def restaurar_arma(eng, chave):
     """Volta a arma para a configuração automática (dados do jogo) ou tira do banco."""
     import armas_iw7
+    import armas_jogos
     from cerebro import save_json, ARMAS_FILE
     with eng.cerebro.lock:
         antigo = eng.cerebro.armas.get(chave)
         if not isinstance(antigo, dict):
             return False
         dados = antigo.get("dados_jogo")
-        if isinstance(dados, list) and len(dados) == 4:
+        if antigo.get("tabela") in armas_jogos.JOGOS:
+            novo = armas_jogos.perfil(antigo["tabela"], antigo.get("nome_jogo") or antigo.get("nome") or "")
+            eng.cerebro.armas[chave] = novo
+        elif isinstance(dados, list) and len(dados) == 4:
             novo = armas_iw7.perfil(*dados)
             if antigo.get("jogo"):
                 novo["jogo"] = antigo["jogo"]

@@ -192,14 +192,28 @@ CLASSE_IW7 = {"rifle": "fuzil", "smg": "smg", "mg": "metralhadora", "spread": "e
 
 
 class FonteArquivo:
-    def __init__(self, jogo, exes, relativo):
+    """Arquivo de eventos que um mod vai escrevendo (uma linha por evento).
+
+    relativo: caminho dentro da pasta do jogo, ou absoluto (ex.: pasta do Plutonium).
+    filtro:   só as linhas com este marcador valem (ex.: "DSA|" no log do GZDoom, que
+              também tem as mensagens do próprio jogo).
+    tabela:   id do jogo em armas_jogos (None = CoD IW, que tem a tabela própria)."""
+    def __init__(self, jogo, exes, relativo, filtro=None, tabela=None):
         self.jogo = jogo
         self.exes = {e.lower() for e in exes}
         self.relativo = relativo
+        self.filtro = filtro
+        self.tabela = tabela
         self.caminho = None
         self.pos = 0
         self.t_ultimo = 0.0
         self.status = ""
+
+    def _caminho(self, pasta_jogo):
+        rel = os.path.expandvars(self.relativo)
+        if os.path.isabs(rel):
+            return rel
+        return os.path.join(pasta_jogo, rel) if pasta_jogo else None
 
     def serve(self, exe):
         return (exe or "").lower() in self.exes
@@ -209,9 +223,9 @@ class FonteArquivo:
 
     def ler(self, pasta_jogo):
         """Devolve as linhas novas do arquivo de eventos."""
-        if not pasta_jogo:
+        caminho = self._caminho(pasta_jogo)
+        if not caminho:
             return []
-        caminho = os.path.join(pasta_jogo, self.relativo)
         if caminho != self.caminho:
             self.caminho = caminho
             try:
@@ -237,15 +251,95 @@ class FonteArquivo:
         if fim < 0:
             return []
         self.pos += fim + 1
+        linhas = [ln.strip() for ln in bruto[:fim].decode("utf-8", "replace").split("\n") if ln.strip()]
+        if self.filtro:
+            linhas = [ln[ln.index(self.filtro) + len(self.filtro):] for ln in linhas if self.filtro in ln]
+        if linhas:
+            self.t_ultimo = time.time()
+            self.status = f"{self.jogo}: recebendo dados do mod"
+        return linhas
+
+
+class FonteEstado:
+    """Mod que regrava um arquivo com o estado atual (Titanfall 2 / Northstar: o NSSaveFile
+    substitui o arquivo inteiro). Linha: seq|arma|pente|tiros|danos|ultimo_dano|vida|vida_max|ads|titã|vivo
+    Os contadores viram os mesmos eventos dos outros mods (arma, tiro, dano, estado, munição, morte)."""
+    CAMPOS = 11
+
+    def __init__(self, jogo, exes, relativo, tabela=None):
+        self.jogo = jogo
+        self.exes = {e.lower() for e in exes}
+        self.relativo = relativo
+        self.tabela = tabela
+        self.filtro = None
+        self.antes = None
+        self.marca = None
+        self.t_ultimo = 0.0
+        self.status = ""
+
+    serve = FonteArquivo.serve
+    ativo = FonteArquivo.ativo
+    _caminho = FonteArquivo._caminho
+
+    def ler(self, pasta_jogo):
+        caminho = self._caminho(pasta_jogo)
+        if not caminho:
+            return []
+        try:
+            st = os.stat(caminho)
+        except OSError:
+            self.status = f"{self.jogo}: aguardando o mod ({self.relativo})"
+            return []
+        marca = (st.st_mtime_ns, st.st_size)
+        if marca == self.marca:
+            return []
+        try:
+            with open(caminho, "r", encoding="utf-8", errors="replace") as f:
+                texto = f.read().strip()
+        except OSError:
+            return []
+        partes = texto.split("|")
+        if len(partes) < self.CAMPOS:
+            return []                           # gravação pela metade: lê na próxima
+        self.marca = marca
+        try:
+            seq, arma = int(partes[0]), partes[1]
+            pente, tiros, danos, ult, vida, vmax, ads, titan, vivo = (int(float(x)) for x in partes[2:11])
+        except ValueError:
+            return []
+        a = self.antes
+        self.antes = {"seq": seq, "arma": arma, "pente": pente, "tiros": tiros, "danos": danos, "vida": vida, "vivo": vivo, "ads": ads}
         self.t_ultimo = time.time()
         self.status = f"{self.jogo}: recebendo dados do mod"
-        return [ln.strip() for ln in bruto[:fim].decode("utf-8", "replace").split("\n") if ln.strip()]
+        out = []
+        if a is None or seq < a["seq"]:          # primeira leitura ou jogo reiniciado: só o estado
+            out.append(f"arma|{arma}|?|0|{max(0, pente)}")
+            out.append(f"municao|{pente}")
+            out.append(f"estado|{ads}|{int(100 * vida / max(1, vmax))}")
+            return out
+        if arma != a["arma"]:
+            out.append(f"arma|{arma}|?|0|{max(0, pente)}")
+        elif tiros > a["tiros"]:
+            out += ["tiro"] * min(6, tiros - a["tiros"])
+        if pente != a["pente"]:
+            if arma == a["arma"] and pente > a["pente"] + 1:
+                out.append("recarga")
+            out.append(f"municao|{pente}")
+        if danos > a["danos"]:
+            out.append(f"dano|{ult}|frente|{vida}|{vmax}")
+        if ads != a["ads"] or vida != a["vida"]:
+            out.append(f"estado|{ads}|{int(100 * vida / max(1, vmax))}")
+        if a["vivo"] and not vivo:
+            out.append("morte")
+        return out
 
 
 def evento_iw7(linha):
     """'1234|tiro' -> ('tiro', []) ; '1234|arma|iw7_ar57_mp|rifle|0.08|30' -> ('arma', [...])."""
     partes = linha.split("|")
     if len(partes) >= 2 and partes[0].lstrip("-").isdigit():
+        partes = partes[1:]
+    if len(partes) >= 2 and partes[0] == "DSA":
         partes = partes[1:]
     return partes[0], partes[1:]
 

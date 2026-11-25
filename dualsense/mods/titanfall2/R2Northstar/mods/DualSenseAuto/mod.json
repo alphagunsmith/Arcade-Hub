@@ -1,0 +1,16 @@
+{
+	"Name": "DualSenseAuto",
+	"Description": "Ponte do DualSense Auto (Arcade Hub): informa ao app a arma na mão, cada disparo, o pente, o dano e a vida, para cada arma ter os seus gatilhos adaptáveis. Só roda no seu PC (cliente); não muda nada no jogo.",
+	"Version": "1.0.0",
+	"LoadPriority": 2,
+	"RequiredOnClient": false,
+	"Scripts": [
+		{
+			"Path": "dualsense_auto.nut",
+			"RunOn": "CLIENT",
+			"ClientCallback": {
+				"After": "DSA_Iniciar"
+			}
+		}
+	]
+}

@@ -1,0 +1,5 @@
+// DualSense Auto: liga o "ouvinte" que conta ao app a arma, os tiros e o dano
+GameInfo
+{
+	AddEventHandlers = "DSA_Eventos"
+}

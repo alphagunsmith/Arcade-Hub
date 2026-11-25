@@ -43,6 +43,40 @@ Como cada arma se comporta: o app usa a classe e a cadência que o jogo informa.
 
 ---
 
+## Titanfall 2 — mod nosso (via Northstar)
+
+O mod lê do próprio jogo a **arma na mão** (de piloto e de titã), **cada disparo** (bala a menos no pente), o **pente**, o **dano**, a **vida**, a **mira** e se você está no titã. Cada arma tem a sua configuração: o Kraber tem ponto de disparo fundo, a Devotion e o Predator Cannon têm o cano girando, o Charge Rifle e o Railgun da Northstar carregam o disparo…
+
+Instalação:
+1. Instale o **Northstar** (northstar.tf) na pasta do Titanfall 2.
+2. No painel, aba **Baixar mods** › Titanfall 2 › **Ponte DualSense Auto (nosso)** › Instalar. Ele vai para `R2Northstar/mods/DualSenseAuto`.
+3. Abra o jogo pelo **NorthstarLauncher.exe**. O mod roda só no seu PC: dá para entrar em qualquer servidor.
+
+---
+
+## Doom clássico — mod nosso (via GZDoom)
+
+Vale para Doom, Doom II, Final Doom, SIGIL, Doom 64 para GZDoom e a maioria dos WADs e mods de armas. O mod informa a **arma na mão**, **cada disparo**, a **munição**, o **dano com a direção** (frente, trás, esquerda, direita) e a **vida**. Nada aparece na tela: as linhas vão só para o arquivo de log.
+
+Instalação:
+1. No painel, aba **Baixar mods** › Doom (GZDoom) › **Informar pasta** (a pasta do gzdoom.exe) › Instalar.
+2. Abra pelo **Doom com DualSense.bat**, que fica na pasta do GZDoom. Para escolher o jogo, crie um atalho para o .bat e acrescente no fim, por exemplo, `-iwad doom2.wad` ou `-file meumod.pk3`.
+
+As versões oficiais da Bethesda (Doom + Doom II e Doom 64 do Steam) não aceitam esse tipo de mod.
+
+---
+
+## Call of Duty: Black Ops II — mod nosso (via Plutonium)
+
+Multiplayer e zumbis, inclusive as armas melhoradas no Pack-a-Punch. O script informa a **arma na mão**, **cada disparo**, **recarga**, **granada**, o **pente**, o **dano com a direção** e a **vida**.
+
+Instalação:
+1. Instale o **Plutonium** e o plugin **t6-gsc-utils** (página do t6-gsc-utils no GitHub): o arquivo `t6-gsc-utils.dll` vai em `%LOCALAPPDATA%\Plutonium\plugins`. Ele dá ao script as funções de arquivo.
+2. No painel, aba **Baixar mods** › Black Ops II › **Ponte DualSense Auto (nosso)** › Instalar. O script vai para `Plutonium\storage\t6\scripts\mp` e `\zm`.
+3. Funciona onde os scripts do seu PC rodam: zumbis solo, partidas privadas e partidas que você hospeda.
+
+---
+
 ## Dying Light: The Beast — próximo passo
 
 O jogo já tem **suporte nativo** a gatilhos e hápticos do DualSense no PC (com cabo, Steam Input desligado), mas os jogadores acham a implementação fraca. Para usar o nativo, desligue "Emular controle de Xbox" no app.
