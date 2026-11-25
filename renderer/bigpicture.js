@@ -37,6 +37,12 @@ const ModoTV = (() => {
   let jogoDaPagina = null;
   let listaBib = [];
   let fundoAtivo = 0;
+  // skins exclusivas do Modo TV: roda de logos à direita, trailer e personagem 3D à esquerda
+  let listaRoda = [];
+  let focoRoda = 0;
+  let timerTrailer = 0;
+  let trailerDe = null;
+  const logoOk = new Map();          // id do jogo -> URL da logo que carregou ('' = só o nome)
   let timerRelogio = null;
   let rafPad = 0;
   const pad = { botoes: {}, ultimoMov: 0, repetindo: false };
@@ -90,6 +96,18 @@ const ModoTV = (() => {
             <p class="tv-dest-desc"></p>
           </div>
           <div class="tv-fileiras"><div class="tv-fileiras-pista"></div></div>
+          <div class="tv-roda" hidden>
+            <div class="tv-roda-esq">
+              <div class="tv-roda-origem"></div>
+              <div class="tv-roda-meta"></div>
+              <div class="tv-roda-palco">
+                <div class="tv-roda-trailer"><div class="tv-roda-trailer-sem"></div></div>
+                <div class="tv-roda-3d"></div>
+              </div>
+              <p class="tv-roda-desc"></p>
+            </div>
+            <div class="tv-roda-circulo"><div class="tv-roda-anel"></div><div class="tv-roda-itens"></div></div>
+          </div>
         </section>
         <section class="tv-secao tv-biblioteca" data-secao="biblioteca" hidden>
           <div class="tv-bib-topo"><h2>Biblioteca</h2><span class="tv-bib-conta"></span></div>
@@ -180,7 +198,240 @@ const ModoTV = (() => {
     return r;
   }
 
+  const TV_SKINS = [['padrao', 'Padrão (fileiras)'], ['roda-vidro', 'Roda de vidro'], ['roda-neon', 'Roda neon'], ['roda-retro', 'Roda retrô']];
+  function tvSkin() { const v = (ui.state.settings || {}).tvSkin; return TV_SKINS.some(x => x[0] === v) ? v : 'padrao'; }
+  function modoRoda() { return tvSkin() !== 'padrao'; }
+  function aplicarTvSkin() {
+    if (!raiz) return;
+    raiz.dataset.tvSkin = tvSkin();
+    raiz.classList.toggle('tv-modo-roda', modoRoda());
+  }
+
+  /* ---------------- roda (skins exclusivas do Modo TV) ---------------- */
+  function montarListaRoda() {
+    const todos = visiveis();
+    const jogados = todos.filter(g => g.playedAt).sort((a, b) => b.playedAt - a.playedAt);
+    const ids = new Set(jogados.map(g => g.id));
+    const resto = todos.filter(g => !ids.has(g.id)).sort((a, b) => a.title.localeCompare(b.title, LOCALE()));
+    return [...jogados, ...resto];
+  }
+  function appIdSteam(g) { return g.steamAppId || (g.launch && g.launch.type === 'steam' && g.launch.appId) || null; }
+  function logoDoJogo(g) {
+    const box = el('div', 'tv-roda-logo');
+    const nome = () => { box.innerHTML = ''; box.classList.add('so-nome'); box.appendChild(el('span', 'tv-roda-nome', g.title)); };
+    const salvo = logoOk.get(g.id);
+    if (salvo === '') { nome(); return box; }
+    const urls = salvo ? [salvo] : [];
+    if (!salvo) {
+      if (g.logo) urls.push(g.logo);
+      const id = appIdSteam(g);
+      if (id && /^\d+$/.test(String(id))) {
+        urls.push(`https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/logo.png`,
+          `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${id}/logo.png`);
+      }
+    }
+    // enquanto a logo carrega (ou se não houver logo), aparece o nome estilizado
+    nome();
+    let i = 0;
+    const tenta = () => {
+      if (i >= urls.length) { logoOk.set(g.id, ''); return; }
+      const img = el('img');
+      img.alt = g.title;
+      img.decoding = 'async';
+      const url = urls[i++];
+      let desistiu = false;
+      const tempo = setTimeout(() => { desistiu = true; img.remove(); tenta(); }, 6000);
+      img.onload = () => {
+        clearTimeout(tempo);
+        if (desistiu || !img.naturalWidth) return;
+        logoOk.set(g.id, url);
+        box.innerHTML = '';
+        box.classList.remove('so-nome');
+        box.appendChild(img);
+      };
+      img.onerror = () => { clearTimeout(tempo); if (!desistiu) tenta(); };
+      img.src = url;
+    };
+    tenta();
+    return box;
+  }
+  const itensRoda = new Map();       // id -> elemento (reaproveitado: a roda gira com transição)
+  function posicionarRoda() {
+    const circ = $t('.tv-roda-circulo');
+    const caixa = $t('.tv-roda-itens');
+    if (!circ || !caixa) return;
+    const W = circ.clientWidth, H = circ.clientHeight;
+    const desloc = caixa.offsetTop;                 // a caixa dos itens passa um pouco do corpo (para o degradê)
+    const R = H * .78;                              // raio do semicírculo
+    const cx = W + R * .06, cy = H / 2;             // centro quase na borda: o semicírculo ocupa a direita
+    const anel = $t('.tv-roda-anel');
+    anel.style.width = anel.style.height = (R * 2) + 'px';
+    anel.style.left = (cx - R) + 'px';
+    anel.style.top = (cy - R) + 'px';
+    const n = listaRoda.length;
+    const vistos = new Set();
+    const PASSO = 12.5;                               // graus entre um jogo e o próximo
+    for (let k = -6; k <= 6; k++) {
+      const idx = focoRoda + k;
+      if (idx < 0 || idx >= n) continue;
+      const g = listaRoda[idx];
+      vistos.add(g.id);
+      let item = itensRoda.get(g.id);
+      if (!item) {
+        item = el('button', 'tv-roda-item');
+        item.type = 'button';
+        item.appendChild(logoDoJogo(g));
+        item.onclick = () => { const j = listaRoda.findIndex(x => x.id === g.id); if (j === focoRoda) abrirPagina(g); else { focoRoda = j; atualizarRoda(); } };
+        item.style.transition = 'none';
+        caixa.appendChild(item);
+        itensRoda.set(g.id, item);
+        requestAnimationFrame(() => { item.style.transition = ''; });
+      }
+      const ang = (k * PASSO) * Math.PI / 180;
+      const x = cx - Math.cos(ang) * R, y = cy + Math.sin(ang) * R - desloc;
+      const foco = k === 0;
+      const esc = foco ? 1.18 : Math.max(.42, .74 - Math.abs(k) * .06);
+      item.classList.toggle('foco', foco);
+      item.style.opacity = foco ? 1 : Math.max(.12, .7 - Math.abs(k) * .11);
+      item.style.zIndex = 20 - Math.abs(k);
+      // o logo fica dentro do semicírculo, encostado na borda dele
+      item.style.transform = `translate(${x}px, ${y}px) translate(0, -50%) translateX(${foco ? 2.6 : 2}vw) scale(${esc})`;
+    }
+    for (const [id, item] of itensRoda) if (!vistos.has(id)) { item.remove(); itensRoda.delete(id); }
+  }
+  function renderRoda() {
+    listaRoda = montarListaRoda();
+    const atual = trailerDe;
+    focoRoda = Math.max(0, Math.min(listaRoda.length - 1, atual ? Math.max(0, listaRoda.findIndex(g => g.id === atual)) : focoRoda));
+    itensRoda.forEach(i => i.remove());
+    itensRoda.clear();
+    atualizarRoda(true);
+  }
+  function atualizarRoda(semSom) {
+    posicionarRoda();
+    const g = listaRoda[focoRoda] || null;
+    mostrarDestaque(g);
+    const origem = g ? [(SOURCE_META[g.source] || {}).label, g.kind === 'rom' ? g.platform : null].filter(Boolean).join(' · ') : '';
+    $t('.tv-roda-origem').textContent = origem;
+    const meta = $t('.tv-roda-meta');
+    meta.innerHTML = '';
+    if (g) {
+      const item = (txt, cls) => meta.appendChild(el('span', cls || null, txt));
+      if (ui.jogando && ui.jogando.has(g.id)) item('● jogando agora', 'tv-ao-vivo');
+      if (msJogado(g)) item(`${fmtPlaytime(msJogado(g))} jogadas`);
+      if (g.playedAt) item(`jogado ${tempoRelativo(g.playedAt)}`);
+      if (favs().has(g.id)) item('★ favorito', 'tv-roda-fav');
+      if (g.installed === false) item('não instalado', 'tv-aviso');
+    } else {
+      meta.appendChild(el('span', null, 'Nenhum jogo ainda — escaneie pelo menu (Start).'));
+    }
+    $t('.tv-roda-desc').textContent = (g && g.meta && g.meta.description) || '';
+    montarPalco3d(g);
+    clearTimeout(timerTrailer);
+    // espera a roda parar de girar para buscar o trailer
+    timerTrailer = setTimeout(() => tocarTrailer(g), 420);
+    if (!semSom) somar('mover');
+  }
+
+  /** Personagem do jogo flutuando em 3D, ou a caixa do jogo girando. */
+  function montarPalco3d(g) {
+    const box = $t('.tv-roda-3d');
+    if (box.dataset.id === (g ? g.id + (g.personagem || '') : '')) return;
+    box.dataset.id = g ? g.id + (g.personagem || '') : '';
+    box.innerHTML = '';
+    if (!g) return;
+    if (g.personagem) {
+      const p = el('div', 'tv-personagem');
+      const img = el('img');
+      img.src = g.personagem;
+      img.alt = '';
+      const reflexo = el('img', 'tv-personagem-reflexo');
+      reflexo.src = g.personagem;
+      reflexo.alt = '';
+      p.append(img, reflexo);
+      box.appendChild(p);
+      return;
+    }
+    const src = arte(g);
+    const caixa = el('div', 'tv-caixa');
+    const giro = el('div', 'tv-caixa-giro');
+    const face = (cls, comArte) => {
+      const f = el('div', 'tv-caixa-f ' + cls);
+      if (comArte && src) f.style.backgroundImage = `url("${String(src).replace(/"/g, '\\"')}")`;
+      return f;
+    };
+    const frente = face('frente', true);
+    if (!src) frente.appendChild(reserva(g));
+    const lado = face('lado-e');
+    lado.appendChild(el('span', null, g.title));
+    giro.append(frente, face('tras', true), lado, face('lado-d'), face('topo'), face('base'));
+    caixa.appendChild(giro);
+    caixa.appendChild(el('div', 'tv-caixa-sombra'));
+    box.appendChild(caixa);
+  }
+
+  function pararTrailer() {
+    const box = $t('.tv-roda-trailer');
+    if (!box) return;
+    box.querySelectorAll('video').forEach(v => { try { v.pause(); } catch { /* ok */ } v.removeAttribute('src'); v.load(); });
+    box.querySelectorAll('video, iframe, .tv-roda-capa').forEach(n => n.remove());
+    box.classList.remove('tocando');
+  }
+  async function tocarTrailer(g) {
+    if (!ativo || !modoRoda() || secao !== 'inicio') return;
+    const box = $t('.tv-roda-trailer');
+    if (g && trailerDe === g.id && box.querySelector('video, iframe, .tv-roda-capa')) return;
+    pararTrailer();
+    trailerDe = g ? g.id : null;
+    if (!g) return;
+    // enquanto o vídeo não vem: a arte do jogo com um zoom lento
+    const src = arte(g);
+    if (src) {
+      const capa = el('div', 'tv-roda-capa');
+      capa.style.backgroundImage = `url("${String(src).replace(/"/g, '\\"')}")`;
+      box.appendChild(capa);
+    }
+    let info = { ok: false };
+    try {
+      const r = api.videoFor ? await api.videoFor({ id: g.id, title: g.title, steamAppId: g.steamAppId }) : null;
+      info = r && r.data ? r.data : (r || { ok: false });
+    } catch { info = { ok: false }; }
+    if (!ativo || trailerDe !== g.id || listaRoda[focoRoda] !== g) return;
+    if (!info || !info.ok) return;
+    if (info.tipo === 'youtube' && info.url) {
+      const f = el('iframe');
+      f.src = info.url;
+      f.title = info.nome || 'Vídeo do jogo';
+      f.allow = 'autoplay; encrypted-media; picture-in-picture';
+      f.referrerPolicy = 'strict-origin-when-cross-origin';
+      f.tabIndex = -1;
+      f.onload = () => setTimeout(() => { if (trailerDe === g.id) box.classList.add('tocando'); }, 700);
+      box.appendChild(f);
+      return;
+    }
+    const v = el('video');
+    Object.assign(v, { muted: true, loop: true, playsInline: true, autoplay: true, preload: 'auto' });
+    v.src = info.localUrl || info.url;
+    v.onerror = async () => {
+      if (!api.videoUrlHttp || !info.arquivo) return;
+      const r = await api.videoUrlHttp({ arquivo: info.arquivo });
+      const alt = r && r.data ? r.data : r;
+      if (alt && alt.ok && trailerDe === g.id) { v.src = alt.url; v.play().catch(() => {}); }
+    };
+    v.onplaying = () => { if (trailerDe === g.id) box.classList.add('tocando'); };
+    box.appendChild(v);
+    v.play().catch(() => { /* fica a arte */ });
+  }
+
   function renderInicio() {
+    aplicarTvSkin();
+    const roda = modoRoda();
+    $t('.tv-roda').hidden = !roda;
+    $t('.tv-destaque').hidden = roda;
+    $t('.tv-fileiras').hidden = roda;
+    if (roda) { renderRoda(); return; }
+    pararTrailer();
+    trailerDe = null;
     fileiras = montarFileiras();
     const pista = $t('.tv-fileiras-pista');
     pista.innerHTML = '';
@@ -206,12 +457,14 @@ const ModoTV = (() => {
   }
 
   function jogoEmFoco() {
+    if (secao === 'inicio' && modoRoda()) return listaRoda[focoRoda] || null;
     if (secao === 'inicio') { const f = fileiras[foco.linha]; return f && f.jogos[foco.col]; }
     if (secao === 'biblioteca') return listaBib[focoBib];
     return null;
   }
 
   function aplicarFoco(semSom) {
+    if (secao === 'inicio' && modoRoda()) { atualizarRoda(semSom); return; }
     if (secao === 'inicio') {
       const linhas = raiz.querySelectorAll('.tv-fileira');
       linhas.forEach((ln, i) => {
@@ -369,6 +622,7 @@ const ModoTV = (() => {
   /* ------------------------------------------------------------------ */
   const SECOES = ['inicio', 'biblioteca', 'conquistas', 'stats', 'emuladores', 'sistema'];
   function irPara(s, comSom) {
+    if (s !== 'inicio') { pararTrailer(); trailerDe = null; clearTimeout(timerTrailer); }
     secao = s;
     camada = null;
     raiz.querySelectorAll('.tv-abas button').forEach(b => b.classList.toggle('on', b.dataset.secao === s));
@@ -512,6 +766,7 @@ const ModoTV = (() => {
       ['dualsense', `DualSense Auto: ${dsLigado() ? 'ligado' : 'desligado'}`, dsDescricao()],
       ['sons', `Sons do menu: ${typeof Som !== 'undefined' && Som.ligado ? 'ligados' : 'desligados'}`, ''],
       ['idioma', `Idioma / Language: ${nomeIdioma()}`, ''],
+      ['tvskin', `Skin do Modo TV: ${(TV_SKINS.find(x => x[0] === tvSkin()) || TV_SKINS[0])[1]}`, 'A para trocar. As rodas mostram a logo do jogo, o trailer e o personagem em 3D'],
       ['abertura', `Animação de abertura: ${aberturaLigada() ? 'ligada' : 'desligada'}`, ''],
       ['console', `Abrir com o Windows: ${mc.iniciarComWindows ? 'ligado' : 'desligado'}`, 'O PC liga direto no Arcade Hub, como um console'],
       ['suspender', 'Suspender o PC', 'Desliga a tela e economiza energia; volta de onde parou'],
@@ -573,6 +828,14 @@ const ModoTV = (() => {
       if (typeof I18N !== 'undefined') I18N.lembrar(proximo);
       try { sessionStorage.setItem('reabrir-tv', 'sistema'); } catch { /* sem armazenamento */ }
       location.reload();
+      return;
+    }
+    if (acao === 'tvskin') {
+      const i = TV_SKINS.findIndex(x => x[0] === tvSkin());
+      const prox = TV_SKINS[(i + 1) % TV_SKINS.length][0];
+      const r = await api.saveSettings({ tvSkin: prox });
+      if (r && r.ok) { ui.state = r.data; aplicarTvSkin(); aviso(`Skin do Modo TV: ${TV_SKINS.find(x => x[0] === prox)[1]}`); somar('selecionar'); }
+      if (secao === 'sistema' && ativo) renderSistemaTV();
       return;
     }
     if (acao === 'dualsense') {
@@ -843,6 +1106,14 @@ const ModoTV = (() => {
       somar('mover');
       return;
     }
+    if (secao === 'inicio' && modoRoda()) {
+      const d = dy || dx;
+      const novo = Math.max(0, Math.min(listaRoda.length - 1, focoRoda + d));
+      if (novo === focoRoda) return;
+      focoRoda = novo;
+      atualizarRoda();
+      return;
+    }
     if (secao === 'inicio') {
       if (dy) {
         const nova = Math.max(0, Math.min(fileiras.length - 1, foco.linha + dy));
@@ -1005,6 +1276,10 @@ const ModoTV = (() => {
     document.body.classList.add('modo-tv');
     try { await api.setFullscreen(true); } catch { /* prévia */ }
     raiz.hidden = false;
+    // o Modo TV usa a skin do app: cores e o fundo animado (ou o fundo do usuário)
+    if (typeof Fundos !== 'undefined') Fundos.anexar($t('.tv-fundo'));
+    raiz.classList.toggle('com-fundo-skin', document.body.classList.contains('com-fundo-vivo'));
+    aplicarTvSkin();
     irPara('inicio', false);
     relogio();
     timerRelogio = setInterval(relogio, 15000);
@@ -1038,6 +1313,10 @@ const ModoTV = (() => {
     window.removeEventListener('gamepaddisconnected', renderDicas);
     window.removeEventListener('resize', aplicarFocoSilencioso);
     raiz.hidden = true;
+    pararTrailer();
+    trailerDe = null;
+    clearTimeout(timerTrailer);
+    if (typeof Fundos !== 'undefined') Fundos.anexar(null);
     camada = null;
     $t('.tv-pagina').hidden = true;
     $t('.tv-menu').hidden = true;
@@ -1066,6 +1345,7 @@ const ModoTV = (() => {
 
   return {
     abrir, fechar, atualizar, aviso: msg => { if (ativo) aviso(msg); },
+    TV_SKINS,
     get ativo() { return ativo; },
     alternar() { return ativo ? fechar() : abrir(); }
   };

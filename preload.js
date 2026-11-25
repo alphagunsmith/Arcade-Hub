@@ -29,6 +29,9 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
   saveSettings: patch => call('settings:save', patch),
   pickFolders: () => call('dialog:pickFolders'),
   pickFile: opts => call('dialog:pickFile', opts),
+  guardarVisual: (pasta, caminho) => ipcRenderer.invoke('visual:guardar', { pasta, caminho }),   // fundo/personagem/logo
+  exportarSkin: skin => ipcRenderer.invoke('skin:exportar', skin),
+  importarSkin: () => ipcRenderer.invoke('skin:importar'),
 
   // capas
   searchCovers: payload => call('covers:search', payload),        // { id, title }

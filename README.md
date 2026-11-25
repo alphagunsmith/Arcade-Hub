@@ -41,9 +41,12 @@ A portable `.exe` and a `.zip` are also published with each release (these don't
 ### Looks: skins and console dashboards
 - **Grid** and **carousel** layouts, plus more than 40 skins: color themes inspired by classic consoles, **console dashboards** (XMB, Xbox 360 blades, Wii/Wii U channels, Xbox One tiles, Switch row, GameCube/3DS carousels), RGH-style dashboards (Aurora, FreeStyle Dash, XeXMenu) and **LaunchBox / Big Box**-style views (box wall, vertical wheel, text list, detailed table).
 - Layout and color are independent and saved.
+- **Animated backgrounds** in the style of each console (the PS3 wave, PS2 towers, Xbox 360 orbs, the GameCube cube…), drawn live in the skin's colors — original art, no copied footage. They pause by themselves while you play.
+- **Skin creator**: build a palette from one color, take the colors from an image or let it surprise you; pick an animated background or use your own image, GIF or video; choose the font, corners, CRT effect and console layout; live preview with an automatic contrast fix. Export and import skins as `.arcadeskin` files.
 
 ### TV Mode and Console Mode
 - **TV Mode**: a full-screen, controller-first interface (Guide button or the TV icon) with home, library, achievements, stats, emulators and system sections.
+- TV Mode uses your skin's colors and background, and has **exclusive wheel skins** (glass, neon, retro): game logos on a half circle on the right, the trailer on the left and, next to it, a 3D spinning game box or a character PNG you choose for each game.
 - **Console Mode**: start Arcade Hub with Windows straight into TV Mode, with sleep / restart / shut down from the controller.
 - Works with Xbox, PlayStation and generic controllers (D-pad / stick to move, A to open, X to play, B to go back) as well as keyboard and mouse.
 
@@ -61,6 +64,7 @@ A portable `.exe` and a `.zip` are also published with each release (these don't
 Smart vibration and adaptive triggers for **any PC game**, bundled and managed by Arcade Hub (Settings › DualSense, or the ≡ menu):
 - **Virtual Xbox controller**: games see an Xbox pad, and the vibration they send is turned into DualSense haptics. Your trigger use is combined with game rumble to tell your own shots from hits you take.
 - **Optional AI vision** (your own Claude API key): reads the screen to recognize the weapon in hand, weather, terrain under the wheels, damage direction and low health, and sets up the triggers for each weapon.
+- **Per-weapon setup in CoD: Infinite Warfare**: each weapon gets its own triggers from its real data (fire rate, magazine, energy or ballistic, burst, bolt-action), and a **Weapons** tab lets you fine-tune any weapon from any game.
 - **Mod support**: works with mods made for the DSX protocol (e.g. Cyberpunk 2077), downloads and installs mods from Nexus Mods (with requirements and backups of replaced files), and installs mods you already downloaded — including FOMOD installers. It finds the game folder through Steam, Epic, GOG **and your Arcade Hub library**.
 - Starts and stops with Arcade Hub; if Arcade Hub closes unexpectedly, DualSense Auto shuts down cleanly and returns the triggers to normal.
 

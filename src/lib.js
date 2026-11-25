@@ -21,6 +21,7 @@ const { EventEmitter } = require('events');
 const fontesVideo = require('./fontes-video');
 const conquistas = require('./conquistas');
 const consoleMod = require('./console');
+const visual = require('./skins-personalizadas');
 const discord = require('./discord');
 const dualsenseMod = require('./dualsense');
 const p2p = require('./p2p');
@@ -284,6 +285,9 @@ const DEFAULT_SETTINGS = {
     aceitarPedidos: true,   // pedido para participar: aceita sozinho
     portaNetplay: 55435     // porta do jogo online do RetroArch
   },
+  skinsPersonalizadas: [],  // skins feitas no criador (cores, fundo, fonte, layout)
+  fundoAnimado: true,       // fundo animado no estilo de cada console
+  tvSkin: 'padrao',         // Modo TV: 'padrao' | 'roda-vidro' | 'roda-neon' | 'roda-retro'
   dualsense: {
     ligado: true            // DualSense Auto (vibração e gatilhos inteligentes) aberto junto com o Arcade Hub
   },
@@ -293,6 +297,8 @@ const DEFAULT_SETTINGS = {
     relay: ''               // '' = conexão direta; 'saopaulo' | 'nyc' | 'madrid' = retransmissão do RetroArch
   }
 };
+
+const TV_SKINS = ['padrao', 'roda-vidro', 'roda-neon', 'roda-retro'];
 
 /** ID do aplicativo "Arcade Hub" no Discord (público: aparece no status de todo mundo). */
 const DISCORD_APP_ID = '1574982778829672558';
@@ -2661,6 +2667,9 @@ function register(ipcMain, deps) {
         };
       }
       if (patch && 'idioma' in patch) patch = { ...patch, idiomaEscolhido: true };
+      if (patch && 'skinsPersonalizadas' in patch) patch = { ...patch, skinsPersonalizadas: visual.limparLista(patch.skinsPersonalizadas, store.dir) };
+      if (patch && 'tvSkin' in patch) patch = { ...patch, tvSkin: TV_SKINS.includes(patch.tvSkin) ? patch.tvSkin : 'padrao' };
+      if (patch && 'fundoAnimado' in patch) patch = { ...patch, fundoAnimado: patch.fundoAnimado !== false };
       if (patch && 'youtubeKey' in patch) patch = { ...patch, youtubeKey: String(patch.youtubeKey || '').trim() };
       store.saveSettings(patch || {});
       if (patch && 'idioma' in patch) {
@@ -2741,6 +2750,9 @@ function register(ipcMain, deps) {
       if (!id) throw new Error('id ausente');
       const clean = { ...(patch || {}) };
       if (clean.title) { clean.customTitle = clean.title; }
+      // Modo TV: personagem e logo do jogo (só arquivos guardados pelo app)
+      if ('personagem' in clean) clean.personagem = visual.limparImagemDoJogo(clean.personagem, store.dir, 'personagens');
+      if ('logo' in clean) clean.logo = visual.limparImagemDoJogo(clean.logo, store.dir, 'logos');
       // caminho/argumentos editados à mão não são desfeitos pela próxima varredura
       if (clean.launch) {
         clean.launch = sanitizeLaunch(clean.launch);
@@ -3406,6 +3418,42 @@ function register(ipcMain, deps) {
       } catch { /* não era do YouTube */ }
       for (const ext of ['.mp4', '.json']) { try { fs.unlinkSync(base + ext); } catch { /* não existia */ } }
       return ok(true);
+    } catch (e) { return fail(e); }
+  });
+
+  // visual: fundo da skin, personagem e logo do jogo — o arquivo é copiado para a pasta do app
+  ipcMain.handle('visual:guardar', async (_e, { pasta, caminho } = {}) => {
+    try {
+      let origem = caminho;
+      if (!origem) {
+        const filtros = pasta === 'fundos'
+          ? [{ name: 'Imagem, GIF ou vídeo', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'mp4', 'webm', 'm4v', 'mov'] }]
+          : [{ name: 'Imagens', extensions: ['png', 'webp', 'gif', 'jpg', 'jpeg'] }];
+        const r = await dialog.showOpenDialog({ properties: ['openFile'], title: pasta === 'personagens' ? 'Escolha a imagem do personagem (PNG sem fundo)' : pasta === 'logos' ? 'Escolha a logo do jogo' : 'Escolha o fundo', filters: filtros });
+        if (r.canceled || !r.filePaths[0]) return ok(null);
+        origem = r.filePaths[0];
+      }
+      return ok(visual.guardarArquivo(store.dir, pasta, origem));
+    } catch (e) { return fail(e); }
+  });
+
+  ipcMain.handle('skin:exportar', async (_e, skin) => {
+    try {
+      const pacote = visual.exportarSkin(skin, store.dir);
+      const nome = String(pacote.skin.name || 'skin').replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').slice(0, 40);
+      const r = await dialog.showSaveDialog({ title: 'Exportar skin', defaultPath: nome + '.arcadeskin', filters: [{ name: 'Skin do Arcade Hub', extensions: ['arcadeskin'] }] });
+      if (r.canceled || !r.filePath) return ok(null);
+      fs.writeFileSync(r.filePath, JSON.stringify(pacote));
+      return ok({ arquivo: r.filePath, aviso: pacote.avisoMidia || '' });
+    } catch (e) { return fail(e); }
+  });
+
+  ipcMain.handle('skin:importar', async () => {
+    try {
+      const r = await dialog.showOpenDialog({ properties: ['openFile'], title: 'Importar skin', filters: [{ name: 'Skin do Arcade Hub', extensions: ['arcadeskin', 'json'] }] });
+      if (r.canceled || !r.filePaths[0]) return ok(null);
+      if (fs.statSync(r.filePaths[0]).size > 60 * 1024 * 1024) throw new Error('Arquivo grande demais');
+      return ok(visual.importarSkin(fs.readFileSync(r.filePaths[0], 'utf8'), store.dir));
     } catch (e) { return fail(e); }
   });
 

@@ -920,14 +920,33 @@ function applySkin(id) {
   // papel de parede do tema (arte original, sem depender de rede)
   root.style.setProperty('--tema-art', skin.art ? `url("${skin.art}")` : 'none');
   document.body.dataset.dashboard = skin.dashboard || '';
+  // fundo animado no estilo do console (renderer/fundos.js) ou o fundo do usuário
+  if (typeof Fundos !== 'undefined') {
+    Fundos.aplicar({
+      tipo: skin.fundo === 'nenhum' ? null : Fundos.tipoDaSkin(skin), vars: skin.vars, midia: skin.midia,
+      velocidade: skin.fundoVelocidade, escurecer: skin.fundoEscurecer, desfoque: skin.fundoDesfoque
+    });
+  }
+  document.body.classList.toggle('skin-clara', !!(typeof Fundos !== 'undefined' && Fundos.coresDaSkin(skin.vars).claro));
+  if (skin.fonte) root.style.setProperty('--fonte-skin', skin.fonte); else root.style.removeProperty('--fonte-skin');
   // avisa quem cuida do layout (app.js) que o tema mudou
   window.dispatchEvent(new CustomEvent('tema:change', { detail: { skin } }));
   return skin;
+}
+
+/** Skins do criador (salvas nos ajustes) entram na mesma lista das skins prontas. */
+function registrarPersonalizadas(lista) {
+  for (let i = SKINS.length - 1; i >= 0; i--) if (SKINS[i].personalizada) SKINS.splice(i, 1);
+  for (const s of Array.isArray(lista) ? lista : []) {
+    if (!s || !s.id || !s.vars) continue;
+    SKINS.push({ ...s, personalizada: true, console: s.console || 'Personalizada', brand: s.brand || 'MEU', year: s.year || new Date().getFullYear() });
+  }
 }
 
 /* expõe para o app.js e para os testes */
 if (typeof window !== 'undefined') {
   window.SKINS = SKINS;
   window.applySkin = applySkin;
+  window.registrarPersonalizadas = registrarPersonalizadas;
 }
-if (typeof module !== 'undefined' && module.exports) module.exports = { SKINS, applySkin };
+if (typeof module !== 'undefined' && module.exports) module.exports = { SKINS, applySkin, registrarPersonalizadas };

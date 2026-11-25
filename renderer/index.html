@@ -287,6 +287,22 @@
           <button class="ghost-btn" id="e-art-web">Buscar na internet</button>
         </div>
       </div>
+      <div class="field" id="e-tv-campos">
+        <label>Modo TV (skins com roda): personagem e logo</label>
+        <div class="row e-tv-linha">
+          <span class="e-tv-mini" id="e-personagem-mini"></span>
+          <span class="e-tv-txt" id="e-personagem-txt">Sem personagem: aparece a caixa do jogo girando em 3D</span>
+          <button class="ghost-btn" id="e-personagem">Escolher PNG…</button>
+          <button class="ghost-btn" id="e-personagem-tirar" hidden>Tirar</button>
+        </div>
+        <div class="row e-tv-linha">
+          <span class="e-tv-mini" id="e-logo-mini"></span>
+          <span class="e-tv-txt" id="e-logo-txt">Logo automática (Steam) ou o nome estilizado</span>
+          <button class="ghost-btn" id="e-logo">Escolher logo…</button>
+          <button class="ghost-btn" id="e-logo-tirar" hidden>Tirar</button>
+        </div>
+        <p class="muted small">Use uma imagem PNG com fundo transparente: o personagem fica flutuando em 3D ao lado do trailer.</p>
+      </div>
 
       <div class="sheet-actions">
         <button class="ghost-btn" data-close>Cancelar</button>
@@ -348,9 +364,19 @@
         </button>
       </div>
 
+      <h3 class="skins-sub">Modo TV</h3>
+      <div class="tvskin-grid" id="tvskin-grid">
+        <button class="tvskin-card" data-tvskin="padrao" type="button"><span class="tvskin-mini mini-fileiras"><i></i><i></i><i></i><i></i></span><b>Padrão</b><em>fileiras de capas</em></button>
+        <button class="tvskin-card" data-tvskin="roda-vidro" type="button"><span class="tvskin-mini mini-roda vidro"><i class="t"></i><i class="c"></i><i class="r"></i></span><b>Roda de vidro</b><em>logos no semicírculo, trailer e 3D</em></button>
+        <button class="tvskin-card" data-tvskin="roda-neon" type="button"><span class="tvskin-mini mini-roda neon"><i class="t"></i><i class="c"></i><i class="r"></i></span><b>Roda neon</b><em>anel aceso nas cores da skin</em></button>
+        <button class="tvskin-card" data-tvskin="roda-retro" type="button"><span class="tvskin-mini mini-roda retro"><i class="t"></i><i class="c"></i><i class="r"></i></span><b>Roda retrô</b><em>anel grosso e letras de fliperama</em></button>
+      </div>
+      <p class="muted small">O Modo TV usa as cores e o fundo da skin escolhida abaixo. Personagem e logo de cada jogo: menu do jogo › Editar.</p>
+
       <h3 class="skins-sub">Tema</h3>
       <div class="skin-filters" id="skin-filters">
         <button data-brand="todos" class="on">Todos</button>
+        <button data-brand="minhas">Minhas skins</button>
         <button data-brand="dashboard">Dashboards de console</button>
         <button data-brand="rgh">Personalizados (RGH)</button>
         <button data-brand="LaunchBox">LaunchBox / Big Box</button>
@@ -361,6 +387,9 @@
       </div>
       <div class="skin-grid" id="skin-grid"></div>
       <div class="sheet-actions">
+        <button class="primary-btn" id="skin-criar">Criar skin</button>
+        <button class="ghost-btn" id="skin-importar">Importar skin…</button>
+        <span class="cs-espaco"></span>
         <button class="ghost-btn" id="skin-reset">Voltar ao padrão (Neon)</button>
         <button class="ghost-btn" data-close>Fechar</button>
       </div>
@@ -536,6 +565,8 @@
             <select id="opt-skin"></select>
             <button class="ghost-btn" id="btn-open-skins">Escolher skins…</button>
           </div>
+          <label class="switch"><input type="checkbox" id="opt-fundo-animado" /><span></span>Fundo animado no estilo de cada console</label>
+          <p class="muted small">Desenhado na hora, nas cores da skin. Para sozinho enquanto você joga.</p>
         </div>
 
         <div class="field">
@@ -672,6 +703,7 @@
   <script src="i18n/ja.js"></script>
   <script src="i18n/zh-CN.js"></script>
   <script src="i18n-iniciar.js"></script>
+  <script src="fundos.js"></script>
   <script src="skins.js"></script>
   <script src="rondel.js"></script>
   <script src="dashboards.js"></script>
@@ -681,5 +713,6 @@
   <script src="intro.js"></script>
   <script src="bigpicture.js"></script>
   <script src="app.js"></script>
+  <script src="criador-skin.js"></script>
 </body>
 </html>

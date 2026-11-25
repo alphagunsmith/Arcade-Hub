@@ -1,5 +1,30 @@
 # Novidades
 
+## 1.8.0
+
+- **As skins de console ganharam fundo animado, no estilo de cada console:**
+  - PS3: a onda. PS2: as torres na neblina. PSP: as ondas finas. PS4 e PS5: luz e partículas.
+  - Xbox 360: os orbes de luz. Xbox original: o núcleo verde. Xbox One e Switch: os blocos.
+  - Wii: listras e bolhas. Wii U: a grade de pontos. GameCube: o cubo girando. DS e 3DS: bolhas e brilhos.
+  - Também valem para Aurora, FSD, as skins retrô (pixels), Dreamcast, fliperama e Neon.
+  - Por que não é um GIF: o fundo é desenhado na hora, nas cores da skin, com arte original. Assim fica nítido em qualquer tela e pesa menos que um GIF.
+  - Ele para sozinho enquanto você joga. Para desligar: Ajustes › Geral.
+- **Criador de skin (Visual do launcher › Criar skin):**
+  - **Gerar a partir de uma cor:** você escolhe uma cor e o resto da paleta sai combinando, no modo escuro ou claro.
+  - **Tirar as cores de uma imagem**, ou **Surpreenda-me** para uma paleta aleatória.
+  - **Fundo:** os fundos animados dos consoles, ou uma **imagem, GIF ou vídeo** seu, com velocidade, escurecer e desfoque.
+  - **Fonte, cantos arredondados, efeito de TV antiga e a interface de console.**
+  - **Prévia ao vivo** e **Ver no app inteiro**, antes de salvar.
+  - **Aviso de texto difícil de ler**, com correção automática.
+  - **Exportar e importar (.arcadeskin)**, com o fundo junto, para trocar skins com amigos.
+- **Modo TV:**
+  - **Usa as cores e o fundo da sua skin.**
+  - **Skins exclusivas com roda: vidro, neon e retrô.**
+    - À direita, um semicírculo com a **logo de cada jogo**. A logo vem da Steam; sem logo, aparece o nome estilizado.
+    - À esquerda, o **trailer** e, ao lado, a **caixa do jogo girando em 3D**.
+    - Você pode trocar a caixa por um **personagem**: em Editar jogo, escolha um PNG sem fundo, e ele aparece flutuando em 3D. A logo também pode ser trocada por uma sua.
+    - Para escolher a skin do Modo TV: Visual do launcher › Modo TV, ou, no Modo TV, Sistema › Skin do Modo TV.
+
 ## 1.7.0
 
 - **DualSense Auto: fim das teclas apertando sozinhas.** O controle de Xbox virtual agora só existe enquanto um jogo está na frente. Fora do jogo, o Steam e outros programas transformavam esse controle em setas, Enter e cliques do mouse. A opção fica em IA e Xbox › **Só enquanto um jogo estiver na frente** (ligada por padrão).

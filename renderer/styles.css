@@ -1680,8 +1680,9 @@ button.barra:hover .barra-nome { color: var(--accent); }
 /* ================= 1.0.3 — Modo TV (Big Picture) ================= */
 .tv {
   --tv-tile: clamp(128px, 10.6vw, 230px);
+  --tv-bg: var(--bg);
   position: fixed; inset: 0; z-index: 950; overflow: hidden;
-  color: #eef6ff; background: #05080f;
+  color: #eef6ff; background: var(--tv-bg);
   font-size: clamp(14px, 1.02vw, 21px);
   user-select: none;
 }
@@ -1697,8 +1698,8 @@ body.modo-tv .toasts { bottom: 11vh; }
 .tv-fundo-img.on { opacity: 1; }
 .tv-vinheta {
   background:
-    linear-gradient(90deg, rgba(5, 8, 15, .92) 0%, rgba(5, 8, 15, .35) 55%, rgba(5, 8, 15, .6) 100%),
-    linear-gradient(180deg, rgba(5, 8, 15, .25) 0%, rgba(5, 8, 15, .1) 30%, #05080f 78%);
+    linear-gradient(90deg, color-mix(in srgb, var(--tv-bg) 92%, transparent) 0%, color-mix(in srgb, var(--tv-bg) 35%, transparent) 55%, color-mix(in srgb, var(--tv-bg) 60%, transparent) 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--tv-bg) 25%, transparent) 0%, color-mix(in srgb, var(--tv-bg) 10%, transparent) 30%, var(--tv-bg) 78%);
 }
 
 .tv-topo {
@@ -1706,8 +1707,8 @@ body.modo-tv .toasts { bottom: 11vh; }
   display: flex; align-items: center; justify-content: space-between; padding: 2.4vh 3.4vw;
 }
 .tv-marca { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: .3em; font-size: .78em; }
-.tv-marca svg { width: 2.4em; height: 2.4em; filter: drop-shadow(0 0 14px rgba(34, 211, 238, .35)); }
-.tv-marca b { color: #22d3ee; }
+.tv-marca svg { width: 2.4em; height: 2.4em; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent) 35%, transparent)); }
+.tv-marca b { color: var(--accent); }
 .tv-abas { display: flex; align-items: center; gap: .4em; }
 .tv-abas button {
   background: none; border: 0; color: rgba(255, 255, 255, .55); cursor: pointer;
@@ -1725,7 +1726,7 @@ body.modo-tv .toasts { bottom: 11vh; }
 /* início */
 .tv-inicio { display: flex; flex-direction: column; height: 100%; }
 .tv-destaque { flex: none; height: 34%; display: flex; flex-direction: column; justify-content: flex-end; gap: .55em; padding: 0 4vw; }
-.tv-dest-origem { font-size: .8em; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #22d3ee; }
+.tv-dest-origem { font-size: .8em; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); }
 .tv-dest-titulo { margin: 0; font-size: clamp(30px, 3.7vw, 70px); font-weight: 800; line-height: 1.04; letter-spacing: -.01em; text-shadow: 0 6px 30px rgba(0, 0, 0, .5); max-width: 22ch; }
 .tv-dest-meta { display: flex; flex-wrap: wrap; gap: .4em 1.4em; color: rgba(255, 255, 255, .78); font-weight: 550; }
 .tv-nota { color: #4ade80; font-weight: 800; }
@@ -1762,7 +1763,7 @@ body.modo-tv .toasts { bottom: 11vh; }
 .tv-bloco-capa img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .tv-bloco.foco .tv-bloco-capa {
   transform: scale(1.09);
-  box-shadow: 0 0 0 3px #fff, 0 0 0 7px rgba(34, 211, 238, .5), 0 22px 46px rgba(0, 0, 0, .65);
+  box-shadow: 0 0 0 3px #fff, 0 0 0 7px color-mix(in srgb, var(--accent) 50%, transparent), 0 22px 46px rgba(0, 0, 0, .65);
 }
 .tv-bloco.foco .tv-bloco-capa::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -1780,7 +1781,7 @@ body.modo-tv .toasts { bottom: 11vh; }
   width: 100%; height: 100%; display: grid; place-items: center; font-size: 2.3em; font-weight: 800; color: rgba(255, 255, 255, .9);
   background: linear-gradient(150deg, #1e3a5f, #3b2a6b);
 }
-.tv-selo { position: absolute; top: 8px; right: 8px; font-size: .72em; font-weight: 800; border-radius: 999px; padding: .25em .7em; background: rgba(5, 8, 15, .82); }
+.tv-selo { position: absolute; top: 8px; right: 8px; font-size: .72em; font-weight: 800; border-radius: 999px; padding: .25em .7em; background: color-mix(in srgb, var(--tv-bg) 82%, transparent); }
 .tv-selo-jogando { color: #4ade80; }
 .tv-selo-fav { color: #fbbf24; padding: .25em .55em; }
 .tv-vazio { color: rgba(255, 255, 255, .5); padding: 2vh 0; }
@@ -1812,13 +1813,13 @@ body.modo-tv .toasts { bottom: 11vh; }
 .tv-stats-nome { font-weight: 650; }
 .tv-stats-horas { color: rgba(255, 255, 255, .6); font-variant-numeric: tabular-nums; }
 .tv-stats-barra { grid-column: 1 / -1; height: 8px; border-radius: 999px; background: rgba(255, 255, 255, .08); overflow: hidden; }
-.tv-stats-barra i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #22d3ee, #a855f7, #e879f9); }
+.tv-stats-barra i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), #a855f7, #e879f9); }
 
 /* dicas de botões */
 .tv-dicas {
   position: absolute; left: 0; right: 0; bottom: 0; height: 8.5vh; z-index: 2;
   display: flex; align-items: center; justify-content: flex-end; gap: 2.2vw; padding: 0 3.4vw;
-  background: linear-gradient(0deg, rgba(5, 8, 15, .9), transparent); font-size: .92em; color: rgba(255, 255, 255, .82);
+  background: linear-gradient(0deg, color-mix(in srgb, var(--tv-bg) 90%, transparent), transparent); font-size: .92em; color: rgba(255, 255, 255, .82);
 }
 .tv-dica { display: inline-flex; align-items: center; gap: .45em; white-space: nowrap; }
 .tv-dica .tv-botao + .tv-botao { margin-left: -.1em; }
@@ -1836,12 +1837,12 @@ body.modo-tv .toasts { bottom: 11vh; }
 /* página do jogo */
 .tv-pagina {
   position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; gap: 4.5vw; padding: 9vh 7vw 12vh;
-  background: rgba(5, 8, 15, .55); animation: tvEntra .28s cubic-bezier(.2, .8, .2, 1) both;
+  background: color-mix(in srgb, var(--tv-bg) 55%, transparent); animation: tvEntra .28s cubic-bezier(.2, .8, .2, 1) both;
 }
 @keyframes tvEntra { from { opacity: 0; transform: scale(1.02); } to { opacity: 1; transform: none; } }
 .tv-pag-capa {
   flex: none; width: clamp(220px, 23vw, 440px); aspect-ratio: 2 / 3; border-radius: 18px; overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, .12), 0 40px 80px rgba(0, 0, 0, .65), 0 0 80px rgba(34, 211, 238, .18);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .12), 0 40px 80px rgba(0, 0, 0, .65), 0 0 80px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 .tv-pag-capa img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .tv-pag-capa .tv-bloco-reserva { font-size: 4em; }
@@ -1858,7 +1859,7 @@ body.modo-tv .toasts { bottom: 11vh; }
   padding: 1.5vh 2.4vw; border-radius: 12px; background: rgba(255, 255, 255, .1);
   transition: transform .16s, box-shadow .16s, background .16s;
 }
-.tv-btn-principal { background: linear-gradient(90deg, #06b6d4, #6366f1); box-shadow: 0 10px 30px rgba(34, 211, 238, .3); }
+.tv-btn-principal { background: linear-gradient(90deg, #06b6d4, #6366f1); box-shadow: 0 10px 30px color-mix(in srgb, var(--accent) 30%, transparent); }
 .tv-btn.foco { transform: scale(1.06); box-shadow: 0 0 0 3px #fff, 0 12px 34px rgba(0, 0, 0, .45); }
 .tv-btn:not(.tv-btn-principal).foco { background: rgba(255, 255, 255, .2); }
 
@@ -1873,7 +1874,7 @@ body.modo-tv .toasts { bottom: 11vh; }
   display: block; width: 100%; text-align: left; border: 0; cursor: pointer; font: inherit; font-size: 1.08em; font-weight: 600;
   color: #fff; background: none; padding: 1.05em 1.1em; border-radius: 12px; transition: background .15s;
 }
-.tv-menu-item.foco { background: rgba(34, 211, 238, .16); box-shadow: inset 0 0 0 2px #22d3ee; }
+.tv-menu-item.foco { background: color-mix(in srgb, var(--accent) 16%, transparent); box-shadow: inset 0 0 0 2px var(--accent); }
 
 .tv-avisos {
   position: absolute; left: 50%; bottom: 11vh; z-index: 5; transform: translate(-50%, 12px); opacity: 0; pointer-events: none;
@@ -1903,8 +1904,8 @@ body[data-layout="rondel"] .content { overflow: hidden; }
 }
 .rondel-fade {
   background:
-    linear-gradient(90deg, rgba(6,8,12,.95) 0%, rgba(6,8,12,.7) 34%, rgba(6,8,12,.15) 70%, rgba(6,8,12,.35) 100%),
-    linear-gradient(0deg, rgba(6,8,12,.9), transparent 50%);
+    linear-gradient(90deg, color-mix(in srgb, var(--tv-bg) 95%, transparent) 0%, color-mix(in srgb, var(--tv-bg) 70%, transparent) 34%, color-mix(in srgb, var(--tv-bg) 15%, transparent) 70%, color-mix(in srgb, var(--tv-bg) 35%, transparent) 100%),
+    linear-gradient(0deg, color-mix(in srgb, var(--tv-bg) 90%, transparent), transparent 50%);
 }
 .rondel-info { left: 4vw; bottom: 16%; right: auto; max-width: min(46vw, 760px); gap: 10px; }
 .rondel-info h2 { font-size: clamp(26px, 3.4vw, 60px); line-height: 1.04; letter-spacing: -.01em; }
@@ -1963,7 +1964,7 @@ body[data-layout="rondel"] .content { overflow: hidden; }
 .fonte-estado.ruim { color: #fda4af; }
 .fonte-campos { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
 .fonte-campos input { flex: 1; min-width: 0; height: 34px; padding: 0 11px; border-radius: 9px; background: var(--bg, #0b0f16); border: 1px solid var(--line-strong); color: var(--text); outline: none; user-select: text; }
-.fonte-campos input:focus { border-color: var(--accent-55); box-shadow: 0 0 0 3px rgba(34,211,238,.1); }
+.fonte-campos input:focus { border-color: var(--accent-55); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent); }
 .fonte-campos input::placeholder { color: var(--muted); }
 .fonte-campos.grade-2 { display: grid; grid-template-columns: 1fr 1fr; }
 .fonte-ajuda summary { cursor: pointer; font-size: 12px; color: var(--accent); }
@@ -2353,7 +2354,7 @@ body[data-layout="dashboard"][data-dashboard^="bb-"] .content { padding: 0; over
 .eco-quem { position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; opacity: 0; transition: opacity .22s; }
 .eco-quem.on { opacity: 1; }
 .eco-quem.saindo { opacity: 0; }
-.eco-quem-fundo { position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 0%, #142a4a, #05080f 70%); }
+.eco-quem-fundo { position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 0%, #142a4a, var(--tv-bg) 70%); }
 .eco-quem-caixa { position: relative; text-align: center; color: #fff; }
 .eco-quem-caixa h1 { font-size: clamp(28px, 4.4vw, 56px); font-weight: 800; margin: 0 0 6vh; letter-spacing: .01em; }
 .eco-quem-lista { display: flex; gap: clamp(18px, 3.4vw, 54px); justify-content: center; flex-wrap: wrap; padding: 0 4vw; }
@@ -2422,7 +2423,7 @@ body[data-layout="dashboard"][data-dashboard^="bb-"] .content { padding: 0; over
 .eco-conq-txt > span { font-size: 12.5px; color: var(--muted, rgba(255,255,255,.6)); line-height: 1.35; }
 .eco-conq-rodape { margin-top: 6px; font-size: 11.5px; color: var(--muted, rgba(255,255,255,.55)); display: flex; flex-direction: column; gap: 4px; }
 .eco-conq-progresso { height: 5px; border-radius: 99px; background: rgba(127,127,127,.22); overflow: hidden; }
-.eco-conq-progresso i { display: block; height: 100%; background: var(--accent, #22d3ee); border-radius: inherit; }
+.eco-conq-progresso i { display: block; height: 100%; background: var(--accent, var(--accent)); border-radius: inherit; }
 .eco-vazio { color: var(--muted); padding: 20px; }
 
 /* painel da tela normal */
@@ -2521,3 +2522,225 @@ body[data-layout="dashboard"][data-dashboard^="bb-"] .content { padding: 0; over
 .on-codigo-linha input, #on-colar { flex: 1; min-width: 0; font-size: 12px; }
 .on-rede { display: grid; gap: 6px; margin: 4px 0 8px; }
 .on-partida { text-align: left; justify-content: flex-start; }
+
+/* ==================================================================
+ * FUNDO ANIMADO (renderer/fundos.js) — no estilo de cada console
+ * ================================================================== */
+.fundo-vivo { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.fundo-vivo[hidden] { display: none; }
+.fundo-vivo.no-modo-tv { position: absolute; }
+.fundo-vivo canvas, .fundo-vivo .fundo-midia {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover;
+  filter: blur(var(--fundo-desfoque, 0px));
+}
+.fundo-vivo .fundo-midia { inset: calc(var(--fundo-desfoque, 0px) * -2); width: calc(100% + var(--fundo-desfoque, 0px) * 4); height: calc(100% + var(--fundo-desfoque, 0px) * 4); }
+.fundo-vivo::after { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, var(--fundo-escuro, 0)); }
+body.com-fundo-vivo::before { opacity: 0; }
+body.com-fundo-vivo .dashboard { background-image: none; background-color: transparent; }
+body.com-fundo-vivo .sidebar { backdrop-filter: blur(14px); }
+body { font-family: var(--fonte-skin, "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif); }
+
+/* miniaturas de skin com o fundo animado */
+.skin-preview-fundo { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+.skin-preview:has(.skin-preview-fundo) .side { opacity: .55; }
+.skin-preview:has(.skin-preview-fundo) .cards i { opacity: .8; }
+.skin-preview > *:not(.skin-preview-fundo) { position: relative; z-index: 1; }
+.skin-preview .skin-dots, .skin-preview .skin-badge, .skin-preview .skin-tag { position: absolute; }
+.skin-card { position: relative; }
+.skin-card-nova { border-style: dashed; }
+.skin-nova-mais { display: grid; place-items: center; font-size: 34px; font-weight: 300; color: var(--accent); background: var(--panel-2); }
+.skin-editar {
+  position: absolute; top: 6px; right: 6px; z-index: 3; font-size: 10.5px; font-weight: 700; padding: 3px 9px;
+  border-radius: 999px; background: rgba(0, 0, 0, .62); color: #fff; cursor: pointer;
+}
+.skin-editar:hover, .skin-editar:focus-visible { background: var(--accent); color: var(--on-accent); outline: none; }
+.sheet-actions .cs-espaco { flex: 1; }
+
+/* ================= criador de skin ================= */
+.sheet.cs-sheet { width: 1060px; }
+.cs-corpo { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 26px; align-items: start; }
+@media (max-width: 900px) { .cs-corpo { grid-template-columns: 1fr; } .cs-lado { position: static !important; } }
+.cs-lado { position: sticky; top: 0; display: flex; flex-direction: column; gap: 10px; }
+.cs-ferramenta { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(0, 0, 0, .14); }
+.cs-ferramenta input[type=color] { width: 44px; height: 36px; padding: 0; border: 0; background: none; cursor: pointer; }
+.cs-ferramenta select, .cs-controles select { background: var(--input-bg); color: var(--txt); border: 1px solid var(--line-strong); border-radius: 9px; padding: 7px 9px; font: inherit; }
+.cs-botoes { flex-wrap: wrap; }
+.cs-cores { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 12px; }
+.cs-cor { display: flex; align-items: center; gap: 9px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; font-size: 12.5px; }
+.cs-cor input { width: 30px; height: 30px; padding: 0; border: 0; background: none; cursor: pointer; flex: none; }
+#cs-contraste { display: flex; align-items: center; gap: 10px; min-height: 30px; }
+.cs-ok { color: #4ade80; font-weight: 600; }
+.cs-ruim { color: #fbbf24; font-weight: 600; }
+.cs-fundos { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+.cs-fundo { display: flex; flex-direction: column; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: none; color: var(--txt); cursor: pointer; text-align: left; }
+.cs-fundo em { font-style: normal; font-size: 10.5px; color: var(--muted); padding: 0 3px 2px; }
+.cs-fundo.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-22); }
+.cs-fundo.on em { color: var(--txt); }
+.cs-fundo-mini { width: 100%; aspect-ratio: 16 / 9; height: auto; border-radius: 7px; display: block; }
+.cs-sem { background: repeating-linear-gradient(45deg, rgba(255,255,255,.05) 0 8px, transparent 8px 16px); }
+.cs-deslizes { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.cs-deslizes label { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: 10px; font-size: 12.5px; color: var(--muted); }
+.cs-deslizes input[type=range] { accent-color: var(--accent); }
+.cs-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; }
+.danger-txt { color: #f87171; }
+
+/* prévia: usa as variáveis do rascunho, não as do app */
+.cs-previa {
+  position: relative; aspect-ratio: 16 / 10; border-radius: 14px; overflow: hidden; display: flex;
+  background: var(--bg); color: var(--txt); border: 1px solid var(--line-strong); font-size: 12px;
+}
+.cs-previa-fundo, .cs-previa-midia, .cs-previa-midia > * { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(var(--fundo-desfoque, 0px)); }
+.cs-previa::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: rgba(0, 0, 0, var(--fundo-escuro, 0)); z-index: 1; }
+.cs-previa.crt::before { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px); }
+.cs-p-lateral, .cs-p-corpo { position: relative; z-index: 2; }
+.cs-p-lateral { width: 27%; padding: 12px 10px; display: flex; flex-direction: column; gap: 7px; background: color-mix(in srgb, var(--panel) 72%, transparent); border-right: 1px solid var(--line); }
+.cs-p-marca { font-weight: 800; letter-spacing: .06em; margin-bottom: 6px; }
+.cs-p-marca span { color: var(--accent); margin-left: 3px; }
+.cs-p-lateral i { height: 9px; border-radius: 4px; background: var(--line-strong); }
+.cs-p-lateral i.on { background: var(--accent); width: 80%; }
+.cs-p-corpo { flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.cs-p-titulo { font-size: 16px; font-weight: 800; }
+.cs-p-sub { margin-left: 8px; color: var(--muted); }
+.cs-p-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+.cs-p-cards i:nth-child(n+5) { display: none; }
+.cs-p-cards i { aspect-ratio: 3 / 4; border-radius: var(--radius-card); background: linear-gradient(160deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); }
+.cs-p-cards i.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.cs-p-acoes { display: flex; gap: 7px; align-items: center; margin-top: auto; }
+.cs-p-botao { padding: 6px 12px; border-radius: 8px; background: var(--accent); color: var(--on-accent); font-weight: 700; }
+.cs-p-botao.b2 { background: var(--panel-2); color: var(--txt); border: 1px solid var(--line-strong); }
+.cs-p-chip { padding: 4px 9px; border-radius: 999px; border: 1px solid var(--accent-2); color: var(--accent-2); }
+
+/* "Ver no app inteiro": o criador some e fica só o botão de voltar */
+body.cs-espiando #modal-criador { background: none; }
+body.cs-espiando #modal-criador > .modal-backdrop, body.cs-espiando #modal-criador > .sheet { display: none; }
+body.cs-espiando #modal-criador { pointer-events: none; }
+.cs-voltar {
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 5000; pointer-events: auto;
+  padding: 12px 22px; border-radius: 999px; border: 0; font: inherit; font-weight: 700; cursor: pointer;
+  background: var(--accent); color: var(--on-accent); box-shadow: 0 14px 40px rgba(0, 0, 0, .5);
+}
+.cs-voltar[hidden] { display: none; }
+
+/* Modo TV com a skin do app: skins claras ganham um fundo escuro na cor da skin (o texto da TV é claro) */
+body.skin-clara .tv { --tv-bg: color-mix(in srgb, var(--accent) 16%, #05070c); }
+.tv .fundo-vivo { z-index: 0; }
+.tv.com-fundo-skin .tv-fundo-img { opacity: 0 !important; }
+.tv.com-fundo-skin .tv-fundo-img.on { opacity: .45 !important; }
+.tv.com-fundo-skin .tv-vinheta { opacity: .8; }
+
+/* editar jogo: personagem e logo do Modo TV */
+.e-tv-linha { flex-wrap: wrap; }
+.e-tv-mini { width: 46px; height: 46px; border-radius: 9px; flex: none; background: var(--panel-2) center / contain no-repeat; border: 1px solid var(--line); }
+.e-tv-mini.vazio { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.05) 0 6px, transparent 6px 12px); }
+.e-tv-txt { flex: 1; min-width: 160px; font-size: 12.5px; color: var(--muted); }
+
+/* ==================================================================
+ * MODO TV — skins exclusivas com roda (roda de logos à direita,
+ * trailer e personagem/caixa 3D à esquerda)
+ * ================================================================== */
+.tv-roda[hidden], .tv-destaque[hidden], .tv-fileiras[hidden] { display: none !important; }
+.tv-roda { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+.tv-roda-esq { position: relative; z-index: 2; padding: 1vh 0 0 4vw; display: flex; flex-direction: column; gap: 1.4vh; min-width: 0; }
+.tv-roda-origem { font-size: .8em; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); min-height: 1.2em; }
+.tv-roda-meta { display: flex; flex-wrap: wrap; gap: .4em 1.4em; color: rgba(255, 255, 255, .78); font-weight: 550; min-height: 1.4em; }
+.tv-roda-fav { color: #fbbf24; }
+.tv-roda-palco { position: relative; display: flex; align-items: center; gap: 2.2vw; margin-top: 1vh; perspective: 1400px; }
+.tv-roda-trailer {
+  position: relative; flex: none; width: min(33vw, 56vh * 16 / 9); aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden;
+  background: color-mix(in srgb, var(--tv-bg) 80%, #000); box-shadow: 0 30px 60px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .1);
+}
+.tv-roda-trailer video, .tv-roda-trailer iframe { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border: 0; opacity: 0; transition: opacity .6s; }
+.tv-roda-trailer.tocando video, .tv-roda-trailer.tocando iframe { opacity: 1; }
+.tv-roda-trailer iframe { pointer-events: none; }
+.tv-roda-capa { position: absolute; inset: -4%; background-size: cover; background-position: center 30%; filter: saturate(1.1); animation: tvKenBurns 16s ease-in-out infinite alternate; transition: opacity .6s; }
+.tv-roda-trailer.tocando .tv-roda-capa { opacity: 0; }
+@keyframes tvKenBurns { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.12) translate(-2%, -2%); } }
+.tv-roda-desc { margin: .6vh 0 0; max-width: 60ch; color: rgba(255, 255, 255, .62); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* personagem em 3D (PNG do usuário) */
+.tv-roda-3d { position: relative; flex: none; width: 13vw; height: 50vh; display: grid; place-items: center; transform-style: preserve-3d; }
+.tv-personagem { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; transform-style: preserve-3d; animation: tvFlutua 6s ease-in-out infinite; }
+.tv-personagem img { height: 40vh; width: auto; max-width: 150%; object-fit: contain; filter: drop-shadow(0 24px 30px rgba(0, 0, 0, .6)) drop-shadow(0 0 22px color-mix(in srgb, var(--accent) 30%, transparent)); }
+.tv-personagem .tv-personagem-reflexo { height: 7vh; object-position: bottom; object-fit: cover; width: auto; transform: scaleY(-1); opacity: .22; filter: blur(2px); -webkit-mask-image: linear-gradient(0deg, transparent, #000 85%); mask-image: linear-gradient(0deg, transparent, #000 85%); margin-top: 2px; }
+@keyframes tvFlutua {
+  0%, 100% { transform: rotateY(-16deg) translateY(0); }
+  50% { transform: rotateY(16deg) translateY(-1.6vh); }
+}
+
+/* caixa do jogo girando em 3D (quando não há personagem) */
+.tv-caixa { --w: 11vw; --h: calc(var(--w) * 1.42); --d: calc(var(--w) * .13); position: relative; width: var(--w); height: var(--h); transform-style: preserve-3d; }
+.tv-caixa-giro { position: absolute; inset: 0; transform-style: preserve-3d; animation: tvGiraCaixa 16s linear infinite; }
+@keyframes tvGiraCaixa { from { transform: rotateX(-6deg) rotateY(0deg); } to { transform: rotateX(-6deg) rotateY(360deg); } }
+.tv-caixa-f { position: absolute; background: color-mix(in srgb, var(--accent) 35%, #0b0f18) center / cover no-repeat; backface-visibility: hidden; border-radius: 4px; }
+.tv-caixa-f.frente, .tv-caixa-f.tras { width: var(--w); height: var(--h); }
+.tv-caixa-f.frente { transform: translateZ(calc(var(--d) / 2)); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18), inset 10px 0 18px -10px rgba(255, 255, 255, .35); }
+.tv-caixa-f.tras { transform: rotateY(180deg) translateZ(calc(var(--d) / 2)); filter: blur(1px) brightness(.45) saturate(.7); }
+.tv-caixa-f.lado-e, .tv-caixa-f.lado-d { width: var(--d); height: var(--h); left: calc(50% - var(--d) / 2); background: linear-gradient(180deg, var(--accent), var(--accent-2)); }
+.tv-caixa-f.lado-e { transform: rotateY(-90deg) translateZ(calc(var(--w) / 2)); display: grid; place-items: center; overflow: hidden; }
+.tv-caixa-f.lado-e span { writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 800; font-size: calc(var(--d) * .5); color: var(--on-accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-height: 92%; }
+.tv-caixa-f.lado-d { transform: rotateY(90deg) translateZ(calc(var(--w) / 2)); filter: brightness(.7); }
+.tv-caixa-f.topo, .tv-caixa-f.base { width: var(--w); height: var(--d); top: calc(50% - var(--d) / 2); background: #d9dde6; }
+.tv-caixa-f.topo { transform: rotateX(90deg) translateZ(calc(var(--h) / 2)); }
+.tv-caixa-f.base { transform: rotateX(-90deg) translateZ(calc(var(--h) / 2)); filter: brightness(.5); }
+.tv-caixa-f .tv-bloco-reserva { border-radius: 4px; }
+.tv-caixa-sombra { position: absolute; left: 0; right: 0; bottom: calc(var(--h) * -.14); height: calc(var(--h) * .08); border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, .55), transparent); }
+
+/* a roda: semicírculo do lado direito */
+.tv-roda-circulo { position: relative; overflow: visible; z-index: 1; }
+.tv-roda-anel { position: absolute; border-radius: 50%; pointer-events: none; }
+.tv-roda-itens { position: absolute; inset: -11vh 0 -8.5vh; -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 16%, #000 86%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 16%, #000 86%, transparent 100%); }
+.tv-roda-item {
+  position: absolute; left: 0; top: 0; padding: 0; border: 0; background: none; cursor: pointer; color: inherit; font: inherit;
+  transform-origin: 0 50%; transition: transform .42s cubic-bezier(.2, .8, .2, 1), opacity .3s; will-change: transform;
+}
+.tv-roda-logo { display: flex; align-items: center; justify-content: flex-start; width: 25vw; height: 12vh; }
+.tv-roda-logo img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, .6)); }
+.tv-roda-nome {
+  display: block; max-width: 100%; max-height: 2em; overflow: hidden; text-align: left; font-weight: 900; text-transform: uppercase; line-height: 1;
+  font-size: clamp(22px, 2.5vw, 52px); letter-spacing: .02em; color: #fff;
+  text-shadow: 0 3px 0 color-mix(in srgb, var(--accent) 70%, #000), 0 8px 24px rgba(0, 0, 0, .6);
+}
+.tv-roda-item.foco .tv-roda-logo { filter: drop-shadow(0 0 26px color-mix(in srgb, var(--accent) 45%, transparent)); }
+
+/* --- Roda de vidro: anel de vidro fosco, discreto (estilo dos consoles atuais) --- */
+.tv[data-tv-skin="roda-vidro"] .tv-roda-anel {
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .02) 70%, rgba(255, 255, 255, .07) 100%);
+  border: 1.5px solid rgba(255, 255, 255, .22); box-shadow: inset 0 0 80px rgba(255, 255, 255, .05), 0 0 60px rgba(0, 0, 0, .4);
+  backdrop-filter: blur(6px);
+}
+/* --- Roda neon: anel aceso nas cores da skin --- */
+.tv[data-tv-skin="roda-neon"] .tv-roda-anel {
+  border: 3px solid var(--accent); background: radial-gradient(closest-side, color-mix(in srgb, var(--tv-bg) 30%, transparent) 80%, color-mix(in srgb, var(--accent) 14%, transparent) 100%);
+  box-shadow: 0 0 18px var(--accent), 0 0 60px color-mix(in srgb, var(--accent-2) 60%, transparent), inset 0 0 40px color-mix(in srgb, var(--accent) 40%, transparent);
+  animation: tvNeonPulsa 3.4s ease-in-out infinite;
+}
+.tv[data-tv-skin="roda-neon"] .tv-roda-trailer { box-shadow: 0 0 0 2px var(--accent), 0 0 40px color-mix(in srgb, var(--accent) 45%, transparent); }
+.tv[data-tv-skin="roda-neon"] .tv-roda-nome { color: color-mix(in srgb, var(--accent) 35%, #fff); text-shadow: 0 0 8px var(--accent), 0 0 24px var(--accent), 0 0 48px color-mix(in srgb, var(--accent-2) 70%, transparent); font-style: italic; }
+@keyframes tvNeonPulsa { 50% { box-shadow: 0 0 26px var(--accent), 0 0 90px color-mix(in srgb, var(--accent-2) 70%, transparent), inset 0 0 50px color-mix(in srgb, var(--accent) 50%, transparent); } }
+/* --- Roda retrô: anel grosso em degraus e letras de fliperama --- */
+.tv[data-tv-skin="roda-retro"] .tv-roda-anel {
+  border: 10px double var(--accent); background: color-mix(in srgb, var(--tv-bg) 55%, transparent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--tv-bg) 80%, #000), 0 0 0 9px var(--accent-2);
+}
+.tv[data-tv-skin="roda-retro"] .tv-roda-nome { font-family: Impact, "Arial Black", sans-serif; font-weight: 400; letter-spacing: .05em; color: var(--accent-3); text-shadow: 3px 3px 0 var(--accent), 6px 6px 0 color-mix(in srgb, var(--tv-bg) 70%, #000); }
+.tv[data-tv-skin="roda-retro"] .tv-roda-trailer { border-radius: 4px; box-shadow: 0 0 0 4px var(--accent), 0 0 0 8px color-mix(in srgb, var(--tv-bg) 80%, #000), 0 20px 40px rgba(0, 0, 0, .6); }
+.tv[data-tv-skin="roda-retro"] .tv-roda-trailer::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .25) 0 1px, transparent 1px 3px); }
+@media (prefers-reduced-motion: reduce) { .tv-caixa-giro, .tv-personagem, .tv-roda-capa, .tv[data-tv-skin="roda-neon"] .tv-roda-anel { animation: none; } }
+
+/* seletor de skin do Modo TV */
+.tvskin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 760px) { .tvskin-grid { grid-template-columns: repeat(2, 1fr); } }
+.tvskin-card { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 8px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--panel); color: var(--txt); cursor: pointer; transition: .16s; }
+.tvskin-card:hover { transform: translateY(-2px); border-color: var(--accent-50); }
+.tvskin-card.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-22); }
+.tvskin-card b { font-size: 12px; margin-top: 4px; }
+.tvskin-card em { font-style: normal; font-size: 10.5px; color: var(--muted); }
+.tvskin-mini { position: relative; height: 62px; border-radius: 8px; overflow: hidden; background: #070a12; display: block; }
+.mini-fileiras { display: flex; gap: 4px; align-items: flex-end; padding: 8px; }
+.mini-fileiras i { flex: 1; height: 30px; border-radius: 3px; background: color-mix(in srgb, var(--accent) 45%, #1a2233); }
+.mini-roda i { position: absolute; display: block; }
+.mini-roda .t { left: 8%; top: 28%; width: 38%; height: 44%; border-radius: 4px; background: color-mix(in srgb, var(--accent) 40%, #1a2233); }
+.mini-roda .c { left: 50%; top: 22%; width: 9%; height: 56%; border-radius: 2px; background: color-mix(in srgb, var(--accent-2) 60%, #1a2233); transform: perspective(60px) rotateY(-25deg); }
+.mini-roda .r { left: 68%; top: -30%; width: 90%; height: 160%; border-radius: 50%; }
+.mini-roda.vidro .r { border: 1.5px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .05); }
+.mini-roda.neon .r { border: 2px solid var(--accent); box-shadow: 0 0 10px var(--accent); }
+.mini-roda.retro .r { border: 5px double var(--accent); }

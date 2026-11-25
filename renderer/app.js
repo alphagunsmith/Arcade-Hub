@@ -1411,6 +1411,29 @@ function openEditor(game) {
   $('#e-path').value = game ? (game.launch.exe || game.launch.rom || '') : '';
   $('#e-art').value = game && (game.customArt || game.art) ? (game.customArt || game.art) : '';
   ui.pickPaths.art = $('#e-art').value;
+  ui.pickPaths.personagem = game ? (game.personagem || null) : null;
+  ui.pickPaths.logo = game ? (game.logo || null) : null;
+  const mostrarTV = () => {
+    for (const k of ['personagem', 'logo']) {
+      const url = ui.pickPaths[k];
+      const mini = $(`#e-${k}-mini`);
+      mini.style.backgroundImage = url ? `url("${String(url).replace(/"/g, '\\"')}")` : '';
+      mini.classList.toggle('vazio', !url);
+      $(`#e-${k}-txt`).textContent = url
+        ? (k === 'personagem' ? 'Personagem escolhido' : 'Logo escolhida')
+        : (k === 'personagem' ? 'Sem personagem: aparece a caixa do jogo girando em 3D' : 'Logo automática (Steam) ou o nome estilizado');
+      $(`#e-${k}-tirar`).hidden = !url;
+    }
+  };
+  mostrarTV();
+  for (const [k, pasta] of [['personagem', 'personagens'], ['logo', 'logos']]) {
+    $(`#e-${k}`).onclick = async () => {
+      const r = await api.guardarVisual(pasta);
+      if (!r || !r.ok) { if (r && r.error) toast(r.error, 'err'); return; }
+      if (r.data) { ui.pickPaths[k] = r.data.url; mostrarTV(); }
+    };
+    $(`#e-${k}-tirar`).onclick = () => { ui.pickPaths[k] = null; mostrarTV(); };
+  }
 
   const type = !game ? 'exe' : (game.kind === 'rom' ? 'rom' : (game.launch.type === 'exe' ? 'exe' : 'url'));
   setType(type);
@@ -1496,6 +1519,8 @@ async function saveGame() {
     launch,
     art: ui.pickPaths.art || null,
     customArt: ui.pickPaths.art || null,
+    personagem: ui.pickPaths.personagem || null,
+    logo: ui.pickPaths.logo || null,
     installDir: (launch.exe || launch.rom || '').replace(/[\\/][^\\/]+$/, '')
   };
 
@@ -1812,8 +1837,20 @@ function skinPreviewNode(skin) {
     wrap.appendChild(dots);
     return wrap;
   }
-  // temas de dashboard: mostra o papel de parede e o tipo de layout
-  if (skin.art) {
+  // fundo animado da skin: um quadro dele na miniatura
+  const tipoFundo = typeof Fundos !== 'undefined' && skin.fundo !== 'nenhum' ? Fundos.tipoDaSkin(skin) : null;
+  if (tipoFundo || skin.midia) {
+    if (skin.midia && skin.midia.tipo === 'imagem') {
+      wrap.style.backgroundImage = `url("${String(skin.midia.url).replace(/"/g, '\\"')}")`;
+      wrap.style.backgroundSize = 'cover';
+    } else if (tipoFundo) {
+      const cv = el('canvas', 'skin-preview-fundo');
+      cv.width = 220; cv.height = 124;
+      Fundos.miniatura(cv, tipoFundo, skin.vars, 8);
+      wrap.appendChild(cv);
+    }
+    if (skin.dashboard) wrap.appendChild(el('span', 'skin-tag', (DASHBOARD_TIPOS[skin.dashboard] || {}).nome || skin.dashboard));
+  } else if (skin.art) {
     wrap.style.backgroundImage = `url("${skin.art}")`;
     wrap.style.backgroundSize = 'cover';
     wrap.style.backgroundPosition = 'center';
@@ -1956,9 +1993,17 @@ function renderSkinGrid(brand) {
     if (brand === 'dashboard') return !!s.dashboard && !RGH.has(s.id) && skinBrandOf(s) !== 'LaunchBox';
     if (brand === 'rgh') return RGH.has(s.id);
     if (brand === 'cor') return !s.dashboard;
+    if (brand === 'minhas') return !!s.personalizada;
     return skinBrandOf(s) === brand;
   });
-  if (!list.length) { box.appendChild(el('div', 'covers-empty', 'Nenhuma skin nesse filtro')); return; }
+  if (brand === 'minhas' || brand === 'todos' || !brand) {
+    const novo = el('button', 'skin-card skin-card-nova');
+    novo.type = 'button';
+    novo.innerHTML = '<span class="skin-preview skin-nova-mais">+</span><div class="skin-meta"><b>Criar skin</b><span>Cores, fundo animado, imagem, GIF ou vídeo</span></div>';
+    novo.onclick = () => CriadorSkin.abrir(currentSkinId());
+    box.appendChild(novo);
+  }
+  if (!list.length) { box.appendChild(el('div', 'covers-empty', brand === 'minhas' ? 'Você ainda não criou nenhuma skin' : 'Nenhuma skin nesse filtro')); return; }
   for (const skin of list) {
     const card = el('button', 'skin-card' + (skin.id === currentSkinId() ? ' on' : ''));
     card.type = 'button';
@@ -1970,6 +2015,14 @@ function renderSkinGrid(brand) {
       ? skin.descricao
       : `${skin.console} · ${skin.year}`));
     card.appendChild(meta);
+    if (skin.personalizada) {
+      const ed = el('span', 'skin-editar', 'Editar');
+      ed.setAttribute('role', 'button');
+      ed.tabIndex = 0;
+      ed.onclick = e => { e.stopPropagation(); CriadorSkin.abrir(skin.id); };
+      ed.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); CriadorSkin.abrir(skin.id); } };
+      card.appendChild(ed);
+    }
     // prévia ao vivo
     card.onmouseenter = () => applySkinId(skin.id, { previewOnly: true });
     card.onmouseleave = () => applySkinId(currentSkinId(), { previewOnly: true });
@@ -1995,7 +2048,22 @@ function ligarSeletorLayout() {
   });
 }
 
+function ligarTvSkins() {
+  const atual = (ui.state && ui.state.settings && ui.state.settings.tvSkin) || 'padrao';
+  $$('#tvskin-grid .tvskin-card').forEach(c => {
+    c.classList.toggle('on', c.dataset.tvskin === atual);
+    c.onclick = async () => {
+      const r = await api.saveSettings({ tvSkin: c.dataset.tvskin });
+      if (!r.ok) return;
+      ui.state = r.data;
+      ligarTvSkins();
+      toast(`Modo TV: ${c.querySelector('b').textContent}`, 'ok');
+    };
+  });
+}
+
 function openSkins() {
+  ligarTvSkins();
   ligarSeletorLayout();
   renderSkinGrid('todos');
   syncLayoutCards();
@@ -2612,6 +2680,15 @@ function openSettings() {
   $('#opt-autoscan').checked = s.autoScan !== false;
   $('#opt-tray').checked = s.minimizarAoJogar !== false;
   $('#opt-tv').checked = !!s.abrirNoModoTV;
+  $('#opt-fundo-animado').checked = s.fundoAnimado !== false;
+  $('#opt-fundo-animado').onchange = async e => {
+    const r = await api.saveSettings({ fundoAnimado: e.target.checked });
+    if (!r.ok) return;
+    ui.state = r.data;
+    if (typeof Fundos !== 'undefined') Fundos.definirLigado(e.target.checked);
+    applySkinId(currentSkinId());
+    toast(e.target.checked ? 'Fundo animado ligado' : 'Fundo animado desligado', 'ok');
+  };
   const mc = ui.state.modoConsole || {};
   $('#opt-console').checked = !!mc.iniciarComWindows;
   $('#opt-console').disabled = !mc.energiaDisponivel;
@@ -2831,6 +2908,8 @@ function wire() {
   $('#btn-random').onclick = playRandom;
   $('#btn-skins').onclick = openSkins;
   $('#btn-open-skins').onclick = () => { closeAll(); openSkins(); };
+  $('#skin-criar').onclick = () => CriadorSkin.abrir(currentSkinId());
+  $('#skin-importar').onclick = () => CriadorSkin.importar();
   $('#skin-reset').onclick = async () => {
     const r = await api.saveSettings({ skin: 'neon' });
     if (r.ok) ui.state = r.data;
@@ -3748,6 +3827,8 @@ function conferirIdioma(s) {
   if (r.ok) {
     ui.state = r.data;
     if (conferirIdioma(r.data.settings)) return;
+    if (typeof registrarPersonalizadas === 'function') registrarPersonalizadas(r.data.settings.skinsPersonalizadas);
+    if (typeof Fundos !== 'undefined') Fundos.definirLigado(r.data.settings.fundoAnimado !== false);
     applySkinId(currentSkinId());
     if (r.data.avisoBiblioteca) setTimeout(() => avisarRecuperacao(r.data.avisoBiblioteca), 600);
   } else {
