@@ -1,0 +1,4 @@
+# os dicionários são gerados e conferidos byte a byte: sempre LF
+i18n/textos/*.tsv text eol=lf
+renderer/i18n/*.js text eol=lf
+dualsense/i18n/* text eol=lf

@@ -21,7 +21,7 @@ function ler() {
   const dic = Object.fromEntries(IDIOMAS.map(i => [i, {}]));
   const erros = [];
   for (const arq of fs.readdirSync(pasta).filter(f => f.endsWith('.tsv')).sort()) {
-    fs.readFileSync(path.join(pasta, arq), 'utf8').split('\n').forEach((linha, n) => {
+    fs.readFileSync(path.join(pasta, arq), 'utf8').replace(/\r/g, '').split('\n').forEach((linha, n) => {
       if (!linha.trim() || linha.startsWith('#')) return;
       const col = linha.split('\t');
       const onde = `${arq}:${n + 1}`;
@@ -65,7 +65,7 @@ const velhos = [];
 for (const [rel, conteudo] of Object.entries(saida)) {
   const p = path.join(RAIZ, rel);
   let atual = null;
-  try { atual = fs.readFileSync(p, 'utf8'); } catch { /* novo */ }
+  try { atual = fs.readFileSync(p, 'utf8').replace(/\r\n/g, '\n'); } catch { /* novo */ }   // checkout do Windows pode vir com CRLF
   if (atual === conteudo) continue;
   if (conferir) velhos.push(rel);
   else { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, conteudo); }
