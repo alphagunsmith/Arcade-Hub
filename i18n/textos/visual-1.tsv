@@ -127,3 +127,17 @@ Este arquivo não é uma skin do Arcade Hub	This file is not an Arcade Hub skin	
 A skin deste arquivo está incompleta	The skin in this file is incomplete	La skin de este archivo está incompleta	このファイルのスキンは不完全です	此文件中的皮肤不完整
 Skin inválida	Invalid skin	Skin no válida	無効なスキンです	无效的皮肤
 MEU	MY	MI	MY	MY
+uma linha por jogo, com gênero, tempo e última vez	one row per game, with genre, playtime and last played	una fila por juego, con género, tiempo y última vez	1 ゲーム 1 行。ジャンル、プレイ時間、最終プレイ付き	每个游戏一行，显示类型、时长和上次游玩
+Compacto	Compact	Compacto	コンパクト	紧凑
+só as capas, muitas por tela	covers only, many per screen	solo las portadas, muchas por pantalla	カバーだけ。1 画面にたくさん	只显示封面，一屏更多
+Estante	Shelf	Estante	棚	书架
+capas em pé em prateleiras	covers standing on shelves	portadas de pie en estantes	棚に立てたカバー	封面立在书架上
+Fileiras	Rows	Filas	列	横排
+continue jogando, favoritos e cada loja numa fileira	continue playing, favorites and each store in its own row	seguir jugando, favoritos y cada tienda en una fila	プレイ中、お気に入り、ストアごとに 1 列	继续游戏、收藏和每个商店各占一排
+Mosaico	Mosaic	Mosaico	モザイク	马赛克
+favoritos e mais jogados em destaque	favorites and most played stand out	favoritos y más jugados destacados	お気に入りとよく遊ぶゲームを大きく	收藏和最常玩的游戏突出显示
+Layout: {0}	Layout: {0}	Diseño: {0}	レイアウト：{0}	布局：{0}
+Anterior	Previous	Anterior	前へ	上一个
+Próximo	Next	Siguiente	次へ	下一个
+ontem	yesterday	ayer	昨日	昨天
+A skin atual já tem a interface do console: o layout aparece com as skins de cor	The current skin already has the console interface: the layout shows with the color skins	La skin actual ya tiene la interfaz de la consola: el diseño aparece con las skins de color	今のスキンはゲーム機のインターフェースです。レイアウトはカラースキンで表示されます	当前皮肤自带主机界面：布局会在纯色皮肤下显示

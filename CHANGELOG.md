@@ -1,5 +1,16 @@
 # Novidades
 
+## 1.9.0
+
+- **Cinco layouts novos para a biblioteca** (Visual do launcher › Layout), além de Grade e Rondel:
+  - **Lista:** uma linha por jogo, com loja, gênero, tempo jogado e quando você jogou pela última vez.
+  - **Compacto:** só as capas, menores, para ver muitos jogos de uma vez.
+  - **Estante:** as capas em pé em prateleiras.
+  - **Fileiras:** Continue jogando, Favoritos, Mais jogados, cada loja ou console e Nunca jogados, cada um numa fileira que desliza para o lado. Se você agrupar por gênero, console ou origem, cada grupo vira uma fileira.
+  - **Mosaico:** os favoritos e os mais jogados ganham um card grande.
+- As setas do teclado e do controle andam em todos os layouts.
+- Os layouts valem com as skins de cor. As skins de console continuam com a interface do próprio console.
+
 ## 1.8.0
 
 - **As skins de console ganharam fundo animado, no estilo de cada console:**

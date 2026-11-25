@@ -550,8 +550,9 @@ function render() {
   } else {
     rondel.hidden = true;
     Rondel.pausar();
-    renderHero(games);
-    renderGrouped(games, favs);
+    renderHero(layout === 'fileiras' ? [] : games);
+    if (layout === 'fileiras') renderFileiras(games, favs);
+    else renderGrouped(games, favs);
   }
 
   const empty = games.length === 0;
@@ -773,8 +774,24 @@ function renderGrid(games, favs) {
   renderCardsInto(grid, games, favs);
 }
 
+/** "há 3 dias", "há 2 h"… (as mesmas frases do resto do app). */
+function quandoJogou(ts) {
+  const min = Math.max(0, (Date.now() - ts) / 60000);
+  if (min < 60) return `há ${Math.max(1, Math.round(min))} min`;
+  if (min < 60 * 24) return `há ${Math.round(min / 60)} h`;
+  const dias = Math.round(min / 1440);
+  return dias <= 1 ? 'ontem' : `há ${dias} dias`;
+}
+
 function renderCardsInto(grid, games, favs) {
   const frag = document.createDocumentFragment();
+  // Mosaico: os favoritos e os mais jogados ganham um card grande
+  let destaques = null;
+  if (currentLayout() === 'mosaico') {
+    const ms = g => (g.playtime && g.playtime.totalMs) || 0;
+    const top = [...games].filter(g => ms(g) > 0).sort((a, b) => ms(b) - ms(a)).slice(0, 4).map(g => g.id);
+    destaques = new Set([...top, ...games.filter(g => favs.has(g.id)).map(g => g.id)].slice(0, Math.max(2, Math.ceil(games.length / 6))));
+  }
   games.forEach((g, i) => {
     const card = el('div', 'card' + (g.installed === false ? ' not-installed' : '') + (g.problem ? ' has-problem' : ''));
     card.tabIndex = 0;                                  // navegável por teclado
@@ -858,6 +875,14 @@ function renderCardsInto(grid, games, favs) {
     card.appendChild(art);
     card.appendChild(el('div', 'card-title', g.title));
     card.appendChild(el('div', 'card-sub', `${g.kind === 'rom' ? 'Emulador' : meta.label}${g.sizeOnDisk ? ' · ' + fmtSize(g.sizeOnDisk) : ''}`));
+    // layout Lista: colunas extras (gênero, tempo jogado, última vez)
+    const info = el('div', 'card-info');
+    const gen = (Array.isArray(g.genres) ? g.genres : []).slice(0, 2).map(genreLabel).join(', ');
+    info.appendChild(el('span', 'ci-gen', gen || (g.kind === 'rom' ? (g.platform || '') : '')));
+    info.appendChild(el('span', 'ci-tempo', pt ? fmtPlaytime(pt) : '—'));
+    info.appendChild(el('span', 'ci-quando', g.playedAt ? quandoJogou(g.playedAt) : 'nunca jogado'));
+    card.appendChild(info);
+    if (destaques && destaques.has(g.id)) card.classList.add('card-grande');
     if (g.alsoOn && g.alsoOn.length) {
       const also = g.alsoOn.map(x => (SOURCE_META[x] ? SOURCE_META[x].label : x)).join(', ');
       card.appendChild(el('div', 'card-also', 'também em ' + also));
@@ -963,6 +988,54 @@ function renderGrouped(games, favs) {
     void saved;
   }
   grid.appendChild(wrap);
+}
+
+/** Layout Fileiras: uma fileira deslizante por assunto, como nas lojas de streaming. */
+function renderFileiras(games, favs) {
+  const grid = $('#grid');
+  grid.innerHTML = '';
+  const ms = g => (g.playtime && g.playtime.totalMs) || 0;
+  let grupos;
+  if (ui.groupBy !== 'none') {
+    grupos = groupGames(games).map(gr => ({ titulo: gr.title, jogos: gr.games }));
+  } else {
+    grupos = [];
+    const add = (titulo, jogos) => { if (jogos.length) grupos.push({ titulo, jogos }); };
+    add('Continue jogando', games.filter(g => g.playedAt).sort((a, b) => b.playedAt - a.playedAt).slice(0, 30));
+    add('Favoritos', games.filter(g => favs.has(g.id)));
+    add('Mais jogados', games.filter(g => ms(g) > 0).sort((a, b) => ms(b) - ms(a)).slice(0, 30));
+    const porOrigem = new Map();
+    for (const g of games) {
+      const k = g.kind === 'rom' ? (g.platform || 'Emulador') : ((SOURCE_META[g.source] || {}).label || 'PC');
+      if (!porOrigem.has(k)) porOrigem.set(k, []);
+      porOrigem.get(k).push(g);
+    }
+    [...porOrigem].sort((a, b) => b[1].length - a[1].length).forEach(([k, js]) => add(k, js));
+    add('Nunca jogados', games.filter(g => !g.playedAt && g.installed !== false));
+  }
+  const frag = document.createDocumentFragment();
+  grupos.forEach((gr, i) => {
+    const sec = el('section', 'fileira');
+    const head = el('div', 'group-head');
+    head.appendChild(el('h3', null, gr.titulo));
+    head.appendChild(el('span', 'count', String(gr.jogos.length)));
+    head.appendChild(el('span', 'gbar'));
+    const esq = el('button', 'fileira-seta', '‹');
+    const dir = el('button', 'fileira-seta', '›');
+    esq.type = dir.type = 'button';
+    esq.setAttribute('aria-label', 'Anterior');
+    dir.setAttribute('aria-label', 'Próximo');
+    head.append(esq, dir);
+    const faixa = el('div', 'grid fileira-faixa');
+    faixa.id = 'grid-fileira-' + i;
+    renderCardsInto(faixa, gr.jogos, favs);
+    const rolar = d => faixa.scrollBy({ left: d * faixa.clientWidth * .85, behavior: 'smooth' });
+    esq.onclick = () => rolar(-1);
+    dir.onclick = () => rolar(1);
+    sec.append(head, faixa);
+    frag.appendChild(sec);
+  });
+  grid.appendChild(frag);
 }
 
 /* ---------- abrir jogo ---------- */
@@ -1932,9 +2005,11 @@ window.addEventListener('tema:change', (e) => {
 });
 
 /** No tema de dashboard o contador/legendas usam a cor do tema; nada a fazer aqui. */
+/** Layouts da biblioteca (Visual do launcher › Layout). Todos menos o rondel usam os mesmos cards. */
+const LAYOUTS = ['grade', 'rondel', 'lista', 'compacto', 'estante', 'fileiras', 'mosaico'];
 function currentLayout() {
   const v = (ui.state && ui.state.settings && ui.state.settings.layout) || 'grade';
-  return v === 'rondel' ? 'rondel' : 'grade';
+  return LAYOUTS.includes(v) ? v : 'grade';
 }
 
 function syncLayoutCards() {
@@ -1943,7 +2018,7 @@ function syncLayoutCards() {
 }
 
 async function aplicarLayout(layout) {
-  const alvo = layout === 'rondel' ? 'rondel' : 'grade';
+  const alvo = LAYOUTS.includes(layout) ? layout : 'grade';
   if (ui.state) ui.state.settings = { ...(ui.state.settings || {}), layout: alvo };
   document.body.dataset.layout = alvo;
   syncLayoutCards();
@@ -2042,8 +2117,9 @@ function ligarSeletorLayout() {
     if (c.dataset.ligado) return;
     c.dataset.ligado = '1';
     c.onclick = async () => {
-      const l = await aplicarLayout(c.dataset.layout);
-      toast(l === 'rondel' ? 'Layout rondel ativado' : 'Layout grade ativado', 'ok');
+      await aplicarLayout(c.dataset.layout);
+      if (temaAtual()) toast('A skin atual já tem a interface do console: o layout aparece com as skins de cor', 'ok');
+      else toast(`Layout: ${c.querySelector('b').textContent}`, 'ok');
     };
   });
 }
@@ -3040,6 +3116,25 @@ function wire() {
       const cards = gridCards();
       if (!cards.length) return;
       e.preventDefault();
+      // Fileiras e Mosaico: as setas vão para o card mais perto naquela direção
+      if (['fileiras', 'mosaico'].includes(currentLayout()) && document.activeElement && document.activeElement.classList.contains('card')) {
+        const a = document.activeElement.getBoundingClientRect();
+        const ax = a.left + a.width / 2, ay = a.top + a.height / 2;
+        const [dx, dy] = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] }[e.key];
+        let melhor = null, nota = Infinity;
+        for (const c of cards) {
+          if (c === document.activeElement) continue;
+          const r = c.getBoundingClientRect();
+          const vx = r.left + r.width / 2 - ax, vy = r.top + r.height / 2 - ay;
+          const frente = vx * dx + vy * dy;
+          if (frente <= 4) continue;
+          const lado = Math.abs(vx * dy) + Math.abs(vy * dx);
+          const n = frente + lado * 2.5;
+          if (n < nota) { nota = n; melhor = c; }
+        }
+        if (melhor) { melhor.focus(); melhor.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); }
+        return;
+      }
       // colunas = cards na primeira fileira (o primeiro conta: antes ficava uma a menos
       // e ↓ caía na coluna ao lado)
       let cols = 1;

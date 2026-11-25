@@ -264,7 +264,7 @@ const DEFAULT_SETTINGS = {
   includeStoreLaunchers: true,
   sort: 'recent',
   sgdbKey: '',
-  layout: 'grade',          // 'grade' | 'rondel'
+  layout: 'grade',          // 'grade' | 'rondel' | 'lista' | 'compacto' | 'estante' | 'fileiras' | 'mosaico'
   videoFolder: '',          // pasta com trailers locais (opcional)
   autoScan: true,           // varre sozinho ao abrir e quando as pastas mudam
   minimizarAoJogar: true,   // esconde na bandeja enquanto o jogo roda
