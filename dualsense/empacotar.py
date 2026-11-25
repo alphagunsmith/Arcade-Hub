@@ -56,20 +56,27 @@ def main():
     for nome in os.listdir(AQUI):
         if nome.endswith(".py") and nome != "empacotar.py":
             shutil.copy2(os.path.join(AQUI, nome), FONTE)
-    shutil.copytree(baixar_vgamepad(), os.path.join(FONTE, "vgamepad"))
+    vg = os.path.join(FONTE, "vgamepad")
+    shutil.copytree(baixar_vgamepad(), vg)
+    for raiz, _d, arqs in os.walk(vg):
+        for a in arqs:
+            print("vgamepad:", os.path.relpath(os.path.join(raiz, a), FONTE))
 
     sep = ";"
     dados = [(os.path.join(AQUI, "painel.html"), "."), (os.path.join(AQUI, "perfis.json"), "."),
-             (os.path.join(AQUI, "LEIA-ME.md"), "."), (os.path.join(AQUI, "mods"), "mods")]
+             (os.path.join(AQUI, "LEIA-ME.md"), "."), (os.path.join(AQUI, "mods"), "mods"),
+             # o vgamepad inteiro (o ViGEmClient.dll e o instalador do driver ficam ao lado do código dele)
+             (os.path.join(FONTE, "vgamepad"), "vgamepad")]
     cmd = [sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--onedir", "--windowed",
            "--name", "DualSenseAuto", "--icon", os.path.join(RAIZ, "assets", "icon.ico"),
            "--distpath", SAIDA, "--workpath", os.path.join(BUILD, "pyinstaller"), "--specpath", BUILD,
-           "--paths", FONTE, "--collect-all", "vgamepad",
+           "--paths", FONTE, "--collect-submodules", "vgamepad",
            "--hidden-import", "psutil", "--hidden-import", "mss"]
     for origem, destino in dados:
         cmd += ["--add-data", f"{origem}{sep}{destino}"]
     cmd.append(os.path.join(FONTE, "dualsense_auto.py"))
-    subprocess.run(cmd, check=True)
+    env = dict(os.environ, PYTHONPATH=FONTE + os.pathsep + os.environ.get("PYTHONPATH", ""))
+    subprocess.run(cmd, check=True, env=env)
 
     final = os.path.join(SAIDA, "DualSenseAuto")
     interno = os.path.join(final, "_internal")
