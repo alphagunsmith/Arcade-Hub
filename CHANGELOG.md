@@ -1,5 +1,9 @@
 # Novidades
 
+## 1.3.1
+
+- O Discord já vem configurado com o aplicativo "Arcade Hub": é só ter o Discord aberto, sem colar nenhum ID. O status aparece com o nome e o ícone do Arcade Hub.
+
 ## 1.3.0
 
 **Discord, sem servidor**

@@ -240,7 +240,7 @@ const DEFAULT_SETTINGS = {
 };
 
 /** ID do aplicativo "Arcade Hub" no Discord (público: aparece no status de todo mundo). */
-const DISCORD_APP_ID = '';
+const DISCORD_APP_ID = '1574982778829672558';
 
 /* ------------------------------------------------------------------ */
 /* Perfis (quem está jogando)                                          */
