@@ -1,5 +1,12 @@
 # Novidades
 
+## 1.5.2
+
+- **O Arcade Hub agora abre no idioma do Windows, sozinho:** português, inglês, espanhol, japonês ou chinês. Para qualquer outro idioma do Windows, ele usa o inglês.
+  - **Como ele descobre o idioma:** pela lista de idiomas preferidos do Windows (Configurações › Hora e idioma), a cada vez que abre. Se você mudar o idioma do Windows, o app acompanha na próxima vez que abrir.
+  - **Para fixar um idioma:** escolha em Ajustes › Geral › Idioma, ou no Modo TV › Sistema. Assim ele não segue mais o Windows.
+- **Quem ficou no inglês da 1.5.1 sem ter escolhido** volta a seguir o Windows. Quem escolheu um idioma continua nele.
+
 ## 1.5.1
 
 - **O idioma padrão do Arcade Hub agora é o inglês**, qualquer que seja o idioma do Windows. Para usar outro, escolha em Settings › General › Language (ou no TV Mode › System). Quem quiser seguir o Windows escolhe "Automático / Automatic".

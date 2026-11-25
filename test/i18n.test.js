@@ -68,22 +68,33 @@ const dic = id => require(path.join(ROOT, 'renderer', 'i18n', id + '.js'));
     assert.strictEqual(lib.tr('Abrir o Arcade Hub'), 'Abrir o Arcade Hub');
   });
 
-  await t('padrão do app é inglês; quem tinha o "auto" antigo sem escolher passa para inglês', async () => {
-    const d1 = tmp('i18n-padrao');
-    assert.strictEqual(new lib.Store(d1).settings.idioma, 'en');
-    const d2 = tmp('i18n-antigo');
-    fs.writeFileSync(path.join(d2, 'library.json'), JSON.stringify({ games: [], favorites: [], hidden: [], settings: { idioma: 'auto' } }));
-    assert.strictEqual(new lib.Store(d2).settings.idioma, 'en');
-    // quem escolheu "Automático" de propósito continua no automático
+  await t('padrão: segue o idioma do Windows (sem tradução: inglês)', async () => {
+    assert.strictEqual(new lib.Store(tmp('i18n-padrao')).settings.idioma, 'auto');
+    assert.strictEqual(lib.idiomaDoWindows({ getPreferredSystemLanguages: () => ['ja-JP', 'en-US'], getLocale: () => 'en-US' }), 'ja-JP');
+    assert.strictEqual(lib.idiomaDoWindows({ getPreferredSystemLanguages: () => [], getSystemLocale: () => 'es-AR' }), 'es-AR');
+    assert.strictEqual(lib.idiomaDoWindows({ getLocale: () => 'pt-BR' }), 'pt-BR');
+    const st = new lib.Store(tmp('i18n-windows'));
+    const h = {};
+    const app = { getVersion: () => 'x', once: () => {}, getPreferredSystemLanguages: () => ['es-MX'] };
+    const ipc = { handle: (k, f) => (h[k] = f), on: (k, f) => (h[k] = f) };
+    lib.register(ipc, { shell: {}, dialog: {}, BrowserWindow: { getAllWindows: () => [] }, app, store: st, varrerAoAbrir: false, atrasoVigias: 1e9, atrasoConquistas: 1e9, atrasoDiscord: 1e9, semDualSense: true });
+    assert.strictEqual(lib.tr('Abrir o Arcade Hub'), 'Abrir Arcade Hub');           // Windows em espanhol
+    const ev = {}; h['idioma:sistema'](ev);
+    assert.strictEqual(ev.returnValue, 'es-MX');                                     // a janela recebe o mesmo
+    lib.definirIdioma('auto', 'de-DE');
+    assert.strictEqual(lib.tr('Abrir o Arcade Hub'), 'Open Arcade Hub');             // alemão: inglês
+  });
+  await t('quem ficou no inglês da 1.5.1 sem escolher volta ao automático; escolha feita fica', async () => {
+    const d = tmp('i18n-151');
+    fs.writeFileSync(path.join(d, 'library.json'), JSON.stringify({ games: [], favorites: [], hidden: [], settings: { idioma: 'en' } }));
+    assert.strictEqual(new lib.Store(d).settings.idioma, 'auto');
     const st = new lib.Store(tmp('i18n-escolheu'));
     const h = {};
     lib.register({ handle: (k, f) => (h[k] = f) }, { shell: {}, dialog: {}, BrowserWindow: { getAllWindows: () => [] }, app: { getVersion: () => 'x', once: () => {}, getLocale: () => 'pt-BR' }, store: st, varrerAoAbrir: false, atrasoVigias: 1e9, atrasoConquistas: 1e9, atrasoDiscord: 1e9, semDualSense: true });
-    assert.strictEqual(lib.tr('Abrir o Arcade Hub'), 'Open Arcade Hub');
-    await h['settings:save']({}, { idioma: 'auto' });
+    await h['settings:save']({}, { idioma: 'en' });
     st.flush();
-    const relido = new lib.Store(st.dir);
-    assert.strictEqual(relido.settings.idioma, 'auto');
-    assert.strictEqual(lib.tr('Abrir o Arcade Hub'), 'Abrir o Arcade Hub');   // Windows em português
+    assert.strictEqual(new lib.Store(st.dir).settings.idioma, 'en');
+    assert.strictEqual(lib.tr('Abrir o Arcade Hub'), 'Open Arcade Hub');
   });
 
   // painel do DualSense Auto: o Python serve a tradução no idioma do Arcade Hub

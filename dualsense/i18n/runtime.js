@@ -34,6 +34,7 @@
   }
 
   let idioma = 'pt-BR';
+  let sistemaAtual = 'en';
   let exatos = null;           // Map texto → tradução
   let modelos = [];            // [{ re, saida, literal }]
   let porInicio = new Map();   // 3 primeiras letras do começo fixo → modelos
@@ -225,19 +226,21 @@
 
   function iniciar(escolha, opts) {
     const o = opts || {};
-    idioma = resolver(escolha, o.sistema || (typeof navigator !== 'undefined' ? navigator.language : 'pt-BR'));
+    sistemaAtual = o.sistema || (typeof navigator !== 'undefined' ? navigator.language : 'en');
+    idioma = resolver(escolha, sistemaAtual);
     const dic = idioma === 'pt-BR' ? null : (o.dicionario || ((raiz.I18N_DICIONARIOS || {})[idioma]) || null);
     if (dic) carregar(dic); else exatos = null;
     return idioma;
   }
 
-  // sem escolha salva, o app abre em inglês (o padrão)
-  function lembrado() { try { return raiz.localStorage ? raiz.localStorage.getItem(CHAVE_LOCAL) || 'en' : 'en'; } catch { return 'en'; } }
-  function lembrar(v) { try { raiz.localStorage.setItem(CHAVE_LOCAL, v || 'en'); } catch { /* sem armazenamento */ } }
+  // sem escolha salva, segue o idioma do Windows
+  function lembrado() { try { return raiz.localStorage ? raiz.localStorage.getItem(CHAVE_LOCAL) || 'auto' : 'auto'; } catch { return 'auto'; } }
+  function lembrar(v) { try { raiz.localStorage.setItem(CHAVE_LOCAL, v || 'auto'); } catch { /* sem armazenamento */ } }
 
   const api = {
     IDIOMAS, resolver, doSistema, iniciar, carregar, tr, aplicar, traduzirArvore, lembrado, lembrar,
     get idioma() { return idioma; },
+    get sistema() { return sistemaAtual; },
     get locale() { return (IDIOMAS.find(i => i.id === idioma) || IDIOMAS[0]).locale; },
     get ativo() { return !!exatos; }
   };

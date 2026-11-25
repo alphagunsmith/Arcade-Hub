@@ -7,7 +7,11 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 const call = (channel, payload) => ipcRenderer.invoke(channel, payload);
 
+let idiomaSistema = '';
+try { idiomaSistema = String(ipcRenderer.sendSync('idioma:sistema') || ''); } catch { /* fora do app */ }
+
 contextBridge.exposeInMainWorld('arcadeAPI', {
+  idiomaSistema,      // idioma do Windows (para o modo "Automático")
   // estado
   getState: () => call('state:get'),
   scan: () => call('scan:run'),

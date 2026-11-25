@@ -3585,7 +3585,7 @@ function ligarIdioma(s) {
   sel.innerHTML = '';
   const auto = document.createElement('option');
   auto.value = 'auto';
-  const sistema = I18N.IDIOMAS.find(i => i.id === I18N.doSistema(navigator.language));
+  const sistema = I18N.IDIOMAS.find(i => i.id === I18N.doSistema(I18N.sistema));
   auto.textContent = `Automático / Automatic (${sistema ? sistema.nome : 'English'})`;
   sel.appendChild(auto);
   for (const i of I18N.IDIOMAS) {
@@ -3593,7 +3593,7 @@ function ligarIdioma(s) {
     o.value = i.id; o.textContent = i.nome;
     sel.appendChild(o);
   }
-  sel.value = s.idioma || 'en';
+  sel.value = s.idioma || 'auto';
   sel.onchange = async e => {
     const v = e.target.value;
     const r = await api.saveSettings({ idioma: v });
@@ -3605,10 +3605,10 @@ function ligarIdioma(s) {
 /** Idioma salvo nos ajustes ≠ o que esta janela abriu: grava e recarrega (uma vez). */
 function conferirIdioma(s) {
   if (typeof I18N === 'undefined') return false;
-  const salvo = (s && s.idioma) || 'en';
+  const salvo = (s && s.idioma) || 'auto';
   if (salvo === I18N.lembrado()) return false;
   I18N.lembrar(salvo);
-  if (I18N.resolver(salvo, navigator.language) === I18N.idioma) return false;
+  if (I18N.resolver(salvo, I18N.sistema) === I18N.idioma) return false;
   location.reload();
   return true;
 }

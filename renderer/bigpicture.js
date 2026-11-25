@@ -522,10 +522,11 @@ const ModoTV = (() => {
     ];
   }
   const ORDEM_IDIOMAS = ['auto', 'pt-BR', 'en', 'es', 'ja', 'zh-CN'];
-  function idiomaSalvo() { return ((ui.state.settings || {}).idioma) || 'en'; }
+  function idiomaSalvo() { return ((ui.state.settings || {}).idioma) || 'auto'; }
   function nomeIdioma() {
     const v = idiomaSalvo();
-    if (v === 'auto' || typeof I18N === 'undefined') return 'Auto';
+    if (typeof I18N === 'undefined') return 'Auto';
+    if (v === 'auto') { const s = I18N.IDIOMAS.find(x => x.id === I18N.idioma); return `Auto (${s ? s.nome : 'English'})`; }
     const i = I18N.IDIOMAS.find(x => x.id === v);
     return i ? i.nome : v;
   }

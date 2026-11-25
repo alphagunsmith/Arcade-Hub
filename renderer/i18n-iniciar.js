@@ -1,6 +1,7 @@
 'use strict';
 /* Liga a tradução assim que a página carrega (antes do app desenhar a biblioteca). */
-I18N.iniciar(I18N.lembrado());
+// "Automático": usa o idioma do Windows que o Arcade Hub informa (no navegador, o do navegador)
+I18N.iniciar(I18N.lembrado(), { sistema: (window.arcadeAPI && window.arcadeAPI.idiomaSistema) || navigator.language });
 I18N.aplicar(document);
 
 /** Locale para datas e ordenação ("pt-BR", "en-US"…). */

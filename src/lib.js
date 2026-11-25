@@ -27,13 +27,26 @@ const I18N = require('../renderer/i18n.js');
 
 /* ---------- idioma do processo principal (caixas de diálogo, bandeja) ---------- */
 function definirIdioma(escolha, sistema) {
-  const id = I18N.resolver(escolha || 'en', sistema || 'en');
+  const id = I18N.resolver(escolha || 'auto', sistema || 'en');
   let dicionario = null;
   if (id !== 'pt-BR') { try { dicionario = require(`../renderer/i18n/${id}.js`); } catch { /* sem dicionário: português */ } }
-  I18N.iniciar(escolha || 'en', { sistema, dicionario });
+  I18N.iniciar(escolha || 'auto', { sistema, dicionario });
   return I18N.idioma;
 }
 const tr = t => I18N.tr(t);
+/**
+ * Idioma do Windows do usuário: o primeiro da lista de idiomas preferidos do sistema
+ * (Configurações › Hora e idioma), que é o idioma da tela do Windows.
+ */
+function idiomaDoWindows(app) {
+  try {
+    const lista = app && typeof app.getPreferredSystemLanguages === 'function' ? app.getPreferredSystemLanguages() : [];
+    if (lista && lista[0]) return lista[0];
+  } catch { /* versões antigas */ }
+  try { if (app && typeof app.getSystemLocale === 'function' && app.getSystemLocale()) return app.getSystemLocale(); } catch { /* idem */ }
+  try { if (app && typeof app.getLocale === 'function') return app.getLocale(); } catch { /* idem */ }
+  return 'en';
+}
 /** Caixas de diálogo do Electron com título, mensagem, botões e filtros traduzidos. */
 function dialogoTraduzido(dialog) {
   if (!dialog) return dialog;
@@ -261,7 +274,7 @@ const DEFAULT_SETTINGS = {
   perfilAtivo: '',
   conquistas: {},           // { perfilId: { conquistaId: quando } }
   biosFolder: '',           // pasta extra onde procurar BIOS (opcional)
-  idioma: 'en',             // inglês por padrão; 'auto' (o do Windows), 'pt-BR', 'en', 'es', 'ja' ou 'zh-CN'
+  idioma: 'auto',           // 'auto' = o idioma do Windows (sem tradução: inglês); ou 'pt-BR', 'en', 'es', 'ja', 'zh-CN'
   discord: {
     appId: '',              // vazio = o ID padrão do Arcade Hub (DISCORD_APP_ID)
     ligado: true,           // mostrar "Jogando X" no Discord
@@ -1102,8 +1115,8 @@ class Store {
     for (const k of CHAVES_CIFRADAS) settings[k] = decifrar(settings[k]);
     settings.discord = { ...DEFAULT_SETTINGS.discord, ...(settings.discord || {}) };
     settings.dualsense = { ...DEFAULT_SETTINGS.dualsense, ...(settings.dualsense || {}) };
-    // até a 1.5.0 o padrão era "auto" (o idioma do Windows): quem não escolheu nada passa para o inglês
-    if (settings.idioma === 'auto' && !settings.idiomaEscolhido) settings.idioma = 'en';
+    // na 1.5.1 o padrão foi inglês fixo: quem não escolheu nada volta a seguir o Windows
+    if (settings.idioma === 'en' && !settings.idiomaEscolhido) settings.idioma = 'auto';
     settings.emulators = { ...defaultEmulators(), ...(settings.emulators || {}) };
     this.data = {
       settings,
@@ -2086,7 +2099,9 @@ function traduzErroSpawn(e, plan) {
 function register(ipcMain, deps) {
   const { shell, BrowserWindow, app } = deps;
   const dialog = dialogoTraduzido(deps.dialog);
-  const sistemaIdioma = () => { try { return app && typeof app.getLocale === 'function' ? app.getLocale() : 'pt-BR'; } catch { return 'pt-BR'; } };
+  const sistemaIdioma = () => idiomaDoWindows(app);
+  // a janela pergunta (de forma síncrona, antes de desenhar) qual é o idioma do Windows
+  if (typeof ipcMain.on === 'function') ipcMain.on('idioma:sistema', e => { e.returnValue = sistemaIdioma(); });
   definirIdioma((deps.store.settings || {}).idioma, sistemaIdioma());
   let win = null;
   if (BrowserWindow) {
@@ -3305,7 +3320,7 @@ function register(ipcMain, deps) {
 }
 
 module.exports = {
-  tr, definirIdioma, dialogoTraduzido,
+  tr, definirIdioma, dialogoTraduzido, idiomaDoWindows,
   planoNetplay, chaveDaRom, DISCORD_APP_ID,
   perfisDe, perfilAtivoDe, limparPerfis,
   DEFAULT_SETTINGS, Store, cifrar, decifrar, credScreenScraper, runScan, runScanAsync, registrarSessao, eventos, limparCacheLojas, launchersCacheados, extrairCapas, caminhoDeFileUrl, collectScan, finishScan, mergeScanned, buildLaunchPlan, register, genres,
