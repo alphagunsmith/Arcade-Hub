@@ -68,6 +68,24 @@ const dic = id => require(path.join(ROOT, 'renderer', 'i18n', id + '.js'));
     assert.strictEqual(lib.tr('Abrir o Arcade Hub'), 'Abrir o Arcade Hub');
   });
 
+  await t('padrão do app é inglês; quem tinha o "auto" antigo sem escolher passa para inglês', async () => {
+    const d1 = tmp('i18n-padrao');
+    assert.strictEqual(new lib.Store(d1).settings.idioma, 'en');
+    const d2 = tmp('i18n-antigo');
+    fs.writeFileSync(path.join(d2, 'library.json'), JSON.stringify({ games: [], favorites: [], hidden: [], settings: { idioma: 'auto' } }));
+    assert.strictEqual(new lib.Store(d2).settings.idioma, 'en');
+    // quem escolheu "Automático" de propósito continua no automático
+    const st = new lib.Store(tmp('i18n-escolheu'));
+    const h = {};
+    lib.register({ handle: (k, f) => (h[k] = f) }, { shell: {}, dialog: {}, BrowserWindow: { getAllWindows: () => [] }, app: { getVersion: () => 'x', once: () => {}, getLocale: () => 'pt-BR' }, store: st, varrerAoAbrir: false, atrasoVigias: 1e9, atrasoConquistas: 1e9, atrasoDiscord: 1e9, semDualSense: true });
+    assert.strictEqual(lib.tr('Abrir o Arcade Hub'), 'Open Arcade Hub');
+    await h['settings:save']({}, { idioma: 'auto' });
+    st.flush();
+    const relido = new lib.Store(st.dir);
+    assert.strictEqual(relido.settings.idioma, 'auto');
+    assert.strictEqual(lib.tr('Abrir o Arcade Hub'), 'Abrir o Arcade Hub');   // Windows em português
+  });
+
   // painel do DualSense Auto: o Python serve a tradução no idioma do Arcade Hub
   const nomes = [process.env.ARCADE_PYTHON, process.platform === 'win32' ? 'python' : 'python3', 'python'].filter(Boolean);
   const py = nomes.find(n => spawnSync(n, ['-c', 'import numpy, psutil'], { encoding: 'utf8' }).status === 0);

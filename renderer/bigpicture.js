@@ -522,7 +522,7 @@ const ModoTV = (() => {
     ];
   }
   const ORDEM_IDIOMAS = ['auto', 'pt-BR', 'en', 'es', 'ja', 'zh-CN'];
-  function idiomaSalvo() { return ((ui.state.settings || {}).idioma) || 'auto'; }
+  function idiomaSalvo() { return ((ui.state.settings || {}).idioma) || 'en'; }
   function nomeIdioma() {
     const v = idiomaSalvo();
     if (v === 'auto' || typeof I18N === 'undefined') return 'Auto';

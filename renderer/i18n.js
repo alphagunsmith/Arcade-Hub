@@ -231,8 +231,9 @@
     return idioma;
   }
 
-  function lembrado() { try { return raiz.localStorage ? raiz.localStorage.getItem(CHAVE_LOCAL) || 'auto' : 'auto'; } catch { return 'auto'; } }
-  function lembrar(v) { try { raiz.localStorage.setItem(CHAVE_LOCAL, v || 'auto'); } catch { /* sem armazenamento */ } }
+  // sem escolha salva, o app abre em inglês (o padrão)
+  function lembrado() { try { return raiz.localStorage ? raiz.localStorage.getItem(CHAVE_LOCAL) || 'en' : 'en'; } catch { return 'en'; } }
+  function lembrar(v) { try { raiz.localStorage.setItem(CHAVE_LOCAL, v || 'en'); } catch { /* sem armazenamento */ } }
 
   const api = {
     IDIOMAS, resolver, doSistema, iniciar, carregar, tr, aplicar, traduzirArvore, lembrado, lembrar,

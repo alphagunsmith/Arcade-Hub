@@ -63,7 +63,7 @@ Smart vibration and adaptive triggers for **any PC game**, bundled and managed b
 
 ## Languages
 
-Choose the language in **Settings › General › Language** (or in TV Mode › System). "Automatic" follows the Windows language; languages other than Portuguese, Spanish, Japanese and Chinese fall back to English.
+Arcade Hub starts in **English**. Choose another language in **Settings › General › Language** (or in TV Mode › System). "Automatic" follows the Windows language; languages other than Portuguese, Spanish, Japanese and Chinese fall back to English.
 
 ## Online services used
 

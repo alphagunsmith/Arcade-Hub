@@ -27,10 +27,10 @@ const I18N = require('../renderer/i18n.js');
 
 /* ---------- idioma do processo principal (caixas de diálogo, bandeja) ---------- */
 function definirIdioma(escolha, sistema) {
-  const id = I18N.resolver(escolha || 'auto', sistema || 'pt-BR');
+  const id = I18N.resolver(escolha || 'en', sistema || 'en');
   let dicionario = null;
   if (id !== 'pt-BR') { try { dicionario = require(`../renderer/i18n/${id}.js`); } catch { /* sem dicionário: português */ } }
-  I18N.iniciar(escolha || 'auto', { sistema, dicionario });
+  I18N.iniciar(escolha || 'en', { sistema, dicionario });
   return I18N.idioma;
 }
 const tr = t => I18N.tr(t);
@@ -261,7 +261,7 @@ const DEFAULT_SETTINGS = {
   perfilAtivo: '',
   conquistas: {},           // { perfilId: { conquistaId: quando } }
   biosFolder: '',           // pasta extra onde procurar BIOS (opcional)
-  idioma: 'auto',           // 'auto' (o do Windows), 'pt-BR', 'en', 'es', 'ja' ou 'zh-CN'
+  idioma: 'en',             // inglês por padrão; 'auto' (o do Windows), 'pt-BR', 'en', 'es', 'ja' ou 'zh-CN'
   discord: {
     appId: '',              // vazio = o ID padrão do Arcade Hub (DISCORD_APP_ID)
     ligado: true,           // mostrar "Jogando X" no Discord
@@ -1102,6 +1102,8 @@ class Store {
     for (const k of CHAVES_CIFRADAS) settings[k] = decifrar(settings[k]);
     settings.discord = { ...DEFAULT_SETTINGS.discord, ...(settings.discord || {}) };
     settings.dualsense = { ...DEFAULT_SETTINGS.dualsense, ...(settings.dualsense || {}) };
+    // até a 1.5.0 o padrão era "auto" (o idioma do Windows): quem não escolheu nada passa para o inglês
+    if (settings.idioma === 'auto' && !settings.idiomaEscolhido) settings.idioma = 'en';
     settings.emulators = { ...defaultEmulators(), ...(settings.emulators || {}) };
     this.data = {
       settings,
@@ -2512,6 +2514,7 @@ function register(ipcMain, deps) {
           }
         };
       }
+      if (patch && 'idioma' in patch) patch = { ...patch, idiomaEscolhido: true };
       if (patch && 'youtubeKey' in patch) patch = { ...patch, youtubeKey: String(patch.youtubeKey || '').trim() };
       store.saveSettings(patch || {});
       if (patch && 'idioma' in patch) {
