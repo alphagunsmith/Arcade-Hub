@@ -1,5 +1,17 @@
 # Novidades
 
+## 1.3.0
+
+**Discord, sem servidor**
+- **Status no Discord:** seus amigos veem "Jogando *Jogo* no Arcade Hub", com o console, o tempo de partida e a capa (nos jogos da Steam). O status some quando o jogo fecha.
+- **Botão "Participar" para os amigos:** quando um amigo clica, o Discord abre o Arcade Hub dele.
+  - Num jogo de PC, o mesmo jogo abre no PC do amigo (pela Steam, se for de lá), e vocês se juntam pelo multiplayer do próprio jogo.
+  - Num jogo retrô aberto com **Jogar online**, ele entra na mesma partida pelo RetroArch (netplay). O Arcade Hub acha a mesma ROM na biblioteca dele (pelo CRC) e conecta no endereço certo: mesma VPN de jogos (Radmin, ZeroTier, Tailscale), mesma rede de casa ou internet.
+- **Pedido para participar:** é aceito sozinho, e aparece um aviso com o nome de quem está entrando. Dá para desligar.
+- **Jogar online:** botão novo na ficha das ROMs e na página do jogo no Modo TV.
+- **Ajustes › Discord:** liga e desliga cada parte, mostra se o Discord está conectado e permite trocar a porta do jogo online.
+- Tudo passa pelo Discord aberto no próprio PC. O único acesso de fora é um serviço público de "qual é meu IP", usado só para montar o convite do jogo online.
+
 ## 1.2.0
 
 **Modo Console: o PC vira um videogame**

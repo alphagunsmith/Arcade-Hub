@@ -212,6 +212,7 @@
             <svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>
             Jogar
           </button>
+          <button class="ghost-btn" id="d-online" hidden title="Abre a partida pelo RetroArch e deixa seus amigos entrarem pelo Discord">Jogar online</button>
           <button class="ghost-btn" id="d-cover">Trocar capa</button>
           <button class="ghost-btn" id="d-refresh-meta" title="Buscar de novo no Metacritic / Wikidata / Steam">Atualizar ficha</button>
           <button class="ghost-btn" id="d-fav">Favoritar</button>
@@ -367,6 +368,7 @@
         <button data-tab="folders" class="active">Pastas</button>
         <button data-tab="emulators">Emuladores</button>
         <button data-tab="general">Geral</button>
+        <button data-tab="discord">Discord</button>
         <button data-tab="diag">Diagnóstico</button>
         <button data-tab="about">Sobre</button>
       </div>
@@ -513,6 +515,29 @@
           <label>Onde ficam os dados</label>
           <p class="muted small mono" id="data-dir"></p>
         </div>
+      </div>
+
+      <div class="tab-panel" data-panel="discord" hidden>
+        <div class="field">
+          <label>Discord</label>
+          <p class="muted small">Seus amigos veem no Discord o que você está jogando e podem clicar em <b>Participar</b>. Tudo acontece pelo Discord aberto no seu PC: não passa por nenhum servidor do Arcade Hub.</p>
+          <p class="dc-estado" id="dc-estado">…</p>
+        </div>
+        <div class="field row-inline"><label class="switch"><input type="checkbox" id="dc-ligado" /><span></span>Mostrar no Discord o jogo que estou jogando</label></div>
+        <div class="field row-inline"><label class="switch"><input type="checkbox" id="dc-convites" /><span></span>Botão "Participar" para os amigos</label></div>
+        <div class="field row-inline"><label class="switch"><input type="checkbox" id="dc-pedidos" /><span></span>Aceitar sozinho quando um amigo pedir para participar</label></div>
+        <div class="field row-inline"><label class="switch"><input type="checkbox" id="dc-navegando" /><span></span>Mostrar "Escolhendo um jogo" mesmo sem jogo aberto</label></div>
+        <div class="field">
+          <label>Jogar online (jogos retrô)</label>
+          <p class="muted small">Na ficha de uma ROM, use <b>Jogar online</b>: o RetroArch abre a partida e seus amigos entram pelo <b>Participar</b> do Discord. Os dois precisam do Arcade Hub, do Discord aberto, do RetroArch com o mesmo core e da <b>mesma ROM</b>.</p>
+          <p class="muted small">Para a conexão chegar até você, o mais fácil é os dois estarem na mesma VPN de jogos (Radmin VPN, ZeroTier ou Tailscale) ou na mesma rede de casa. Pela internet direto, é preciso liberar a porta abaixo no roteador. Quem entra recebe o seu endereço de rede, então convide só quem você conhece.</p>
+          <div class="row"><label for="dc-porta" class="muted small">Porta</label><input id="dc-porta" type="number" min="1024" max="65535" style="width:110px" /></div>
+        </div>
+        <details class="fonte-ajuda">
+          <summary>Usar um aplicativo do Discord próprio (opcional)</summary>
+          <p class="muted small">O status aparece com o nome e o ícone do aplicativo do Discord. Para usar o seu: em discord.com/developers/applications crie um aplicativo, copie o <b>Application ID</b> e cole aqui. Em <b>Rich Presence › Art Assets</b>, envie uma imagem com o nome <b>logo</b>.</p>
+          <div class="row"><input id="dc-appid" type="text" inputmode="numeric" placeholder="Application ID (só números)" style="flex:1" /><button class="ghost-btn" id="dc-salvar">Salvar</button></div>
+        </details>
       </div>
 
       <div class="tab-panel" data-panel="diag" hidden>

@@ -18,7 +18,7 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
   removeGame: id => call('game:remove', id),
   toggleFavorite: id => call('game:favorite', id),
   toggleHidden: id => call('game:hide', id),
-  launch: id => call('game:launch', id),
+  launch: (id, opts) => call('game:launch', id, opts),
 
   // ajustes
   saveSettings: patch => call('settings:save', patch),
@@ -66,6 +66,18 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
     const handler = (_e, p) => cb(p);
     ipcRenderer.on('game:sessionEnd', handler);
     return () => ipcRenderer.removeListener('game:sessionEnd', handler);
+  },
+  discordSalvar: patch => call('discord:salvar', patch),
+  discordEstado: () => call('discord:estado'),
+  onDiscordAviso: cb => {
+    const handler = (_e, p) => cb(p);
+    ipcRenderer.on('discord:aviso', handler);
+    return () => ipcRenderer.removeListener('discord:aviso', handler);
+  },
+  onDiscordEstado: cb => {
+    const handler = (_e, p) => cb(p);
+    ipcRenderer.on('discord:estado', handler);
+    return () => ipcRenderer.removeListener('discord:estado', handler);
   },
   onConquista: cb => {
     const handler = (_e, p) => cb(p);

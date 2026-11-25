@@ -21,6 +21,7 @@ const { EventEmitter } = require('events');
 const fontesVideo = require('./fontes-video');
 const conquistas = require('./conquistas');
 const consoleMod = require('./console');
+const discord = require('./discord');
 
 /* Senhas guardadas cifradas pelo sistema (Windows DPAPI via safeStorage). */
 function cifrar(txt) {
@@ -227,8 +228,19 @@ const DEFAULT_SETTINGS = {
   perfis: [],               // [{ id, nome, cor, avatar }] — vazio = um perfil com o nome do usuário do PC
   perfilAtivo: '',
   conquistas: {},           // { perfilId: { conquistaId: quando } }
-  biosFolder: ''            // pasta extra onde procurar BIOS (opcional)
+  biosFolder: '',           // pasta extra onde procurar BIOS (opcional)
+  discord: {
+    appId: '',              // vazio = o ID padrão do Arcade Hub (DISCORD_APP_ID)
+    ligado: true,           // mostrar "Jogando X" no Discord
+    mostrarNavegando: false,// mostrar "No Arcade Hub" mesmo sem jogo aberto
+    convites: true,         // botão "Participar" para os amigos
+    aceitarPedidos: true,   // pedido para participar: aceita sozinho
+    portaNetplay: 55435     // porta do jogo online do RetroArch
+  }
 };
+
+/** ID do aplicativo "Arcade Hub" no Discord (público: aparece no status de todo mundo). */
+const DISCORD_APP_ID = '';
 
 /* ------------------------------------------------------------------ */
 /* Perfis (quem está jogando)                                          */
@@ -1052,6 +1064,7 @@ class Store {
     const settings = { ...DEFAULT_SETTINGS, ...(data && data.settings ? data.settings : {}) };
     // chaves de API ficam cifradas no disco; na memória, em texto
     for (const k of CHAVES_CIFRADAS) settings[k] = decifrar(settings[k]);
+    settings.discord = { ...DEFAULT_SETTINGS.discord, ...(settings.discord || {}) };
     settings.emulators = { ...defaultEmulators(), ...(settings.emulators || {}) };
     this.data = {
       settings,
@@ -1370,6 +1383,38 @@ function sanitizeLaunch(l) {
   if (out.type === 'steam' && !/^\d+$/.test(out.appId || '')) return null;
   if (out.type === 'url' && out.url && !urlPermitida(out.url)) return null;
   return out;
+}
+
+/**
+ * Jogo retrô online pelo RetroArch (netplay). Os dois lados precisam do mesmo
+ * core e da mesma ROM. `modo`: { hospedar: true } ou { conectar: endereço }.
+ */
+function planoNetplay(game, settings, modo) {
+  const g = game || {};
+  if (!g.launch || g.launch.type !== 'rom' || !g.launch.rom) return { kind: 'broken', reason: 'jogo online só funciona com ROMs' };
+  const ra = settings.retroarch || {};
+  if (!ra.exe) return { kind: 'broken', reason: 'o jogo online usa o RetroArch: configure o RetroArch em Ajustes › Emuladores (ou na seção Emuladores do Modo TV)' };
+  const platform = g.launch.platform || g.platformKey;
+  const coreNome = modo.core || RETROARCH_CORE[platform];
+  if (!coreNome || !/^[\w.-]+$/.test(coreNome)) return { kind: 'broken', reason: 'esse console ainda não tem jogo online pelo RetroArch' };
+  const pastaCores = ra.cores || path.join(path.dirname(ra.exe), 'cores');
+  const core = path.join(pastaCores, coreNome);
+  if (!fs.existsSync(core)) return { kind: 'broken', reason: `falta o core ${coreNome} no RetroArch (baixe pelo "Atualizador online" do RetroArch)` };
+  const porta = Math.max(1, Math.min(65535, Number(modo.porta) || 55435));
+  const nick = String(modo.nick || 'Jogador').replace(/[^\p{L}\p{N} _-]/gu, '').slice(0, 20) || 'Jogador';
+  const args = ['-L', core];
+  if (modo.hospedar) args.push('--host');
+  else args.push(`--connect=${modo.conectar}`);
+  args.push(`--port=${porta}`, `--nick=${nick}`, g.launch.rom);
+  return { kind: 'exe', target: ra.exe, args, cwd: path.dirname(ra.exe), label: 'RetroArch (online)', core: coreNome, porta };
+}
+
+/** Identidade da ROM para achar a mesma do outro lado: CRC32 (ou o tamanho, se for enorme). */
+function chaveDaRom(rom) {
+  try {
+    const t = fs.statSync(rom).size;
+    return fontesVideo.crcDaRom(rom, t) || ('S' + t.toString(16).toUpperCase());
+  } catch { return ''; }
 }
 
 function buildLaunchPlan(game, settings) {
@@ -2023,6 +2068,136 @@ function register(ipcMain, deps) {
   const timerConquistas = setTimeout(iniciarConquistas, deps.atrasoConquistas != null ? deps.atrasoConquistas : 1500);
   if (timerConquistas.unref) timerConquistas.unref();
 
+  /* ---------------- Discord (status e convites, sem servidor) ---------------- */
+  let cliente = null;
+  let estadoDiscord = 'desligado';
+  let ipPublico = { ip: null, em: 0 };
+  const appIdDiscord = () => String(((store.settings.discord || {}).appId) || DISCORD_APP_ID || '').trim();
+
+  const iniciarDiscord = () => {
+    if (cliente) { cliente.removeAllListeners(); cliente.parar(); cliente = null; }
+    const d = store.settings.discord || {};
+    const id = appIdDiscord();
+    if (!d.ligado || !id || deps.semDiscord) { estadoDiscord = !id ? 'sem-id' : 'desligado'; enviar('discord:estado', estadoDiscord); return; }
+    // o Discord abre o Arcade Hub do amigo por discord-<id>:// quando ele clica em "Participar"
+    try {
+      if (app && typeof app.setAsDefaultProtocolClient === 'function') {
+        if (process.defaultApp && process.argv.length >= 2) app.setAsDefaultProtocolClient(`discord-${id}`, process.execPath, [path.resolve(process.argv[1])]);
+        else app.setAsDefaultProtocolClient(`discord-${id}`);
+      }
+    } catch { /* sem registro: o status funciona, só o "Participar" não abre o app fechado */ }
+    cliente = new discord.ClienteDiscord({ clientId: id, caminhos: deps.caminhosDiscord });
+    cliente.on('estado', e => { estadoDiscord = e; enviar('discord:estado', e); if (e === 'conectado') atualizarPresenca(); });
+    cliente.on('entrar', segredo => entrarPeloDiscord(segredo));
+    cliente.on('pedido', usuario => {
+      if (!usuario || !usuario.id) return;
+      const nome = usuario.global_name || usuario.username || 'Um amigo';
+      if ((store.settings.discord || {}).aceitarPedidos !== false) {
+        cliente.aceitarPedido(usuario.id);
+        enviar('discord:aviso', { tipo: 'ok', texto: `${nome} está entrando na sua partida pelo Discord` });
+      } else {
+        cliente.recusarPedido(usuario.id);
+        enviar('discord:aviso', { tipo: 'info', texto: `${nome} pediu para entrar (pedidos estão desligados em Ajustes › Discord)` });
+      }
+    });
+    cliente.iniciar();
+  };
+
+  /** O status do Discord: o jogo aberto agora (o mais recente), ou nada. */
+  const atualizarPresenca = () => {
+    if (!cliente) return;
+    const d = store.settings.discord || {};
+    const abertas = [...sessoesAtivas.entries()].sort((a, b) => b[1].inicio - a[1].inicio);
+    if (!abertas.length) {
+      if (!d.mostrarNavegando) { cliente.definirAtividade(null); return; }
+      cliente.definirAtividade({ details: 'Escolhendo um jogo', state: `${store.games.length} jogos na biblioteca`, assets: { large_image: 'logo', large_text: 'Arcade Hub' }, instance: false });
+      return;
+    }
+    const [id, sess] = abertas[0];
+    const g = store.games.find(x => x.id === id) || { title: sess.title };
+    const steamId = g.launch && g.launch.type === 'steam' ? String(g.launch.appId) : null;
+    const plataforma = g.kind === 'rom' ? (PLATFORM_LABEL[g.platformKey] || g.platform || 'Retrô') : 'PC';
+    const atividade = {
+      details: String(g.title || 'Jogando').slice(0, 120),
+      state: sess.online && sess.online.segredo ? `Online · ${plataforma} · chame no "Participar"` : sess.online && sess.online.convidado ? `Online com um amigo · ${plataforma}` : plataforma,
+      timestamps: { start: sess.inicio },
+      assets: {
+        large_image: steamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamId}/header.jpg` : 'logo',
+        large_text: String(g.title || '').slice(0, 120),
+        small_image: 'logo',
+        small_text: 'Arcade Hub'
+      },
+      instance: false
+    };
+    if (d.convites !== false) {
+      const segredo = sess.online && sess.online.segredo
+        ? sess.online.segredo
+        : steamId ? discord.criarSegredo({ tipo: 'steam', appId: steamId })
+          : discord.criarSegredo({ tipo: 'titulo', plataforma: g.kind === 'rom' ? g.platformKey : '', titulo: g.title });
+      const partida = crypto.createHash('sha1').update(String(id) + sess.inicio).digest('hex').slice(0, 32);
+      atividade.party = { id: partida, size: [1, sess.online && sess.online.segredo ? 2 : 4] };
+      atividade.secrets = { join: segredo };
+    }
+    cliente.definirAtividade(atividade);
+  };
+
+  /** Hospedando online: monta o convite com os endereços deste PC (rede de casa, VPN e internet). */
+  const prepararConvite = async (game, plan) => {
+    const sess = sessoesAtivas.get(game.id);
+    if (!sess) return;
+    const locais = discord.enderecosLocais();
+    const enderecos = [...locais.filter(x => x.tipo === 'vpn'), ...locais.filter(x => x.tipo === 'lan')].map(x => x.ip);
+    // endereço público: um serviço de "qual é meu IP" (não é servidor do Arcade Hub)
+    try {
+      if (!ipPublico.ip || Date.now() - ipPublico.em > 600000) {
+        const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 4000);
+        const r = await fetch('https://api.ipify.org', { signal: ctrl.signal }).finally(() => clearTimeout(t));
+        const ip = (await r.text()).trim();
+        if (/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) ipPublico = { ip, em: Date.now() };
+      }
+    } catch { /* sem internet para descobrir: fica só VPN/rede de casa */ }
+    if (ipPublico.ip) enderecos.push(ipPublico.ip);
+    const atual = sessoesAtivas.get(game.id);
+    if (!atual || !enderecos.length) return;
+    atual.online = {
+      segredo: discord.criarSegredo({ tipo: 'netplay', crc: chaveDaRom(game.launch.rom), enderecos: [...new Set(enderecos)], porta: plan.porta, core: plan.core, plataforma: game.platformKey }),
+      porta: plan.porta
+    };
+    atualizarPresenca();
+  };
+
+  /** Um amigo clicou em "Participar" no Discord e o convite chegou aqui. */
+  const entrarPeloDiscord = async segredo => {
+    const c = discord.lerSegredo(segredo);
+    const avisar = (texto, tipo) => enviar('discord:aviso', { texto, tipo: tipo || 'info' });
+    if (!c) return avisar('O convite do Discord veio num formato que esta versão não entende. Atualize o Arcade Hub.', 'erro');
+    const norm = t => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+    if (c.tipo === 'steam') {
+      const g = store.games.find(x => x.launch && x.launch.type === 'steam' && String(x.launch.appId) === c.appId);
+      if (g) { avisar(`Abrindo ${g.title} para jogar com seu amigo`, 'ok'); return lancar(g.id); }
+      await shell.openExternal(`steam://run/${c.appId}`);
+      return avisar('Abrindo o jogo pela Steam (se você não tiver, a Steam mostra a página dele)');
+    }
+    if (c.tipo === 'titulo') {
+      const alvo = norm(c.titulo);
+      const g = store.games.find(x => norm(x.title) === alvo && (!c.plataforma || x.kind !== 'rom' || x.platformKey === c.plataforma));
+      if (!g) return avisar(`Seu amigo está jogando ${c.titulo}, mas esse jogo não está na sua biblioteca`, 'erro');
+      avisar(`Abrindo ${g.title} para jogar com seu amigo`, 'ok');
+      return lancar(g.id);
+    }
+    // netplay: a mesma ROM (pelo CRC) e conecta no endereço certo
+    const candidatas = store.games.filter(x => x.kind === 'rom' && x.launch && x.launch.rom && (!c.plataforma || x.platformKey === c.plataforma));
+    const g = candidatas.find(x => chaveDaRom(x.launch.rom) === c.crc);
+    if (!g) return avisar('Para entrar, você precisa da mesma ROM que seu amigo (a sua é diferente ou não está na biblioteca)', 'erro');
+    const endereco = discord.escolherEndereco(c.enderecos, discord.enderecosLocais());
+    if (!endereco) return avisar('O convite veio sem endereço para conectar', 'erro');
+    avisar(`Entrando no ${g.title} do seu amigo…`, 'ok');
+    const r = await lancar(g.id, { conectar: { endereco, porta: c.porta, core: c.core } });
+    if (!r.ok) avisar(r.error || 'Não consegui entrar na partida', 'erro');
+    return r;
+  };
+  setTimeout(iniciarDiscord, deps.atrasoDiscord != null ? deps.atrasoDiscord : 1200).unref?.();
+
   /* ---------------- sessões de jogo (tempo de jogo) ---------------- */
   const sessoesAtivas = new Map();          // gameId -> { title, inicio, origem }
   const pastasProibidas = () => [...(store.settings.folders || []), ...(store.settings.romFolders || [])];
@@ -2032,12 +2207,14 @@ function register(ipcMain, deps) {
     sessoesAtivas.set(game.id, { title: game.title, inicio: inicio || Date.now(), origem, perfil: perfilAtivoDe(store.settings) });
     eventos.emit('sessao:inicio', { id: game.id, title: game.title });
     enviar('game:sessionStart', { id: game.id, title: game.title, origem });
+    atualizarPresenca();
   };
   const encerrar = (game, ms, info) => {
     const sess = sessoesAtivas.get(game.id);
     const tinha = sessoesAtivas.delete(game.id);
     const res = registrarSessao(store, game.id, ms, sess && sess.perfil);
     if (res) setTimeout(() => checarConquistas(res.perfil), 50);
+    atualizarPresenca();
     const atual = store.games.find(g => g.id === game.id);
     if (tinha) eventos.emit('sessao:fim', { id: game.id, title: game.title, session: res, ativas: sessoesAtivas.size });
     enviar('game:sessionEnd', {
@@ -2153,6 +2330,7 @@ function register(ipcMain, deps) {
       versions: { app: app.getVersion(), electron: process.versions.electron, os: `${os.platform()} ${os.release()}` },
       dataDir: store.dir,
       avisoBiblioteca: store.recuperado || null,
+      discordEstado: estadoDiscord,
       perfis: perfisDe(store.settings),
       perfilAtivo: perfilAtivoDe(store.settings),
       modoConsole: {
@@ -2287,6 +2465,21 @@ function register(ipcMain, deps) {
   });
 
   /* ---------------- perfis e conquistas ---------------- */
+  ipcMain.handle('discord:salvar', (_e, patch) => {
+    try {
+      const atual = { ...DEFAULT_SETTINGS.discord, ...(store.settings.discord || {}) };
+      const p = patch || {};
+      const novo = { ...atual };
+      if ('appId' in p) { const id = String(p.appId || '').trim(); if (id && !/^\d{15,22}$/.test(id)) throw new Error('o ID do aplicativo do Discord tem só números (17 a 20 dígitos)'); novo.appId = id; }
+      for (const k of ['ligado', 'mostrarNavegando', 'convites', 'aceitarPedidos']) if (k in p) novo[k] = !!p[k];
+      if ('portaNetplay' in p) { const n = Number(p.portaNetplay); if (!(n >= 1024 && n <= 65535)) throw new Error('porta entre 1024 e 65535'); novo.portaNetplay = n; }
+      store.saveSettings({ discord: novo });
+      iniciarDiscord();
+      return ok({ discord: novo, estado: estadoDiscord });
+    } catch (e) { return fail(e); }
+  });
+  ipcMain.handle('discord:estado', () => ok({ estado: estadoDiscord, appIdPadrao: !!DISCORD_APP_ID }));
+
   ipcMain.handle('perfis:salvar', (_e, lista) => {
     try {
       const perfis = limparPerfis(lista);
@@ -2362,11 +2555,22 @@ function register(ipcMain, deps) {
     try { return ok(store.toggleHidden(id)); } catch (e) { return fail(e); }
   });
 
-  ipcMain.handle('game:launch', async (_e, id) => {
+  ipcMain.handle('game:launch', (_e, id, opts) => lancar(id, opts));
+
+  /**
+   * Abre um jogo. `opts.online` = hospeda partida online (ROM pelo RetroArch);
+   * `opts.conectar` = entra na partida de um amigo ({ endereco, porta, core }).
+   */
+  async function lancar(id, opts) {
+    const o = opts || {};
     try {
       const game = store.games.find(g => g.id === id);
       if (!game) throw new Error('Jogo não encontrado');
-      const plan = buildLaunchPlan(game, store.settings);
+      const dsc = store.settings.discord || {};
+      const nick = (perfisDe(store.settings).find(p => p.id === perfilAtivoDe(store.settings)) || {}).nome;
+      const plan = o.online ? planoNetplay(game, store.settings, { hospedar: true, porta: dsc.portaNetplay, nick })
+        : o.conectar ? planoNetplay(game, store.settings, { conectar: o.conectar.endereco, porta: o.conectar.porta, core: o.conectar.core, nick })
+          : buildLaunchPlan(game, store.settings);
       if (plan.kind === 'broken') {
         return { ok: false, error: plan.reason || 'Este jogo está incompleto' };
       }
@@ -2414,6 +2618,8 @@ function register(ipcMain, deps) {
         const inicio = Date.now();
         session = { startedAt: inicio };
         marcarInicio(game, 'processo', inicio);
+        if (o.online) prepararConvite(game, plan);
+        else if (o.conectar) { const sx = sessoesAtivas.get(game.id); if (sx) sx.online = { convidado: true }; atualizarPresenca(); }
         child.on('exit', () => {
           const ms = Date.now() - inicio;
           // fechou rápido: era um launcher que abriu o jogo de verdade e saiu.
@@ -2428,7 +2634,7 @@ function register(ipcMain, deps) {
       store.updateGame(id, { playedAt: Date.now() });
       return ok({ plan, timed: !!session, startedAt: session ? session.startedAt : null });
     } catch (e) { return fail(e); }
-  });
+  }
 
   /* ---------------- tempo de jogo ---------------- */
 
@@ -2913,6 +3119,7 @@ function register(ipcMain, deps) {
 }
 
 module.exports = {
+  planoNetplay, chaveDaRom, DISCORD_APP_ID,
   perfisDe, perfilAtivoDe, limparPerfis,
   DEFAULT_SETTINGS, Store, cifrar, decifrar, credScreenScraper, runScan, runScanAsync, registrarSessao, eventos, limparCacheLojas, launchersCacheados, extrairCapas, caminhoDeFileUrl, collectScan, finishScan, mergeScanned, buildLaunchPlan, register, genres,
   dedupeGames, installKey, markInstalled, dirOf, exeOf, startSession,

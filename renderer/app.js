@@ -230,6 +230,10 @@ const api = (() => {
     usarEmulador: () => reply('C:/RetroArch-Win64/retroarch.exe'),
     abrirSiteEmulador: () => reply(true),
     onConquista: () => () => {},
+    discordSalvar: patch => { state.settings.discord = { ...(state.settings.discord || {}), ...patch }; return reply({ discord: state.settings.discord, estado: 'sem-discord' }); },
+    discordEstado: () => reply({ estado: 'sem-discord' }),
+    onDiscordAviso: () => () => {},
+    onDiscordEstado: () => () => {},
     win: { min: () => {}, max: () => {}, close: () => {} }
   };
 })();
@@ -978,6 +982,54 @@ async function launch(game) {
   render();
 }
 
+/** ROM online pelo RetroArch: seus amigos entram pelo "Participar" do Discord. */
+async function jogarOnline(game) {
+  const r = await api.launch(game.id, { online: true });
+  if (!r.ok) { toast(r.error || 'Não consegui abrir a partida online', 'err'); return false; }
+  const conectado = ui.discordEstado === 'conectado';
+  toast(conectado ? `${game.title} aberto online: seus amigos já podem clicar em "Participar" no Discord` : `${game.title} aberto online. O Discord não está aberto, então o convite não aparece para os amigos`, conectado ? 'ok' : 'err');
+  game.playedAt = Date.now();
+  render();
+  return true;
+}
+
+/** Ajustes › Discord. */
+const TEXTO_DISCORD = {
+  conectado: ['ok', 'Conectado ao Discord'],
+  'sem-discord': ['aviso', 'O Discord não está aberto neste PC (ele conecta sozinho quando você abrir)'],
+  desconectado: ['aviso', 'O Discord fechou; reconecta sozinho quando ele abrir'],
+  'sem-id': ['aviso', 'Falta o ID do aplicativo do Discord (veja "Usar um aplicativo do Discord próprio")'],
+  'id-invalido': ['erro', 'O Discord recusou o ID do aplicativo: confira o número'],
+  recusado: ['erro', 'O Discord recusou a conexão'],
+  desligado: ['', 'Desligado']
+};
+function mostrarEstadoDiscord() {
+  const box = $('#dc-estado');
+  if (!box) return;
+  const [cls, txt] = TEXTO_DISCORD[ui.discordEstado] || ['', 'Conectando…'];
+  box.className = 'dc-estado ' + cls;
+  box.textContent = txt;
+}
+function ligarDiscord(s) {
+  const d = { ligado: true, convites: true, aceitarPedidos: true, mostrarNavegando: false, portaNetplay: 55435, appId: '', ...(s.discord || {}) };
+  const salvar = async patch => {
+    const r = await api.discordSalvar(patch);
+    if (!r.ok) { toast(r.error || 'Não consegui salvar', 'err'); return; }
+    ui.state.settings.discord = r.data.discord;
+    ui.discordEstado = r.data.estado;
+    mostrarEstadoDiscord();
+  };
+  for (const [id, chave] of [['#dc-ligado', 'ligado'], ['#dc-convites', 'convites'], ['#dc-pedidos', 'aceitarPedidos'], ['#dc-navegando', 'mostrarNavegando']]) {
+    $(id).checked = d[chave] !== false && !!d[chave];
+    $(id).onchange = e => salvar({ [chave]: e.target.checked });
+  }
+  $('#dc-porta').value = d.portaNetplay;
+  $('#dc-porta').onchange = e => salvar({ portaNetplay: e.target.value });
+  $('#dc-appid').value = d.appId || '';
+  $('#dc-salvar').onclick = () => salvar({ appId: $('#dc-appid').value });
+  mostrarEstadoDiscord();
+}
+
 /* ---------- corrigir caminho de um jogo cujo arquivo sumiu ---------- */
 const EXT_ROMS = ['nes', 'sfc', 'smc', 'n64', 'z64', 'v64', 'gb', 'gbc', 'gba', 'nds', '3ds', 'cia', 'iso', 'cue', 'bin', 'chd', 'pbp', 'm3u', 'gdi', 'cdi', 'cso',
   'md', 'gen', 'smd', 'sms', 'gg', 'pce', 'zip', '7z', 'rvz', 'wbfs', 'gcm', 'gcz', 'wud', 'wux', 'rpx', 'nsp', 'xci', 'a26', 'a78', 'd64', 'ws', 'wsc', 'ngp', 'vb'];
@@ -1077,6 +1129,8 @@ function openDetail(game) {
   artBox.onclick = () => { closeModal($('#modal-game')); launch(game); };
 
   $('#d-play').onclick = () => { closeModal($('#modal-game')); launch(game); };
+  $('#d-online').hidden = game.kind !== 'rom';
+  $('#d-online').onclick = () => { closeModal($('#modal-game')); jogarOnline(game); };
   // ficha (Metacritic/Wikidata/Steam)
   if (game.meta) renderFicha(game.meta, game);
   else renderFicha(null, game);
@@ -2355,6 +2409,7 @@ function openSettings() {
   };
   $('#opt-sgdb').value = s.sgdbKey || '';
   ligarFontesDeVideo(s);
+  ligarDiscord(s);
   $('#opt-launchers').checked = s.includeStoreLaunchers !== false;
   $('#opt-autoscan').checked = s.autoScan !== false;
   $('#opt-tray').checked = s.minimizarAoJogar !== false;
@@ -3434,6 +3489,13 @@ function renderStats() {
   }
   // conquista desbloqueada: aviso na hora (na TV ou na tela normal)
   if (api.onConquista) api.onConquista(p => Ecossistema.avisarConquistas(p));
+  // Discord: estado da conexão e avisos (amigo entrando, convite recebido…)
+  ui.discordEstado = ui.state.discordEstado || '';
+  if (api.onDiscordEstado) api.onDiscordEstado(e => { ui.discordEstado = e; mostrarEstadoDiscord(); });
+  if (api.onDiscordAviso) api.onDiscordAviso(a => {
+    if (typeof ModoTV !== 'undefined' && ModoTV.ativo && ModoTV.aviso) ModoTV.aviso(a.texto);
+    else toast(a.texto, a.tipo === 'erro' ? 'err' : 'ok');
+  });
   ligarTamanhoCards();
   ligarAtualizacao();
   // o jogo abriu de verdade (processo detectado): marca o card

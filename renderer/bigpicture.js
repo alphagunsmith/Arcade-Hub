@@ -616,6 +616,7 @@ const ModoTV = (() => {
     const fav = favs().has(g.id);
     const acoes = [
       ['jogar', ui.jogando && ui.jogando.has(g.id) ? 'Jogando agora' : '▶  Jogar', 'tv-btn-principal'],
+      ...(g.kind === 'rom' ? [['online', '🌐  Jogar online']] : []),
       ['fav', fav ? '★  Nos favoritos' : '☆  Favoritar'],
       ['voltar', 'Voltar']
     ];
@@ -649,6 +650,12 @@ const ModoTV = (() => {
     if (acao === 'voltar') return fecharPagina();
     if (acao === 'fav') return favoritar(g, true);
     if (acao === 'jogar') return jogar(g);
+    if (acao === 'online') {
+      aviso(`Abrindo ${g.title} online…`);
+      const r = await api.launch(g.id, { online: true });
+      if (!r.ok) { aviso(r.error || 'Não consegui abrir online'); somar('erro'); }
+      else aviso(ui.discordEstado === 'conectado' ? 'Pronto: seus amigos entram pelo "Participar" do Discord' : 'Aberto online (o Discord não está aberto para mandar o convite)');
+    }
   }
 
   async function jogar(g) {
@@ -997,7 +1004,7 @@ const ModoTV = (() => {
   }
 
   return {
-    abrir, fechar, atualizar,
+    abrir, fechar, atualizar, aviso: msg => { if (ativo) aviso(msg); },
     get ativo() { return ativo; },
     alternar() { return ativo ? fechar() : abrir(); }
   };
