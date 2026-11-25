@@ -83,6 +83,11 @@ def jogos_instalados(cfg=None):
                         pass
         except OSError:
             pass
+    # os da biblioteca do Arcade Hub (pastas, .exe soltos, adicionados à mão, outras lojas)
+    from caminhos import jogos_do_arcade
+    for j in jogos_do_arcade():
+        loja = j["origem"] if j["origem"] in ("Steam", "Epic", "GOG") else "Arcade Hub"
+        add(j["nome"], j["pasta"], loja)
     for dom, pasta in ((cfg or {}).get("pastas_jogos") or {}).items():
         add(nm.JOGOS.get(dom, {}).get("nome", dom), pasta, "informada por você")
     for p in ((cfg or {}).get("pastas_extras") or []):

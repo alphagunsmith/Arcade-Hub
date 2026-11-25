@@ -2141,6 +2141,12 @@ function register(ipcMain, deps) {
     return true;
   };
   ds.on('estado', e => { if (e.estado !== 'ligado' && janelaDs && !janelaDs.isDestroyed()) janelaDs.close(); });
+  // a lista de jogos (com os de fora da Steam/Epic/GOG) vai para o DualSense Auto
+  // achar a pasta do jogo na hora de instalar mods; confere mudanças a cada 15 s
+  const exportarJogosDs = () => { try { if (ds.exportarJogos) ds.exportarJogos(store.load().games); } catch { /* tenta na próxima */ } };
+  ds.on('estado', e => { if (e.estado === 'iniciando' || e.estado === 'ligado') exportarJogosDs(); });
+  const timerJogosDs = setInterval(() => { if (ds.rodando) exportarJogosDs(); }, deps.intervaloJogosDs || 15000);
+  if (timerJogosDs.unref) timerJogosDs.unref();
   const ligarDsAoAbrir = () => {
     const ligado = (store.settings.dualsense || {}).ligado !== false;
     if (!ligado || deps.semDualSense) return;

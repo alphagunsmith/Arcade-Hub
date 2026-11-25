@@ -35,6 +35,33 @@ DADOS = _dados()
 
 
 # ----------------------------------------------------------------------------
+# Jogos da biblioteca do Arcade Hub (inclui os que não são da Steam, Epic ou GOG:
+# pastas de jogos, .exe soltos, jogos adicionados à mão). O Arcade Hub grava esta
+# lista na pasta de dados e a mantém atualizada.
+# ----------------------------------------------------------------------------
+JOGOS_ARCADE = os.path.join(DADOS, "jogos_arcade.json")
+
+
+def jogos_do_arcade():
+    """-> [{"nome", "pasta", "exe", "origem"}] dos jogos de PC do Arcade Hub cuja pasta existe."""
+    import json
+    try:
+        with open(JOGOS_ARCADE, encoding="utf-8") as f:
+            lista = json.load(f).get("jogos", [])
+    except Exception:
+        return []
+    saida = []
+    for j in lista if isinstance(lista, list) else []:
+        if not isinstance(j, dict):
+            continue
+        nome, pasta = str(j.get("nome") or "").strip(), str(j.get("pasta") or "").strip()
+        if nome and pasta and os.path.isdir(pasta):
+            saida.append({"nome": nome, "pasta": pasta, "exe": str(j.get("exe") or ""),
+                          "origem": str(j.get("origem") or "")})
+    return saida
+
+
+# ----------------------------------------------------------------------------
 # Chaves (Claude e Nexus) cifradas no disco com a proteção do Windows (DPAPI):
 # o config.json copiado para outro PC ou outro usuário não revela as chaves.
 # ----------------------------------------------------------------------------

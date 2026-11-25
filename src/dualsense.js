@@ -60,6 +60,37 @@ function pedir(porta, token, metodo, caminho, corpo, timeout = 2500) {
   });
 }
 
+/* ---------- jogos da biblioteca para o DualSense Auto ---------- */
+const ORIGEM = { steam: 'Steam', epic: 'Epic', gog: 'GOG' };
+const SUBPASTA_DO_EXE = /^(bin|binaries|win64|win32|wingdk|x64|x86|x86_64|shipping|retail|release)$/i;
+const ehPasta = p => { try { return !!p && fs.statSync(p).isDirectory(); } catch { return false; } };
+
+/**
+ * Pasta "raiz" de cada jogo de PC da biblioteca (onde os mods costumam ir):
+ * a pasta de instalação, ou a do .exe sem as subpastas típicas (bin\x64 etc.).
+ * ROMs e atalhos de site ficam de fora.
+ */
+function listaDeJogos(games) {
+  const saida = [];
+  const vistos = new Set();
+  for (const g of games || []) {
+    if (!g || !g.title || g.kind === 'rom') continue;
+    const l = g.launch || {};
+    if (l.type === 'rom' || l.type === 'emulator' || l.rom) continue;
+    const exe = typeof l.exe === 'string' ? l.exe : '';
+    let pasta = ehPasta(g.installDir) ? g.installDir : (exe ? path.dirname(exe) : '');
+    if (!ehPasta(g.installDir) && exe) {
+      while (SUBPASTA_DO_EXE.test(path.basename(pasta)) && path.dirname(pasta) !== pasta) pasta = path.dirname(pasta);
+    }
+    if (!ehPasta(pasta)) continue;
+    const k = path.resolve(pasta).toLowerCase();
+    if (vistos.has(k)) continue;
+    vistos.add(k);
+    saida.push({ nome: g.title, pasta, exe, origem: ORIGEM[g.source] || 'Arcade Hub' });
+  }
+  return saida;
+}
+
 class DualSenseAuto extends EventEmitter {
   /**
    * @param {object} o
@@ -183,6 +214,21 @@ class DualSenseAuto extends EventEmitter {
     } catch { return ''; }
   }
 
+  /** Grava a lista de jogos para o DualSense Auto (só quando mudou). */
+  exportarJogos(games) {
+    const jogos = listaDeJogos(games);
+    const texto = JSON.stringify({ versao: 1, jogos }, null, 1);
+    if (texto === this._ultimaLista) return false;
+    try {
+      fs.mkdirSync(this.dados, { recursive: true });
+      const arq = path.join(this.dados, 'jogos_arcade.json');
+      fs.writeFileSync(arq + '.tmp', texto, 'utf8');
+      fs.renameSync(arq + '.tmp', arq);
+      this._ultimaLista = texto;
+      return true;
+    } catch { return false; }
+  }
+
   /** Desliga com calma (devolve os gatilhos ao normal). Resolve quando o programa fechou. */
   parar(esperaMs = 4000) {
     clearTimeout(this._timer);
@@ -217,4 +263,4 @@ class DualSenseAuto extends EventEmitter {
   }
 }
 
-module.exports = { DualSenseAuto, comandoPadrao, pedir };
+module.exports = { DualSenseAuto, comandoPadrao, pedir, listaDeJogos };

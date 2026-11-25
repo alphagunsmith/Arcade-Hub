@@ -120,6 +120,70 @@ function filhoFalso() {
     if (!saiu) orfao.kill();
   }
 
+  /* ---------------- jogos do Arcade Hub para o DualSense Auto ---------------- */
+  const JA = tmp('ds-jogos');
+  const mk = (...p) => { const d = path.join(JA, ...p); fs.mkdirSync(d, { recursive: true }); return d; };
+  const cp = mk('Jogos', 'Cyberpunk 2077');                         // fora da Steam/Epic/GOG
+  mk('Jogos', 'Cyberpunk 2077', 'bin', 'x64');
+  const exeCp = path.join(cp, 'bin', 'x64', 'Cyberpunk2077.exe');
+  fs.writeFileSync(exeCp, 'MZ');
+  const steamDir = mk('steamapps', 'common', 'Hades');
+  const xbox = mk('XboxGames', 'Starfield', 'Content');
+  const lista = D.listaDeJogos([
+    { id: 'a', title: 'Cyberpunk 2077', source: 'folder', launch: { type: 'exe', exe: exeCp } },
+    { id: 'b', title: 'Hades', source: 'steam', installDir: steamDir, launch: { type: 'steam', appId: '1145360' } },
+    { id: 'c', title: 'Starfield', source: 'manual', installDir: xbox, launch: { type: 'exe', exe: path.join(xbox, 'Starfield.exe') } },
+    { id: 'd', title: 'Chrono Trigger', kind: 'rom', launch: { type: 'rom', rom: path.join(JA, 'ct.sfc') } },
+    { id: 'e', title: 'Site', source: 'manual', launch: { type: 'url', url: 'https://x.y' } },
+    { id: 'f', title: 'Cyberpunk (atalho repetido)', source: 'manual', launch: { type: 'exe', exe: exeCp } },
+    { id: 'g', title: 'Desinstalado', source: 'folder', launch: { type: 'exe', exe: path.join(JA, 'sumiu', 'x.exe') } }
+  ]);
+  await t('lista os jogos de PC da biblioteca com a pasta raiz (sem bin\\x64), sem ROMs, sites ou repetidos', () => {
+    assert.deepStrictEqual(lista.map(j => [j.nome, j.pasta, j.origem]), [
+      ['Cyberpunk 2077', cp, 'Arcade Hub'], ['Hades', steamDir, 'Steam'], ['Starfield', xbox, 'Arcade Hub']]);
+  });
+  const dsJ = new D.DualSenseAuto({ comando: null, dados: path.join(JA, 'dados') });
+  await t('grava a lista para o DualSense Auto só quando ela muda', () => {
+    const jogos = [{ title: 'Hades', source: 'steam', installDir: steamDir }];
+    assert.strictEqual(dsJ.exportarJogos(jogos), true);
+    assert.strictEqual(dsJ.exportarJogos(jogos), false);
+    assert.strictEqual(JSON.parse(fs.readFileSync(path.join(JA, 'dados', 'jogos_arcade.json'), 'utf8')).jogos[0].nome, 'Hades');
+  });
+  if (py) {
+    dsJ.exportarJogos([
+      { title: 'Cyberpunk 2077', source: 'folder', launch: { type: 'exe', exe: exeCp } },
+      { title: 'Starfield', source: 'manual', installDir: xbox }
+    ]);
+    const r = spawnSync(py, ['-I', '-c', [
+      'import sys, json, time; sys.path.insert(0, sys.argv[1])',
+      'import nexus_mods as nm, leitor_mods as lm',
+      'nm.bibliotecas_steam = lambda: []',
+      'jogos = lm.jogos_instalados({})',
+      'g = nm.GerenciadorMods({}, lambda: None)',
+      'import zipfile, os',
+      'z = os.path.join(sys.argv[2], "mod.zip")',
+      'with zipfile.ZipFile(z, "w") as f: f.writestr("x/r6/scripts/a.reds", "x")',
+      'le = lm.LeitorMods(g, {}); le.receber(z)',
+      'for _ in range(200):',
+      '    e = le.publico()',
+      '    if e["fase"] != "analisando": break',
+      '    time.sleep(0.03)',
+      'print(json.dumps({"jogos": [[j["nome"], j["loja"]] for j in jogos], "pasta_nexus": nm.achar_pasta_jogo("cyberpunk2077"),',
+      '  "mod_jogo": e.get("jogo"), "mod_pasta": e.get("pasta"), "fase": e["fase"]}))'
+    ].join('\n'), path.join(ROOT, 'dualsense'), JA], { encoding: 'utf8', env: { ...ENV_PY, DUALSENSE_AUTO_DADOS: path.join(JA, 'dados') } });
+    const o = r.status === 0 ? JSON.parse(r.stdout.trim().split('\n').pop()) : null;
+    await t('o DualSense Auto enxerga os jogos de fora das lojas (aba Instalar mod)', () => {
+      assert.ok(o, r.stderr);
+      assert.deepStrictEqual(o.jogos, [['Cyberpunk 2077', 'Arcade Hub'], ['Starfield', 'Arcade Hub']]);
+    });
+    await t('"Baixar mods" acha a pasta do Cyberpunk fora da Steam pelo Arcade Hub', () => assert.strictEqual(o && o.pasta_nexus, cp));
+    await t('mod solto: descobre o jogo e instala na pasta que o Arcade Hub conhece', () => {
+      assert.strictEqual(o && o.fase, 'pronto', JSON.stringify(o));
+      assert.strictEqual(o.mod_jogo, 'Cyberpunk 2077');
+      assert.strictEqual(o.mod_pasta, cp);
+    });
+  }
+
   /* ---------------- religar, erros e o que vai para o programa ---------------- */
   const dadosF = tmp('ds-falso');
   const chamadas = [];

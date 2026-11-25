@@ -202,12 +202,25 @@ def bibliotecas_steam():
     return out
 
 
+def _normal(t):
+    return re.sub(r"[^a-z0-9]", "", (t or "").lower())
+
+
 def achar_pasta_jogo(dominio):
+    info = JOGOS.get(dominio, {})
     for lib in bibliotecas_steam():
-        for nome in JOGOS.get(dominio, {}).get("pastas", []):
+        for nome in info.get("pastas", []):
             p = os.path.join(lib, "steamapps", "common", nome)
             if os.path.isdir(p):
                 return p
+    # jogos da biblioteca do Arcade Hub: qualquer loja ou pasta, pelo nome do jogo ou da pasta
+    from caminhos import jogos_do_arcade
+    alvos = {_normal(n) for n in [info.get("nome", "")] + list(info.get("pastas", [])) if _normal(n)}
+    if not alvos:
+        return None
+    for j in jogos_do_arcade():
+        if _normal(j["nome"]) in alvos or _normal(os.path.basename(j["pasta"].rstrip("\\/"))) in alvos:
+            return j["pasta"]
     return None
 
 

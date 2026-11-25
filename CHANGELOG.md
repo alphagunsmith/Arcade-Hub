@@ -1,5 +1,13 @@
 # Novidades
 
+## 1.4.1
+
+- **O DualSense Auto agora acha os jogos que estão no Arcade Hub,** e não só os da Steam, Epic e GOG. Vale para jogos em pastas, .exe soltos, jogos adicionados à mão e de outras lojas, como Xbox/Game Pass, EA e Ubisoft, desde que estejam na sua biblioteca.
+  - **"Instalar mod"** reconhece o jogo e mostra a pasta certa.
+  - **"Baixar mods"** encontra sozinho a pasta do jogo (por exemplo, o Cyberpunk instalado fora da Steam).
+  - **Pasta certa:** quando o jogo é um .exe dentro de `bin\x64`, ele usa a pasta principal do jogo, que é onde os mods vão.
+  - **Sempre atualizada:** a lista se atualiza sozinha quando você adiciona ou remove jogos.
+
 ## 1.4.0
 
 - **O DualSense Auto agora vem dentro do Arcade Hub.** Vibração e gatilhos adaptáveis inteligentes em qualquer jogo, controle de Xbox virtual e instalação de mods. Ele já vem pronto no instalador, sem precisar de Python nem do iniciar.bat.
