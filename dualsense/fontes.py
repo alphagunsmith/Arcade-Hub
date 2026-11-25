@@ -285,23 +285,20 @@ class FonteEstado:
         caminho = self._caminho(pasta_jogo)
         if not caminho:
             return []
+        # o arquivo é pequeno: compara o conteúdo (a hora de gravação do Windows anda de
+        # 15 em 15 ms, e duas gravações seguidas podem ter a mesma hora e o mesmo tamanho)
         try:
-            st = os.stat(caminho)
+            with open(caminho, "r", encoding="utf-8", errors="replace") as f:
+                texto = f.read(4096).strip()
         except OSError:
             self.status = f"{self.jogo}: aguardando o mod ({self.relativo})"
             return []
-        marca = (st.st_mtime_ns, st.st_size)
-        if marca == self.marca:
-            return []
-        try:
-            with open(caminho, "r", encoding="utf-8", errors="replace") as f:
-                texto = f.read().strip()
-        except OSError:
+        if texto == self.marca:
             return []
         partes = texto.split("|")
         if len(partes) < self.CAMPOS:
             return []                           # gravação pela metade: lê na próxima
-        self.marca = marca
+        self.marca = texto
         try:
             seq, arma = int(partes[0]), partes[1]
             pente, tiros, danos, ult, vida, vmax, ads, titan, vivo = (int(float(x)) for x in partes[2:11])

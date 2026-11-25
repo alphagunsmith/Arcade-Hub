@@ -834,8 +834,6 @@ def teste_mods_novos(eng, t):
     def grava(txt):
         with open(arq, "w") as f:
             f.write(txt)
-        st = os.stat(arq)
-        os.utime(arq, ns=(st.st_atime_ns, st.st_mtime_ns + 1_000_000))
 
     eng.game_exe, eng.game_dir = "Titanfall2.exe", pasta
     grava("1|mp_weapon_rspn101|24|0|0|0|100|100|0|0|1")
