@@ -1,4 +1,10 @@
-# Arcade Hub
+<p align="center">
+  <img src="assets/icon.png" alt="Arcade Hub logo" width="160" />
+</p>
+
+<h1 align="center">Arcade Hub</h1>
+
+<p align="center"><b>All your PC games and emulated consoles in one Windows launcher — with TV Mode, console-style skins, trailers, achievements, P2P online play and smart DualSense haptics.</b></p>
 
 **All your games — Steam, Epic, GOG, standalone PC games and emulated consoles — in one launcher for Windows, built to be used from the couch with a controller or at the desk with a mouse.**
 
