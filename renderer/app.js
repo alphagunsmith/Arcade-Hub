@@ -112,7 +112,7 @@ const api = (() => {
     },
     removeGame: id => {
       state.games = state.games.filter(x => x.id !== id);
-      return reply({ games: state.games, favorites: state.favorites, settings: state.settings, hidden: state.hidden });
+      return reply(state.games);
     },
     openPath: () => reply(true),
     toggleFavorite: id => {
@@ -230,6 +230,8 @@ const api = (() => {
     usarEmulador: () => reply('C:/RetroArch-Win64/retroarch.exe'),
     abrirSiteEmulador: () => reply(true),
     onConquista: () => () => {},
+    jogosSumidos: () => reply(state.games.filter(g => g.problem && /não encontrado/.test(g.problem)).map(g => ({ id: g.id, title: g.title }))),
+    limparSumidos: () => { const fora = state.games.filter(g => g.problem && /não encontrado/.test(g.problem)); state.games = state.games.filter(g => !fora.includes(g)); return reply({ removidos: fora.map(g => g.title), state }); },
     discordSalvar: patch => { state.settings.discord = { ...(state.settings.discord || {}), ...patch }; return reply({ discord: state.settings.discord, estado: 'sem-discord' }); },
     discordEstado: () => reply({ estado: 'sem-discord' }),
     onDiscordAviso: () => () => {},
@@ -1686,7 +1688,7 @@ function montarDashboard(games) {
       const r = await api.toggleFavorite(jogo.id);
       if (r.ok) { ui.state.favorites = r.data; render(); }
     },
-    onContexto: (ev, jogo, alvo) => { if (menuDoJogo) menuDoJogo(ev, jogo, alvo); }
+    onContexto: (ev, jogo) => abrirMenuDoJogo(ev, jogo)
   });
 }
 
@@ -1729,7 +1731,7 @@ function montarRondel(games) {
     manterSelecionado: true,
     onAbrir: jogo => openDetail(jogo),
     onJogar: jogo => launch(jogo),        // Shift+clique no card central
-    onContexto: (ev, jogo, card) => { if (menuDoJogo) menuDoJogo(ev, jogo, card); }
+    onContexto: (ev, jogo) => abrirMenuDoJogo(ev, jogo)
   });
   const jogar = $('#rondel-play');
   const det = $('#rondel-detalhes');
@@ -2410,6 +2412,7 @@ function openSettings() {
   $('#opt-sgdb').value = s.sgdbKey || '';
   ligarFontesDeVideo(s);
   ligarDiscord(s);
+  $('#btn-limpar-sumidos').onclick = limparJogosSumidos;
   $('#opt-launchers').checked = s.includeStoreLaunchers !== false;
   $('#opt-autoscan').checked = s.autoScan !== false;
   $('#opt-tray').checked = s.minimizarAoJogar !== false;
@@ -2479,7 +2482,10 @@ async function runScan() {
   if (!r.ok) { toast(r.error || 'Falha na varredura', 'err'); return; }
   ui.state = r.data.state;
   render();
-  toast(`${ui.state.games.length} jogos na biblioteca`, 'ok');
+  const saiu = (r.data.state && r.data.state.lastScanReport && r.data.state.lastScanReport.removidos) || [];
+  toast(saiu.length
+    ? `${ui.state.games.length} jogos · saíram ${saiu.length} que não estão mais no PC (${saiu.slice(0, 3).join(', ')}${saiu.length > 3 ? '…' : ''})`
+    : `${ui.state.games.length} jogos na biblioteca`, 'ok');
   // jogos novos (ou que perderam a capa) são enriquecidos na hora
   enriquecerAutomatico();
 }
@@ -2720,6 +2726,11 @@ function wire() {
       return;                      // teclas imprimíveis seguem para o campo
     }
 
+    // Delete: remove o jogo selecionado (grade, rondel ou qualquer skin)
+    if (e.key === 'Delete' && !modalAberto) {
+      const alvo = jogoFocado() || (document.activeElement && document.activeElement.dataset && ui.state.games.find(g => g.id === document.activeElement.dataset.id));
+      if (alvo) { e.preventDefault(); confirmarRemocao(alvo); return; }
+    }
     // tema de dashboard ativo? as setas/Enter são dele — mas só sem janela aberta
     // por cima (antes, com a ficha aberta, as setas trocavam o jogo lá atrás)
     if (!modalAberto && Dashboards.ativo && Dashboards.tecla(e)) { e.preventDefault(); return; }
@@ -2842,6 +2853,37 @@ const ICO = {
   lixo: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15M9.5 7V5.2A1.2 1.2 0 0110.7 4h2.6a1.2 1.2 0 011.2 1.2V7"/><path d="M6.5 7l.8 11.2A2 2 0 009.3 20h5.4a2 2 0 002-1.8L17.5 7"/></svg>'
 };
 
+/**
+ * Clique direito num jogo em qualquer skin (rondel, temas de console,
+ * LaunchBox, Big Box). Antes o menu do jogo nem abria: só o geral da
+ * biblioteca, que não tem "Remover".
+ */
+function abrirMenuDoJogo(ev, jogo) {
+  if (!jogo) return;
+  if (ev) { ev.preventDefault(); ev.stopPropagation(); }   // não deixa o menu geral abrir por cima
+  ui.ctxGame = jogo;
+  abrirMenuCtx(ev || {}, menuDoJogo(jogo));
+}
+
+/** Remove de uma vez os jogos que não estão mais no PC (com confirmação e a lista). */
+async function limparJogosSumidos() {
+  const r = await api.jogosSumidos();
+  if (!r.ok) { toast(r.error || 'Não consegui conferir', 'err'); return; }
+  if (!r.data.length) { toast('Nenhum jogo sumido: tudo na biblioteca está no PC', 'ok'); return; }
+  const nomes = r.data.slice(0, 12).map(g => '• ' + g.title).join('\n') + (r.data.length > 12 ? `\n… e mais ${r.data.length - 12}` : '');
+  const sim = await pedirConfirmacao({
+    titulo: `Remover ${r.data.length} ${r.data.length === 1 ? 'jogo que não está' : 'jogos que não estão'} mais no PC?`,
+    texto: `${nomes}\n\nO tempo de jogo, a capa e as conquistas ficam guardados: se você reinstalar, o jogo volta com tudo.`,
+    acao: 'Remover'
+  });
+  if (!sim) return;
+  const x = await api.limparSumidos();
+  if (!x.ok) { toast(x.error || 'Não consegui remover', 'err'); return; }
+  ui.state = x.data.state;
+  render();
+  toast(`${x.data.removidos.length} ${x.data.removidos.length === 1 ? 'jogo saiu' : 'jogos saíram'} da biblioteca`, 'ok');
+}
+
 async function confirmarRemocao(game) {
   const ok = await pedirConfirmacao({
     titulo: 'Remover da biblioteca?',
@@ -2853,7 +2895,7 @@ async function confirmarRemocao(game) {
   if (r.ok) {
     // o processo principal devolve a lista de jogos restante
     if (Array.isArray(r.data)) ui.state.games = r.data;
-    else if (r.data && Array.isArray(r.data.games)) ui.state = r.data;
+    else if (r.data && Array.isArray(r.data.games)) ui.state = { ...ui.state, ...r.data };
     else ui.state.games = ui.state.games.filter(g => g.id !== game.id);
     ui.state.favorites = (ui.state.favorites || []).filter(id => id !== game.id);
     render();
@@ -2934,7 +2976,7 @@ function menuDoJogo(game) {
       onClick: () => { api.openPath ? api.openPath(game.installDir || game.launch.exe) : toast('Indisponível nesta versão', 'err'); }
     } : null,
     { sep: true },
-    { label: 'Remover da biblioteca', icon: ICO.lixo, danger: true, onClick: () => confirmarRemocao(game) }
+    { label: 'Remover da biblioteca', icon: ICO.lixo, danger: true, hint: 'Del', onClick: () => confirmarRemocao(game) }
   ];
 }
 
@@ -2965,6 +3007,7 @@ function wireContextMenu() {
       { label: 'Adicionar jogo…', icon: ICO.editar, onClick: () => openEditor(null) },
       { label: 'Escanear biblioteca de novo', icon: ICO.info, hint: 'F5', onClick: runScan },
       { label: 'Buscar capas e informações', icon: ICO.capa, onClick: () => enriquecerAutomatico({ forcar: false }) },
+      { label: 'Remover jogos que não estão mais no PC…', icon: ICO.lixo, onClick: limparJogosSumidos },
       { sep: true },
       { label: 'Ajustes…', onClick: openSettings },
       { label: 'Escolher skins…', onClick: () => openSkins() },

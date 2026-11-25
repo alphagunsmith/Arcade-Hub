@@ -1281,19 +1281,51 @@ function finishScan(store, collected, report, opts) {
   opts = opts || {};
   limparCacheLojas();                 // a loja pode ter sido instalada/removida
   const prev = new Map(store.games.map(g => [g.id, g]));
-  const hidden = new Set(store.load().hidden || []);
-  const merged = collected.filter(g => !hidden.has(g.id)).map(g => mergeScanned(prev.get(g.id), g));
+  const dados = store.load();
+  const hidden = new Set(dados.hidden || []);
+  // jogos que saíram (desinstalados): guardados para voltar com tempo, capa e
+  // conquistas se forem reinstalados
+  const arquivados = { ...(dados.arquivados || {}) };
+  const merged = collected.filter(g => !hidden.has(g.id)).map(g => {
+    const antigo = prev.get(g.id) || arquivados[g.id];
+    delete arquivados[g.id];
+    return mergeScanned(antigo, g);
+  });
+  report.removidos = [];
 
   if (opts.keepMissing !== false) {
-    // jogos que existiam antes mas não foram achados agora: mantém se a pasta/loja ainda "deveria" existir
+    // Jogo que não apareceu nesta varredura. Antes ficava se a PASTA existisse —
+    // mas Steam/Epic/GOG deixam a pasta (saves, restos) ao desinstalar, então o
+    // jogo nunca saía. Agora: loja manda nas lojas; arquivo manda em pasta/ROM.
     const ids = new Set(merged.map(g => g.id));
+    const discoPresente = p => { try { return fs.existsSync(path.parse(path.resolve(p)).root); } catch { return true; } };
+    const contaAntes = src => store.games.filter(g => g.source === src).length;
+    const lojaConferida = src => {
+      const r = report.sources[src];
+      // loja lida sem erro; se de repente achou 0 de N jogos, desconfia (Steam fora do ar, registro ilegível)
+      return !!r && !r.error && !(r.found === 0 && contaAntes(src) > 0);
+    };
     for (const old of store.games) {
       if (ids.has(old.id)) continue;
-      const dirOk = old.installDir ? fs.existsSync(old.installDir) : null;
-      const romOk = old.source === 'emulator' && old.launch && old.launch.rom && fs.existsSync(old.launch.rom);
-      if (old.source === 'manual' || romOk || dirOk === true) merged.push(old);
+      const lt = old.launch && old.launch.type;
+      const arq = lt === 'rom' ? old.launch.rom : lt === 'exe' ? old.launch.exe : null;
+      let manter;
+      if (old.source === 'manual') manter = true;
+      else if (['steam', 'epic', 'gog'].includes(old.source)) {
+        manter = !lojaConferida(old.source) || (old.installDir && !discoPresente(old.installDir));
+      } else if (arq) {
+        manter = fs.existsSync(arq) || !discoPresente(arq);           // HD externo desligado: não apaga
+      } else {
+        manter = old.installDir ? fs.existsSync(old.installDir) : true;
+      }
+      if (manter) merged.push(old);
+      else { arquivados[old.id] = { ...old, arquivadoEm: Date.now() }; report.removidos.push(old.title); }
     }
   }
+  // guarda no máximo 400 jogos arquivados (os mais recentes)
+  const chavesArq = Object.keys(arquivados).sort((a, b) => (arquivados[b].arquivadoEm || 0) - (arquivados[a].arquivadoEm || 0));
+  for (const k of chavesArq.slice(400)) delete arquivados[k];
+  dados.arquivados = arquivados;
 
   // unifica duplicatas (Steam + pasta + Epic…) e marca o que está instalado
   const deduped = dedupeGames(merged);
@@ -2454,6 +2486,36 @@ function register(ipcMain, deps) {
 
   ipcMain.handle('game:remove', (_e, id) => {
     try { return ok(store.removeGame(id)); } catch (e) { return fail(e); }
+  });
+
+  /** Jogos que não estão mais no PC (arquivo sumido ou desinstalado da loja). */
+  const sumidos = () => {
+    refreshProblems(store);
+    const discoPresente = p => { try { return fs.existsSync(path.parse(path.resolve(p)).root); } catch { return true; } };
+    return store.games.filter(g => {
+      const lt = g.launch && g.launch.type;
+      const arq = lt === 'rom' ? g.launch.rom : lt === 'exe' ? g.launch.exe : null;
+      if (arq && !discoPresente(arq)) return false;                 // HD externo desligado
+      if (arq) return !fs.existsSync(arq);
+      if (g.installed === false) return true;
+      return ['steam', 'epic', 'gog'].includes(g.source) && g.installDir && discoPresente(g.installDir) && !fs.existsSync(g.installDir);
+    });
+  };
+  ipcMain.handle('library:sumidos', () => {
+    try { return ok(sumidos().map(g => ({ id: g.id, title: g.title }))); } catch (e) { return fail(e); }
+  });
+  ipcMain.handle('library:limparSumidos', () => {
+    try {
+      const lista = sumidos();
+      const d = store.load();
+      const arquivados = { ...(d.arquivados || {}) };
+      for (const g of lista) arquivados[g.id] = { ...g, arquivadoEm: Date.now() };
+      const fora = new Set(lista.map(g => g.id));
+      d.arquivados = arquivados;
+      d.games = d.games.filter(g => !fora.has(g.id));
+      store.save();
+      return ok({ removidos: lista.map(g => g.title), state: state() });
+    } catch (e) { return fail(e); }
   });
 
   ipcMain.handle('game:favorite', (_e, id) => {

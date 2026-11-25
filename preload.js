@@ -67,6 +67,8 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
     ipcRenderer.on('game:sessionEnd', handler);
     return () => ipcRenderer.removeListener('game:sessionEnd', handler);
   },
+  jogosSumidos: () => call('library:sumidos'),
+  limparSumidos: () => call('library:limparSumidos'),
   discordSalvar: patch => call('discord:salvar', patch),
   discordEstado: () => call('discord:estado'),
   onDiscordAviso: cb => {

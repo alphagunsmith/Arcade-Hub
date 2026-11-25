@@ -1,5 +1,18 @@
 # Novidades
 
+## 1.3.2
+
+- **Remover jogos em qualquer skin:** no rondel, nos temas de console, no LaunchBox e no Big Box, o clique direito num jogo não abria o menu dele, e sim o menu geral, que não tem "Remover". Agora abre o menu do jogo em todas.
+- **Tecla Delete:** remove o jogo selecionado em qualquer skin, com confirmação que começa em "Cancelar".
+- **Modo TV:** a página do jogo ganhou "Remover da biblioteca".
+- **Jogos desinstalados saem sozinhos na varredura.** Antes, um jogo da Steam, Epic ou GOG só saía se a pasta dele sumisse, e essas lojas costumam deixar a pasta para trás (saves, restos). Agora:
+  - nas lojas, vale o que a loja diz;
+  - em pastas e ROMs, vale o arquivo do jogo;
+  - com o HD externo desligado, nada é apagado;
+  - se a loja de repente não achar nenhum jogo, nada é apagado.
+- **Se reinstalar, o jogo volta com tudo:** tempo de jogo, capa e conquistas.
+- **Limpeza de uma vez:** "Remover jogos que não estão mais no PC" fica no clique direito no fundo da biblioteca, em Ajustes › Diagnóstico e em Sistema, no Modo TV. Ele mostra a lista antes de remover.
+
 ## 1.3.1
 
 - O Discord já vem configurado com o aplicativo "Arcade Hub": é só ter o Discord aberto, sem colar nenhum ID. O status aparece com o nome e o ícone do Arcade Hub.

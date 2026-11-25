@@ -508,6 +508,7 @@ const ModoTV = (() => {
     return [
       ['perfil', `Trocar de perfil${p ? ' (agora: ' + p.nome + ')' : ''}`, 'Quem está jogando conta o tempo e as conquistas'],
       ['escanear', 'Procurar jogos novos', 'Varre as pastas e as lojas de novo'],
+      ['limpar', 'Remover jogos que não estão mais no PC', 'Desinstalados ou com o arquivo apagado'],
       ['sons', `Sons do menu: ${typeof Som !== 'undefined' && Som.ligado ? 'ligados' : 'desligados'}`, ''],
       ['abertura', `Animação de abertura: ${aberturaLigada() ? 'ligada' : 'desligada'}`, ''],
       ['console', `Abrir com o Windows: ${mc.iniciarComWindows ? 'ligado' : 'desligado'}`, 'O PC liga direto no Arcade Hub, como um console'],
@@ -544,6 +545,18 @@ const ModoTV = (() => {
       await executarMenu(acao);
       if (secao === 'sistema' && ativo) renderSistemaTV();
       return;
+    }
+    if (acao === 'limpar') {
+      const r = await api.jogosSumidos();
+      if (!r.ok) { aviso(r.error || 'Não consegui conferir'); return; }
+      if (!r.data.length) { aviso('Nenhum jogo sumido: tudo está no PC'); somar('selecionar'); return; }
+      return pedirConfirmacaoTV(`Remover ${r.data.length} ${r.data.length === 1 ? 'jogo' : 'jogos'} que não estão mais no PC? (${r.data.slice(0, 3).map(g => g.title).join(', ')}${r.data.length > 3 ? '…' : ''})`, 'Remover', async () => {
+        const x = await api.limparSumidos();
+        if (!x.ok) { aviso(x.error || 'Não consegui remover'); return; }
+        ui.state = x.data.state;
+        aviso(`${x.data.removidos.length} saíram da biblioteca`);
+        renderSistemaTV();
+      });
     }
     if (acao === 'console') {
       const mc = ui.state.modoConsole || {};
@@ -618,6 +631,7 @@ const ModoTV = (() => {
       ['jogar', ui.jogando && ui.jogando.has(g.id) ? 'Jogando agora' : '▶  Jogar', 'tv-btn-principal'],
       ...(g.kind === 'rom' ? [['online', '🌐  Jogar online']] : []),
       ['fav', fav ? '★  Nos favoritos' : '☆  Favoritar'],
+      ['remover', 'Remover da biblioteca'],
       ['voltar', 'Voltar']
     ];
     acoes.forEach(([acao, txt, cls], i) => {
@@ -650,6 +664,18 @@ const ModoTV = (() => {
     if (acao === 'voltar') return fecharPagina();
     if (acao === 'fav') return favoritar(g, true);
     if (acao === 'jogar') return jogar(g);
+    if (acao === 'remover') {
+      return pedirConfirmacaoTV(`Remover ${g.title} da biblioteca? (o jogo não é apagado do PC)`, 'Remover', async () => {
+        const r = await api.removeGame(g.id);
+        if (!r.ok) { aviso(r.error || 'Não consegui remover'); somar('erro'); return; }
+        if (Array.isArray(r.data)) ui.state.games = r.data;
+        else ui.state.games = ui.state.games.filter(x => x.id !== g.id);
+        ui.state.favorites = (ui.state.favorites || []).filter(id => id !== g.id);
+        fecharPagina();
+        aviso(`${g.title} saiu da biblioteca`);
+        atualizar();
+      });
+    }
     if (acao === 'online') {
       aviso(`Abrindo ${g.title} online…`);
       const r = await api.launch(g.id, { online: true });
