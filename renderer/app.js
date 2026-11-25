@@ -65,7 +65,29 @@ const api = (() => {
     lastScan: now - 864e5 * 2,
     versions: { app: '1.0.0', electron: '—', os: 'pré-visualização' },
     launchers: { steam: { installed: true, path: 'C:/Steam' }, epic: { installed: false, path: '' }, gog: { installed: true, path: 'C:/GOG Galaxy' } },
-    dataDir: 'C:/Users/Você/.arcade-hub'
+    dataDir: 'C:/Users/Você/.arcade-hub',
+    perfis: [{ id: 'p1', nome: 'Você', cor: '#22d3ee', avatar: '🎮' }, { id: 'p2', nome: 'Ana', cor: '#e879f9', avatar: '🦊' }],
+    perfilAtivo: 'p1',
+    modoConsole: { iniciarComWindows: false, abertoPeloWindows: false, energiaDisponivel: true }
+  };
+  const conquistasDemo = perfil => {
+    const base = [
+      ['primeira', 'Aperte Start', 'Jogue sua primeira partida pelo Arcade Hub.', 'bronze', '▶', 1, 1],
+      ['horas10', 'Dedicação', 'Some 10 horas de jogo.', 'prata', '⏳', 10, 10],
+      ['maratona', 'Maratona', 'Jogue 3 horas seguidas numa partida.', 'prata', '🏃', 3, 3],
+      ['coruja', 'Coruja', 'Esteja jogando entre 2h e 5h da manhã.', 'bronze', '🦉', 1, 1],
+      ['raiz', 'Raiz', 'Jogue ROMs de 3 consoles diferentes.', 'prata', '🕹', 2, 3],
+      ['horas100', 'Centenário', 'Some 100 horas de jogo.', 'ouro', '💯', 41.5, 100],
+      ['sequencia7', 'Sequência', 'Jogue 7 dias seguidos.', 'prata', '📆', 4, 7],
+      ['explorador', 'Explorador', 'Jogue 25 jogos diferentes.', 'ouro', '🧭', 9, 25],
+      ['horas500', 'Lenda do sofá', 'Some 500 horas de jogo.', 'platina', '👑', 41.5, 500]
+    ];
+    const pts = { bronze: 10, prata: 25, ouro: 50, platina: 100 };
+    const lista = base.map(([id, nome, desc, nivel, icone, atual, meta], i) => ({
+      id, nome, desc, nivel, icone, pontos: pts[nivel], atual, meta,
+      quando: perfil === 'p2' ? (i === 0 ? now - 864e5 : null) : (atual >= meta ? now - 864e5 * (i + 1) * 3 : null)
+    }));
+    return { perfil, lista, pontos: lista.filter(c => c.quando).reduce((a, c) => a + c.pontos, 0), total: lista.reduce((a, c) => a + c.pontos, 0) };
   };
 
   const reply = data => Promise.resolve({ ok: true, data });
@@ -193,6 +215,21 @@ const api = (() => {
     setFullscreen: () => reply(true),
     testarFonteVideo: () => reply({ ok: false, motivo: 'disponível só no app instalado' }),
     esquecerVideo: () => reply(true),
+    conquistas: perfil => reply(conquistasDemo(perfil || state.perfilAtivo)),
+    salvarPerfis: lista => { state.perfis = lista; if (!lista.some(p => p.id === state.perfilAtivo)) state.perfilAtivo = lista[0].id; return reply({ perfis: lista, perfilAtivo: state.perfilAtivo }); },
+    ativarPerfil: id => { state.perfilAtivo = id; return reply(id); },
+    energia: notElectron,
+    iniciarComWindows: ligar => reply(!!ligar),
+    emuladores: () => reply({ instalados: { retroarch: 'C:/RetroArch-Win64/retroarch.exe' }, lista: [
+      { platformKey: 'snes', label: 'SNES', jogos: 2, emulador: { exe: 'C:/Emu/snes9x-x64.exe', configurado: true, existe: true }, recomendados: [{ id: 'snes9x', nome: 'Snes9x' }, { id: 'retroarch', nome: 'RetroArch', instalado: 'C:/RetroArch-Win64/retroarch.exe' }], bios: null },
+      { platformKey: 'ps1', label: 'PlayStation', jogos: 1, emulador: { exe: '', configurado: false, existe: false }, recomendados: [{ id: 'duckstation', nome: 'DuckStation' }, { id: 'retroarch', nome: 'RetroArch', instalado: 'C:/RetroArch-Win64/retroarch.exe' }],
+        bios: { ok: false, opcional: false, dica: 'Na pasta "bios" do DuckStation ou na "system" do RetroArch.', arquivos: [{ nome: 'scph5501.bin', estado: 'faltando' }] } },
+      { platformKey: 'gba', label: 'Game Boy Advance', jogos: 1, emulador: { exe: 'C:/Emu/mGBA.exe', configurado: true, existe: true }, recomendados: [{ id: 'mgba', nome: 'mGBA' }],
+        bios: { ok: true, opcional: true, dica: '', arquivos: [{ nome: 'gba_bios.bin', estado: 'valida' }] } }
+    ] }),
+    usarEmulador: () => reply('C:/RetroArch-Win64/retroarch.exe'),
+    abrirSiteEmulador: () => reply(true),
+    onConquista: () => () => {},
     win: { min: () => {}, max: () => {}, close: () => {} }
   };
 })();
@@ -2322,6 +2359,15 @@ function openSettings() {
   $('#opt-autoscan').checked = s.autoScan !== false;
   $('#opt-tray').checked = s.minimizarAoJogar !== false;
   $('#opt-tv').checked = !!s.abrirNoModoTV;
+  const mc = ui.state.modoConsole || {};
+  $('#opt-console').checked = !!mc.iniciarComWindows;
+  $('#opt-console').disabled = !mc.energiaDisponivel;
+  $('#opt-console').onchange = async e => {
+    const r = await api.iniciarComWindows(e.target.checked);
+    if (!r.ok) { e.target.checked = !e.target.checked; toast(r.error || 'Não consegui mudar', 'erro'); return; }
+    ui.state.modoConsole = { ...mc, iniciarComWindows: r.data };
+    toast(r.data ? 'O Arcade Hub vai abrir com o Windows, no Modo TV' : 'O Arcade Hub não abre mais com o Windows', 'ok');
+  };
   $('#opt-tv').onchange = async e => {
     const r = await api.saveSettings({ abrirNoModoTV: e.target.checked });
     if (r.ok) { ui.state = r.data; toast(e.target.checked ? 'O Arcade Hub vai abrir no Modo TV' : 'O Arcade Hub vai abrir na tela normal', 'ok'); }
@@ -2424,6 +2470,22 @@ function abrirMenu() {
   $('#btn-menu').classList.add('on');
   $('#btn-menu').setAttribute('aria-expanded', 'true');
   renderNav();                      // filtros sempre frescos ao abrir
+  atualizarCartaoPerfil();
+}
+
+/** Cartão do perfil no menu: avatar, nome e pontos de conquista. */
+async function atualizarCartaoPerfil() {
+  const p = Ecossistema.perfilAtual();
+  if (!p) return;
+  const av = $('.eco-menu-avatar');
+  av.innerHTML = '';
+  av.appendChild(Ecossistema.avatar(p, 30));
+  $('.eco-menu-nome').textContent = p.nome;
+  const r = await api.conquistas(p.id).catch(() => null);
+  if (r && r.ok) {
+    const feitas = r.data.lista.filter(c => c.quando).length;
+    $('.eco-menu-pontos').textContent = `${r.data.pontos} pts · ${feitas}/${r.data.lista.length} conquistas`;
+  }
 }
 
 function fecharMenu() {
@@ -2464,6 +2526,7 @@ function ligarCasca() {
 
   $('#btn-menu').onclick = e => { e.stopPropagation(); alternarMenu(); };
   $('#btn-tv').onclick = e => { e.stopPropagation(); fecharMenu(); ModoTV.abrir(); };
+  $('#btn-eco').onclick = e => { e.stopPropagation(); fecharMenu(); Ecossistema.abrirPainel(); };
   $('#btn-busca').onclick = e => { e.stopPropagation(); fecharMenu(); alternarBusca(); };
 
   // clique no fundo escuro fecha; clique dentro do painel não
@@ -3082,7 +3145,9 @@ function pollGamepad() {
     if (edge(5, 'rb')) Dashboards.trocarGrupo(1);
   }
 
-  if (edge(1, 'b') && openModal) {
+  if (Ecossistema.camada) {
+    if (edge(1, 'b')) Ecossistema.camada.cancelar();
+  } else if (edge(1, 'b') && openModal) {
     // B numa confirmação (Remover? / aviso) responde "Cancelar", não fecha tudo
     const topo = janelaDoTopo();
     const resposta = topo && (topo.querySelector('[data-nao]') || (!topo.id && topo.querySelector('[data-sim]')));
@@ -3362,9 +3427,13 @@ function renderStats() {
   ui.groupBy = (ui.state.settings && ui.state.settings.groupBy) || 'none';
   ui.jogando = new Set((ui.state.sessoes || []).map(x => x.id));
   aplicarTamanhoCards(ui.state.settings && ui.state.settings.cardSize);
-  if (ui.state.settings && ui.state.settings.abrirNoModoTV && typeof ModoTV !== 'undefined') {
-    setTimeout(() => ModoTV.abrir(), 0);
+  // Modo Console (aberto pelo Windows) ou "abrir no Modo TV": vai direto para a TV
+  const comoConsole = ui.state.modoConsole && ui.state.modoConsole.abertoPeloWindows;
+  if ((comoConsole || (ui.state.settings && ui.state.settings.abrirNoModoTV)) && typeof ModoTV !== 'undefined') {
+    setTimeout(() => ModoTV.abrir({ console: comoConsole }), 0);
   }
+  // conquista desbloqueada: aviso na hora (na TV ou na tela normal)
+  if (api.onConquista) api.onConquista(p => Ecossistema.avisarConquistas(p));
   ligarTamanhoCards();
   ligarAtualizacao();
   // o jogo abriu de verdade (processo detectado): marca o card

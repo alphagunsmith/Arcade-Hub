@@ -67,6 +67,11 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
     ipcRenderer.on('game:sessionEnd', handler);
     return () => ipcRenderer.removeListener('game:sessionEnd', handler);
   },
+  onConquista: cb => {
+    const handler = (_e, p) => cb(p);
+    ipcRenderer.on('conquista:nova', handler);
+    return () => ipcRenderer.removeListener('conquista:nova', handler);
+  },
   onSessionStart: cb => {
     const handler = (_e, p) => cb(p);
     ipcRenderer.on('game:sessionStart', handler);
@@ -83,6 +88,15 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
   // atualização do app
   testarFonteVideo: fonte => call('video:testarFonte', fonte),
   esquecerVideo: id => call('video:esquecer', id),
+  // perfis, conquistas e Modo Console
+  salvarPerfis: lista => call('perfis:salvar', lista),
+  ativarPerfil: id => call('perfis:ativar', id),
+  conquistas: perfil => call('conquistas:listar', perfil),
+  energia: acao => call('console:energia', acao),
+  iniciarComWindows: ligar => call('console:iniciarComWindows', ligar),
+  emuladores: opts => call('console:emuladores', opts),
+  usarEmulador: (plataforma, emulador) => call('console:usarEmulador', plataforma, emulador),
+  abrirSiteEmulador: emulador => call('console:abrirSite', emulador),
   prepararVideos: ids => call('video:preparar', ids),
   updateStatus: () => call('update:get'),
   checkUpdates: () => call('update:check'),

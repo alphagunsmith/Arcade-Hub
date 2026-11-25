@@ -51,6 +51,9 @@
           <button class="menu-acao" id="btn-settings" title="Pastas, emuladores, vídeos e opções gerais">Ajustes…</button>
           <button class="menu-acao" id="btn-skins" title="Layout e cores da interface">Escolher skins…</button>
         </div>
+        <button class="menu-acao eco-menu-perfil" id="btn-eco" title="Perfis, conquistas e quem está jogando">
+          <span class="eco-menu-avatar"></span><span class="eco-menu-txt"><b class="eco-menu-nome">Perfil</b><small class="eco-menu-pontos">Conquistas</small></span>
+        </button>
       </div>
 
       <div class="menu-bloco">
@@ -477,6 +480,9 @@
         <div class="field row-inline">
           <label class="switch"><input type="checkbox" id="opt-tv" /><span></span>Abrir direto no Modo TV (bom para PC ligado na TV)</label>
         </div>
+        <div class="field row-inline">
+          <label class="switch"><input type="checkbox" id="opt-console" /><span></span>Modo Console: abrir junto com o Windows, já no Modo TV</label>
+        </div>
         <div class="field">
           <label>Profundidade da varredura de pastas: <strong id="depth-val">4</strong></label>
           <input type="range" id="opt-depth" min="1" max="8" step="1" value="4" />
@@ -569,6 +575,7 @@
   <script src="rondel.js"></script>
   <script src="dashboards.js"></script>
   <script src="launchbox.js"></script>
+  <script src="ecossistema.js"></script>
   <script src="som.js"></script>
   <script src="intro.js"></script>
   <script src="bigpicture.js"></script>

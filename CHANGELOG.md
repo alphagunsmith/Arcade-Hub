@@ -1,5 +1,23 @@
 # Novidades
 
+## 1.2.0
+
+**Modo Console: o PC vira um videogame**
+- **Abrir com o Windows:** o PC liga direto no Arcade Hub em tela cheia (Ajustes › Geral, ou Sistema no Modo TV).
+- **Seção Sistema no Modo TV:** suspender, reiniciar e desligar o PC pelo controle, sempre com confirmação começando em "Cancelar". Também trocar de perfil, procurar jogos novos, sons e ir para a área de trabalho.
+- **Seção Emuladores:** cada console da sua biblioteca, o emulador que abre os jogos e a BIOS que ele precisa.
+  - O app acha sozinho os emuladores que já estão instalados nos lugares de costume e configura com um botão.
+  - Também abre o site oficial de cada emulador.
+  - A BIOS é conferida (presente, versão reconhecida ou faltando). O app não baixa BIOS: use a do seu próprio console.
+
+**Perfis e conquistas**
+- **Perfis para cada pessoa da casa,** com nome, cor e avatar. Com mais de um perfil, o Modo TV pergunta "Quem vai jogar?" ao abrir. Cada perfil tem seu próprio tempo de jogo; o tempo que já existia fica com o primeiro perfil.
+- **22 conquistas,** de bronze a platina, como os troféus dos consoles. Exemplos: Maratona (3 h seguidas), Coruja (jogar de madrugada), Sequência (7 dias seguidos), Raiz (ROMs de 3 consoles), Sem fronteiras (3 lojas), Centenário (100 h).
+- **Aviso na tela com som** quando uma conquista é desbloqueada, na tela normal e no Modo TV.
+- **Onde ver:**
+  - nova seção "Conquistas" no Modo TV;
+  - menu ☰ › cartão do perfil, que mostra pontos e conquistas e abre o painel para criar e editar perfis.
+
 ## 1.1.1
 
 Correções da revisão de código:

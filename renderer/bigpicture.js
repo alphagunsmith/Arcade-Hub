@@ -5,7 +5,10 @@
  * Tela cheia, pensado para jogar do sofá com controle:
  *   Início       destaque do jogo em foco + fileiras (continue jogando, favoritos…)
  *   Biblioteca   todos os jogos em grade, A–Z
+ *   Conquistas   pontos e conquistas do perfil que está jogando
  *   Estatísticas resumo do tempo de jogo
+ *   Emuladores   cada console da biblioteca: emulador e BIOS
+ *   Sistema      perfil, sons, iniciar com o Windows, suspender/reiniciar/desligar
  *
  * Controle (padrão Xbox; no PlayStation: A=✕ B=○ X=□ Y=△):
  *   direcional/analógico  navegar          A  abrir o jogo / confirmar
@@ -21,8 +24,11 @@
 const ModoTV = (() => {
   let raiz = null;
   let ativo = false;
-  let secao = 'inicio';                 // 'inicio' | 'biblioteca' | 'stats'
-  let camada = null;                    // null | 'pagina' | 'menu'
+  let secao = 'inicio';                 // ver SECOES
+  let camada = null;                    // null | 'pagina' | 'menu' | 'confirmar'
+  const focoSec = { conquistas: 0, emuladores: 0, sistema: 0 };   // seções de itens soltos
+  let confirmacao = null;               // { texto, acao, foco }
+  let comoConsole = false;
   let fileiras = [];                    // [{ titulo, jogos: [] }]
   let foco = { linha: 0, col: 0 };      // início
   let focoBib = 0;                      // biblioteca
@@ -67,10 +73,13 @@ const ModoTV = (() => {
           <span class="tv-gatilho">LB</span>
           <button data-secao="inicio">Início</button>
           <button data-secao="biblioteca">Biblioteca</button>
+          <button data-secao="conquistas">Conquistas</button>
           <button data-secao="stats">Estatísticas</button>
+          <button data-secao="emuladores">Emuladores</button>
+          <button data-secao="sistema">Sistema</button>
           <span class="tv-gatilho">RB</span>
         </nav>
-        <div class="tv-status"><span class="tv-pad" title="Controle"></span><span class="tv-relogio"></span></div>
+        <div class="tv-status"><button class="tv-perfil" title="Trocar de perfil"></button><span class="tv-pad" title="Controle"></span><span class="tv-relogio"></span></div>
       </header>
       <main class="tv-corpo">
         <section class="tv-secao tv-inicio" data-secao="inicio">
@@ -87,14 +96,19 @@ const ModoTV = (() => {
           <div class="tv-bib-grade"></div>
         </section>
         <section class="tv-secao tv-stats" data-secao="stats" hidden></section>
+        <section class="tv-secao tv-conquistas tv-lista-sec" data-secao="conquistas" hidden></section>
+        <section class="tv-secao tv-emuladores tv-lista-sec" data-secao="emuladores" hidden></section>
+        <section class="tv-secao tv-sistema tv-lista-sec" data-secao="sistema" hidden></section>
       </main>
       <footer class="tv-dicas"></footer>
       <div class="tv-pagina" hidden></div>
       <div class="tv-menu" hidden><div class="tv-menu-caixa"></div></div>
+      <div class="tv-confirmar" hidden><div class="tv-menu-caixa"></div></div>
       <div class="tv-avisos"></div>`;
     document.body.appendChild(raiz);
 
     raiz.querySelectorAll('.tv-abas button').forEach(b => { b.onclick = () => irPara(b.dataset.secao); });
+    $t('.tv-perfil').onclick = () => trocarPerfil();
     raiz.addEventListener('wheel', e => {
       if (camada || secao !== 'inicio') return;
       e.preventDefault();
@@ -341,7 +355,9 @@ const ModoTV = (() => {
     const lista = [];
     if (camada === 'menu') lista.push([k('A', 'Enter'), 'Escolher'], [k('B', 'Esc'), 'Fechar menu']);
     else if (camada === 'pagina') lista.push([k('A', 'Enter'), 'Confirmar'], [k('Y', 'F'), 'Favorito'], [k('B', 'Esc'), 'Voltar']);
-    else if (secao === 'stats') lista.push([[k('LB', 'Q'), k('RB', 'E')], 'Seções'], [k('B', 'Esc'), 'Início'], [k('☰', 'M'), 'Menu']);
+    else if (camada === 'confirmar') lista.push([k('A', 'Enter'), 'Escolher'], [k('B', 'Esc'), 'Cancelar']);
+    else if (secao === 'stats' || secao === 'conquistas') lista.push([[k('LB', 'Q'), k('RB', 'E')], 'Seções'], [k('B', 'Esc'), 'Início'], [k('☰', 'M'), 'Menu']);
+    else if (secao === 'emuladores' || secao === 'sistema') lista.push([k('A', 'Enter'), 'Escolher'], [[k('LB', 'Q'), k('RB', 'E')], 'Seções'], [k('B', 'Esc'), 'Início']);
     else lista.push([k('A', 'Enter'), 'Ver jogo'], [k('X', 'Espaço'), 'Jogar'], [k('Y', 'F'), 'Favorito'], [[k('LB', 'Q'), k('RB', 'E')], 'Seções'], [k('☰', 'M'), 'Menu']);
     for (const [b, t] of lista) box.appendChild(dica(b, t));
     $t('.tv-pad').textContent = pad ? '🎮' : '⌨';
@@ -351,7 +367,7 @@ const ModoTV = (() => {
   /* ------------------------------------------------------------------ */
   /* seções, página do jogo e menu                                       */
   /* ------------------------------------------------------------------ */
-  const SECOES = ['inicio', 'biblioteca', 'stats'];
+  const SECOES = ['inicio', 'biblioteca', 'conquistas', 'stats', 'emuladores', 'sistema'];
   function irPara(s, comSom) {
     secao = s;
     camada = null;
@@ -360,9 +376,218 @@ const ModoTV = (() => {
     raiz.dataset.secao = s;
     if (s === 'inicio') renderInicio();
     else if (s === 'biblioteca') renderBiblioteca();
+    else if (s === 'conquistas') renderConquistasTV();
+    else if (s === 'emuladores') renderEmuladoresTV();
+    else if (s === 'sistema') renderSistemaTV();
     else renderStatsTV();
     renderDicas();
     if (comSom !== false) somar('aba');
+  }
+
+  /* ---------------- perfil ---------------- */
+  function renderPerfilTopo() {
+    const b = $t('.tv-perfil');
+    if (!b || typeof Ecossistema === 'undefined') return;
+    const p = Ecossistema.perfilAtual();
+    b.innerHTML = '';
+    if (!p) return;
+    b.append(Ecossistema.avatar(p, 34), el('span', null, p.nome));
+  }
+  async function trocarPerfil(opts) {
+    if (typeof Ecossistema === 'undefined') return;
+    await Ecossistema.escolherPerfil(opts);
+    renderPerfilTopo();
+    atualizar();
+  }
+
+  /* ---------------- seções de itens (conquistas, emuladores, sistema) ---------------- */
+  /** Itens focáveis da seção atual (marcados com .tv-f). */
+  const itensSec = () => [...raiz.querySelectorAll(`.tv-secao[data-secao="${secao}"] .tv-f`)];
+  function focarSec(semSom) {
+    const itens = itensSec();
+    if (!itens.length) return;
+    focoSec[secao] = Math.max(0, Math.min(itens.length - 1, focoSec[secao] || 0));
+    itens.forEach((n, i) => n.classList.toggle('foco', i === focoSec[secao]));
+    const atual = itens[focoSec[secao]];
+    atual.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: semSom ? 'auto' : 'smooth' });
+    if (!semSom) somar('mover');
+  }
+  /** Próximo item na direção, pela posição na tela (serve para grade e lista). */
+  function moverSec(dx, dy) {
+    const itens = itensSec();
+    const atual = itens[focoSec[secao]];
+    if (!atual) return;
+    const r = atual.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    let melhor = -1, nota = Infinity;
+    itens.forEach((n, i) => {
+      if (n === atual) return;
+      const q = n.getBoundingClientRect();
+      const ddx = q.left + q.width / 2 - cx, ddy = q.top + q.height / 2 - cy;
+      if (dx && (Math.sign(ddx) !== dx || Math.abs(ddx) < 6)) return;
+      if (dy && (Math.sign(ddy) !== dy || Math.abs(ddy) < 6)) return;
+      const v = dx ? Math.abs(ddx) + Math.abs(ddy) * 3 : Math.abs(ddy) + Math.abs(ddx) * 0.5;
+      if (v < nota) { nota = v; melhor = i; }
+    });
+    if (melhor < 0) return;
+    focoSec[secao] = melhor;
+    focarSec();
+  }
+
+  async function renderConquistasTV() {
+    const box = $t('.tv-conquistas');
+    if (!box.firstChild) box.appendChild(el('p', 'tv-vazio', 'Carregando conquistas…'));
+    const r = await api.conquistas(ui.state.perfilAtivo).catch(() => null);
+    if (secao !== 'conquistas') return;
+    Ecossistema.desenharConquistas(box, r && r.ok ? r.data : null, { tv: true });
+    focarSec(true);
+    mostrarDestaque(null);
+  }
+
+  const ESTADO_BIOS = { valida: 'ok', desconhecida: 'versão não reconhecida', faltando: 'faltando' };
+  async function renderEmuladoresTV() {
+    const box = $t('.tv-emuladores');
+    box.innerHTML = '';
+    box.appendChild(el('p', 'tv-vazio', 'Conferindo emuladores e BIOS…'));
+    const r = await api.emuladores().catch(() => null);
+    if (secao !== 'emuladores') return;
+    box.innerHTML = '';
+    const topo = el('div', 'tv-sec-topo');
+    topo.append(el('h2', null, 'Emuladores'), el('span', null, 'Cada console da sua biblioteca, o emulador que abre os jogos e a BIOS que ele precisa. O Arcade Hub não baixa BIOS: use a do seu próprio console.'));
+    box.appendChild(topo);
+    const lista = r && r.ok ? r.data.lista : [];
+    if (!lista.length) box.appendChild(el('p', 'tv-vazio', 'Nenhuma ROM na biblioteca ainda. Adicione uma pasta de ROMs em Ajustes › Pastas.'));
+    for (const c of lista) {
+      const linha = el('div', 'tv-emu');
+      const info = el('div', 'tv-emu-info');
+      info.append(el('b', null, c.label), el('span', null, `${c.jogos} ${c.jogos === 1 ? 'jogo' : 'jogos'}`));
+      const estado = el('div', 'tv-emu-estado');
+      const nomeExe = c.emulador.exe ? c.emulador.exe.split(/[\\/]/).pop() : '';
+      const pill = (txt, tipo) => estado.appendChild(el('span', `tv-pill ${tipo}`, txt));
+      if (c.emulador.configurado && c.emulador.existe) pill(`✓ ${c.emulador.viaRetroArch ? 'RetroArch' : nomeExe}`, 'ok');
+      else if (c.emulador.configurado) pill('✗ emulador sumiu da pasta', 'erro');
+      else pill('✗ sem emulador', 'erro');
+      if (c.bios) {
+        const falta = c.bios.arquivos.filter(a => a.estado === 'faltando').map(a => a.nome);
+        const estranhas = c.bios.arquivos.filter(a => a.estado === 'desconhecida');
+        if (c.bios.ok && !estranhas.length) pill(`✓ BIOS${c.bios.nome ? ' (' + c.bios.nome + ')' : ''}`, 'ok');
+        else if (c.bios.ok) pill('BIOS presente, versão não reconhecida', 'aviso');
+        else pill(`${c.bios.opcional ? 'BIOS opcional' : 'Falta BIOS'}: ${falta.join(', ')}`, c.bios.opcional ? 'aviso' : 'erro');
+      }
+      const acoes = el('div', 'tv-emu-acoes');
+      if (!(c.emulador.configurado && c.emulador.existe)) {
+        const achado = c.recomendados.find(x => x.instalado);
+        if (achado) {
+          const b = el('button', 'tv-btn tv-f', `Usar ${achado.nome} (já está no PC)`);
+          b.onclick = async () => {
+            const x = await api.usarEmulador(c.platformKey, achado.id);
+            aviso(x.ok ? `${c.label} agora abre com o ${achado.nome}` : (x.error || 'Não consegui configurar'));
+            somar(x.ok ? 'selecionar' : 'erro');
+            if (x.ok) { const st = await api.getState(); if (st.ok) ui.state = st.data; renderEmuladoresTV(); }
+          };
+          acoes.appendChild(b);
+        }
+      }
+      for (const rec of c.recomendados.slice(0, 2)) {
+        if (rec.instalado && c.emulador.configurado) continue;
+        const b = el('button', 'tv-btn tv-btn-leve tv-f', `Site do ${rec.nome}`);
+        b.onclick = async () => { await api.abrirSiteEmulador(rec.id); aviso(`Abrindo o site do ${rec.nome} no navegador`); };
+        acoes.appendChild(b);
+      }
+      if (c.bios && c.bios.dica && !c.bios.ok) info.appendChild(el('small', null, c.bios.dica));
+      linha.append(info, estado, acoes);
+      box.appendChild(linha);
+    }
+    focarSec(true);
+    mostrarDestaque(null);
+  }
+
+  function itensSistema() {
+    const mc = ui.state.modoConsole || {};
+    const p = typeof Ecossistema !== 'undefined' ? Ecossistema.perfilAtual() : null;
+    return [
+      ['perfil', `Trocar de perfil${p ? ' (agora: ' + p.nome + ')' : ''}`, 'Quem está jogando conta o tempo e as conquistas'],
+      ['escanear', 'Procurar jogos novos', 'Varre as pastas e as lojas de novo'],
+      ['sons', `Sons do menu: ${typeof Som !== 'undefined' && Som.ligado ? 'ligados' : 'desligados'}`, ''],
+      ['abertura', `Animação de abertura: ${aberturaLigada() ? 'ligada' : 'desligada'}`, ''],
+      ['console', `Abrir com o Windows: ${mc.iniciarComWindows ? 'ligado' : 'desligado'}`, 'O PC liga direto no Arcade Hub, como um console'],
+      ['suspender', 'Suspender o PC', 'Desliga a tela e economiza energia; volta de onde parou'],
+      ['reiniciar', 'Reiniciar o PC', ''],
+      ['desligar', 'Desligar o PC', ''],
+      ['sair', 'Ir para a área de trabalho', 'Sai do Modo TV (o Arcade Hub continua aberto)'],
+      ['fechar', 'Fechar o Arcade Hub', '']
+    ];
+  }
+  function renderSistemaTV() {
+    const box = $t('.tv-sistema');
+    box.innerHTML = '';
+    const topo = el('div', 'tv-sec-topo');
+    topo.append(el('h2', null, 'Sistema'), el('span', null, 'Ajustes rápidos e energia, tudo pelo controle.'));
+    box.appendChild(topo);
+    const lista = el('div', 'tv-sis-lista');
+    const mc = ui.state.modoConsole || {};
+    for (const [acao, txt, desc] of itensSistema()) {
+      if (['suspender', 'reiniciar', 'desligar', 'console'].includes(acao) && !mc.energiaDisponivel) continue;
+      const b = el('button', 'tv-sis-item tv-f' + (['desligar', 'reiniciar'].includes(acao) ? ' perigo' : ''));
+      b.append(el('b', null, txt));
+      if (desc) b.append(el('span', null, desc));
+      b.onclick = () => executarSistema(acao);
+      lista.appendChild(b);
+    }
+    box.appendChild(lista);
+    focarSec(true);
+    mostrarDestaque(null);
+  }
+  async function executarSistema(acao) {
+    if (acao === 'perfil') return trocarPerfil();
+    if (acao === 'escanear' || acao === 'sons' || acao === 'abertura' || acao === 'sair' || acao === 'fechar') {
+      await executarMenu(acao);
+      if (secao === 'sistema' && ativo) renderSistemaTV();
+      return;
+    }
+    if (acao === 'console') {
+      const mc = ui.state.modoConsole || {};
+      const r = await api.iniciarComWindows(!mc.iniciarComWindows);
+      if (r.ok) { ui.state.modoConsole = { ...mc, iniciarComWindows: r.data }; aviso(r.data ? 'O Arcade Hub vai abrir junto com o Windows' : 'O Arcade Hub não abre mais com o Windows'); somar('selecionar'); }
+      else { aviso(r.error || 'Não consegui mudar'); somar('erro'); }
+      return renderSistemaTV();
+    }
+    const textos = {
+      suspender: ['Suspender o PC?', 'Suspender'],
+      reiniciar: ['Reiniciar o PC agora?', 'Reiniciar'],
+      desligar: ['Desligar o PC agora?', 'Desligar']
+    };
+    if (textos[acao]) pedirConfirmacaoTV(textos[acao][0], textos[acao][1], async () => {
+      aviso(acao === 'suspender' ? 'Suspendendo…' : 'Até logo!');
+      const r = await api.energia(acao);
+      if (!r.ok) { aviso(r.error || 'O Windows não deixou'); somar('erro'); }
+    });
+  }
+
+  /** Confirmação no estilo da TV (o foco começa em "Cancelar"). */
+  function pedirConfirmacaoTV(texto, rotulo, fazer) {
+    confirmacao = { texto, rotulo, fazer, foco: 0 };
+    camada = 'confirmar';
+    renderConfirmacao();
+    $t('.tv-confirmar').hidden = false;
+    renderDicas();
+    somar('selecionar');
+  }
+  function renderConfirmacao() {
+    const caixa = $t('.tv-confirmar .tv-menu-caixa');
+    caixa.innerHTML = '';
+    caixa.appendChild(el('div', 'tv-menu-titulo', confirmacao.texto));
+    [['nao', 'Cancelar'], ['sim', confirmacao.rotulo]].forEach(([v, txt], i) => {
+      const b = el('button', 'tv-menu-item' + (i === confirmacao.foco ? ' foco' : '') + (v === 'sim' ? ' perigo' : ''), txt);
+      b.onclick = () => { confirmacao.foco = i; responderConfirmacao(); };
+      caixa.appendChild(b);
+    });
+  }
+  function fecharConfirmacao() { camada = null; confirmacao = null; $t('.tv-confirmar').hidden = true; renderDicas(); }
+  function responderConfirmacao() {
+    const c = confirmacao;
+    fecharConfirmacao();
+    if (c && c.foco === 1) c.fazer(); else somar('voltar');
   }
 
   function abrirPagina(g) {
@@ -450,6 +675,7 @@ const ModoTV = (() => {
   function itensMenu() {
     return [
       ['continuar', 'Continuar'],
+      ['perfil', 'Trocar de perfil'],
       ['aleatorio', 'Jogo aleatório'],
       ['escanear', 'Procurar jogos novos'],
       ['sons', `Sons: ${typeof Som !== 'undefined' && Som.ligado ? 'ligados' : 'desligados'}`],
@@ -479,6 +705,7 @@ const ModoTV = (() => {
   function fecharMenu() { camada = null; $t('.tv-menu').hidden = true; renderDicas(); somar('voltar'); }
   async function executarMenu(acao) {
     if (acao === 'continuar') return fecharMenu();
+    if (acao === 'perfil') { fecharMenu(); return trocarPerfil(); }
     if (acao === 'sons') { if (typeof Som !== 'undefined') Som.alternar(); return renderMenu(); }
     if (acao === 'abertura') { definirAbertura(!aberturaLigada()); somar('selecionar'); return renderMenu(); }
     if (acao === 'aleatorio') {
@@ -523,6 +750,15 @@ const ModoTV = (() => {
   }
 
   function mover(dx, dy) {
+    if (camada === 'confirmar') {
+      const d = dx || dy;
+      if (!d) return;
+      confirmacao.foco = d > 0 ? 1 : 0;
+      renderConfirmacao();
+      somar('mover');
+      return;
+    }
+    if (!camada && (secao === 'conquistas' || secao === 'emuladores' || secao === 'sistema')) return moverSec(dx, dy);
     if (camada === 'menu') {
       if (!dy) return;
       focoMenu = (focoMenu + dy + itensMenu().length) % itensMenu().length;
@@ -568,6 +804,9 @@ const ModoTV = (() => {
   }
 
   function botaoA() {
+    if (camada === 'confirmar') return responderConfirmacao();
+    if (!camada && (secao === 'emuladores' || secao === 'sistema')) { const n = itensSec()[focoSec[secao]]; if (n) n.click(); return; }
+    if (!camada && secao === 'conquistas') return;
     if (camada === 'menu') return executarMenu(itensMenu()[focoMenu][0]);
     if (camada === 'pagina') {
       const b = raiz.querySelectorAll('.tv-pag-botoes .tv-btn')[focoPagina];
@@ -576,17 +815,18 @@ const ModoTV = (() => {
     abrirPagina(jogoEmFoco());
   }
   function botaoB() {
+    if (camada === 'confirmar') { fecharConfirmacao(); somar('voltar'); return; }
     if (camada === 'menu') return fecharMenu();
     if (camada === 'pagina') return fecharPagina();
     if (secao !== 'inicio') return irPara('inicio');
     abrirMenu();
   }
   function botaoX() {
-    if (camada === 'menu') return;
+    if (camada === 'menu' || camada === 'confirmar' || ['conquistas', 'emuladores', 'sistema', 'stats'].includes(secao) && !camada) return;
     jogar(camada === 'pagina' ? jogoDaPagina : jogoEmFoco());
   }
   function botaoY() {
-    if (camada === 'menu') return;
+    if (camada === 'menu' || camada === 'confirmar' || ['conquistas', 'emuladores', 'sistema', 'stats'].includes(secao) && !camada) return;
     favoritar(camada === 'pagina' ? jogoDaPagina : jogoEmFoco(), camada === 'pagina');
   }
   function trocarSecao(d) {
@@ -600,6 +840,7 @@ const ModoTV = (() => {
   /* teclado (captura: o resto do app não reage enquanto o Modo TV está aberto) */
   function onTecla(e) {
     if (!ativo || document.querySelector('.intro')) return;
+    if (typeof Ecossistema !== 'undefined' && Ecossistema.camada) return;   // ela mesma cuida das teclas
     const mapa = {
       ArrowLeft: () => mover(-1, 0), ArrowRight: () => mover(1, 0), ArrowUp: () => mover(0, -1), ArrowDown: () => mover(0, 1),
       Enter: botaoA, Escape: botaoB, Backspace: botaoB, ' ': botaoX, f: botaoY, F: botaoY,
@@ -623,17 +864,24 @@ const ModoTV = (() => {
     if (!gp) return;
     const ap = i => !!(gp.buttons[i] && gp.buttons[i].pressed);
     const borda = i => { const on = ap(i); const antes = pad.botoes[i]; pad.botoes[i] = on; return on && !antes; };
+    const eco = typeof Ecossistema !== 'undefined' && Ecossistema.camada;
     const [ax = 0, ay = 0] = gp.axes;
     const dx = ap(14) || ax < -0.55 ? -1 : ap(15) || ax > 0.55 ? 1 : 0;
     const dy = ap(12) || ay < -0.55 ? -1 : ap(13) || ay > 0.55 ? 1 : 0;
     const agora = performance.now();
+    const andar = eco ? (x, y) => eco.mover(x, y) : mover;
     if (dx || dy) {
       const espera = pad.repetindo ? 105 : 360;      // segura: repete rápido depois de uma pausa
-      if (!pad.direcao || pad.direcao !== `${dx},${dy}`) { pad.direcao = `${dx},${dy}`; pad.repetindo = false; pad.ultimoMov = agora; mover(dx, dy); }
-      else if (agora - pad.ultimoMov > espera) { pad.repetindo = true; pad.ultimoMov = agora; mover(dx, dy); }
+      if (!pad.direcao || pad.direcao !== `${dx},${dy}`) { pad.direcao = `${dx},${dy}`; pad.repetindo = false; pad.ultimoMov = agora; andar(dx, dy); }
+      else if (agora - pad.ultimoMov > espera) { pad.repetindo = true; pad.ultimoMov = agora; andar(dx, dy); }
     } else {
       pad.direcao = null;
       pad.repetindo = false;
+    }
+    if (eco) {
+      if (borda(0)) eco.confirmar();
+      if (borda(1)) eco.cancelar();
+      return;
     }
     if (borda(0)) botaoA();
     if (borda(1)) botaoB();
@@ -701,9 +949,13 @@ const ModoTV = (() => {
     // botões já apertados (ex.: o Guia que abriu o modo) não disparam de novo
     try { const gp = [...navigator.getGamepads()].find(p => p && p.connected); if (gp) gp.buttons.forEach((b, i) => { pad.botoes[i] = b.pressed; }); } catch { /* noop */ }
     rafPad = requestAnimationFrame(lerControle);
+    comoConsole = !!o.console;
+    renderPerfilTopo();
     if (o.intro !== false && aberturaLigada() && typeof Intro !== 'undefined') {
       await Intro.tocar({ capas: capasParaAbertura() });
     }
+    // mais de uma pessoa em casa: pergunta quem vai jogar (como nos consoles)
+    if (ativo && (ui.state.perfis || []).length > 1) await trocarPerfil({ semCancelar: comoConsole });
   }
   const aplicarFocoSilencioso = () => { if (ativo) aplicarFoco(true); };
 
@@ -721,6 +973,8 @@ const ModoTV = (() => {
     camada = null;
     $t('.tv-pagina').hidden = true;
     $t('.tv-menu').hidden = true;
+    $t('.tv-confirmar').hidden = true;
+    confirmacao = null;
     document.body.classList.remove('modo-tv');
     try { await api.setFullscreen(false); } catch { /* prévia */ }
     if (typeof render === 'function') render();
@@ -733,8 +987,12 @@ const ModoTV = (() => {
       const novo = ui.state.games.find(g => g.id === jogoDaPagina.id);
       if (novo) abrirPagina(novo);
     }
+    renderPerfilTopo();
     if (secao === 'inicio') renderInicio();
     else if (secao === 'biblioteca') renderBiblioteca();
+    else if (secao === 'conquistas') renderConquistasTV();
+    else if (secao === 'emuladores') { /* não refaz no meio do uso (perderia o foco) */ }
+    else if (secao === 'sistema') renderSistemaTV();
     else renderStatsTV();
   }
 

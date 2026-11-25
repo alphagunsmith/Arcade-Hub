@@ -19,6 +19,8 @@ const { VigiaDeSessoes, pastaVigiavel } = require('./sessions');
 const { criarZip, lerZip } = require('./zip');
 const { EventEmitter } = require('events');
 const fontesVideo = require('./fontes-video');
+const conquistas = require('./conquistas');
+const consoleMod = require('./console');
 
 /* Senhas guardadas cifradas pelo sistema (Windows DPAPI via safeStorage). */
 function cifrar(txt) {
@@ -221,8 +223,48 @@ const DEFAULT_SETTINGS = {
   cardSize: 158,            // largura mínima do card na grade (px)
   abrirNoModoTV: false,     // começa direto no Modo TV (PC ligado na TV)
   youtubeKey: '',           // chave da YouTube Data API v3 (vídeos de qualquer jogo)
-  screenscraper: { usuario: '', senha: '', devid: '', devsenha: '' }   // senhas cifradas
+  screenscraper: { usuario: '', senha: '', devid: '', devsenha: '' },  // senhas cifradas
+  perfis: [],               // [{ id, nome, cor, avatar }] — vazio = um perfil com o nome do usuário do PC
+  perfilAtivo: '',
+  conquistas: {},           // { perfilId: { conquistaId: quando } }
+  biosFolder: ''            // pasta extra onde procurar BIOS (opcional)
 };
+
+/* ------------------------------------------------------------------ */
+/* Perfis (quem está jogando)                                          */
+/* ------------------------------------------------------------------ */
+const CORES_PERFIL = ['#22d3ee', '#e879f9', '#facc15', '#4ade80', '#fb7185', '#a78bfa', '#fb923c', '#38bdf8'];
+
+function nomeDoUsuario() {
+  try { const n = os.userInfo().username; return n ? n.charAt(0).toUpperCase() + n.slice(1) : 'Jogador 1'; } catch { return 'Jogador 1'; }
+}
+
+/** Lista de perfis (sempre ao menos um). O primeiro é o principal: herda as sessões antigas. */
+function perfisDe(settings) {
+  const lista = Array.isArray(settings && settings.perfis) ? settings.perfis.filter(p => p && p.id) : [];
+  return lista.length ? lista : [{ id: 'p1', nome: nomeDoUsuario(), cor: CORES_PERFIL[0], avatar: '🎮' }];
+}
+function perfilAtivoDe(settings) {
+  const lista = perfisDe(settings);
+  return (lista.find(p => p.id === (settings && settings.perfilAtivo)) || lista[0]).id;
+}
+/** Valida o que veio da interface (nome curto, cor hex, avatar de até 2 caracteres visíveis). */
+function limparPerfis(lista) {
+  if (!Array.isArray(lista)) throw new Error('lista de perfis inválida');
+  const vistos = new Set();
+  const out = [];
+  for (const p of lista.slice(0, 8)) {
+    const id = String((p && p.id) || '').replace(/[^a-z0-9-]/gi, '').slice(0, 24) || 'p' + crypto.randomBytes(4).toString('hex');
+    if (vistos.has(id)) continue;
+    vistos.add(id);
+    const nome = String((p && p.nome) || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 24) || 'Jogador';
+    const cor = /^#[0-9a-f]{6}$/i.test(p && p.cor) ? p.cor : CORES_PERFIL[out.length % CORES_PERFIL.length];
+    const avatar = [...String((p && p.avatar) || '')].slice(0, 2).join('') || nome.charAt(0).toUpperCase();
+    out.push({ id, nome, cor, avatar });
+  }
+  if (!out.length) throw new Error('precisa ter pelo menos um perfil');
+  return out;
+}
 
 /* ------------------------------------------------------------------ */
 /* Steam                                                               */
@@ -1441,30 +1483,31 @@ const MIN_SESSAO_MS = 20000;             // <20s: não conta (engano, crash, lau
  * Soma uma sessão ao jogo e guarda no histórico (usado pela página de estatísticas).
  * O histórico guarda as últimas 500 sessões: { at: fim da sessão, ms: duração }.
  */
-function registrarSessao(store, gameId, elapsed) {
+function registrarSessao(store, gameId, elapsed, perfil) {
   if (!(elapsed >= MIN_SESSAO_MS)) return null;
   const current = store.games.find(g => g.id === gameId);
   if (!current) return null;
   const pt = current.playtime || {};
   const total = (pt.totalMs || 0) + elapsed;
   const sessions = (pt.sessions || 0) + 1;
-  const history = [...(Array.isArray(pt.history) ? pt.history : []), { at: Date.now(), ms: Math.round(elapsed) }].slice(-500);
+  const quem = perfil || perfilAtivoDe(store.settings);
+  const history = [...(Array.isArray(pt.history) ? pt.history : []), { at: Date.now(), ms: Math.round(elapsed), perfil: quem }].slice(-500);
   store.updateGame(gameId, {
     playtime: { ...pt, totalMs: total, sessions, lastSessionMs: elapsed, lastAt: Date.now(), history },
     playedAt: Date.now()
   });
-  return { elapsed, total, sessions };
+  return { elapsed, total, sessions, perfil: quem };
 }
 
 function startSession(store, game, child) {
   const startedAt = Date.now();
-  const entry = { startedAt, child };
+  const entry = { startedAt, child, perfil: perfilAtivoDe(store.settings) };
   runningProcesses.set(game.id, entry);
   const finish = (save) => {
     const entry = runningProcesses.get(game.id);
     runningProcesses.delete(game.id);
     if (!entry || save === false) return null;
-    return registrarSessao(store, game.id, Date.now() - entry.startedAt);
+    return registrarSessao(store, game.id, Date.now() - entry.startedAt, entry.perfil);
   };
   return { startedAt, finish, _entry: entry };
 }
@@ -1944,19 +1987,57 @@ function register(ipcMain, deps) {
     }
   };
 
+  /* ---------------- conquistas ---------------- */
+  /**
+   * Avalia as conquistas de um perfil e guarda as novas. Na primeira vez de um
+   * perfil (ou ao atualizar o app), desbloqueia em silêncio o que ele já tinha
+   * feito antes — senão viriam 15 avisos de uma vez.
+   */
+  const checarConquistas = (perfilId, opts) => {
+    const o = opts || {};
+    const s = store.settings;
+    const perfis = perfisDe(s);
+    const perfil = perfilId && perfis.some(p => p.id === perfilId) ? perfilId : perfilAtivoDe(s);
+    const todas = { ...(s.conquistas || {}) };
+    const primeiraVez = !todas[perfil];
+    const r = conquistas.avaliar({
+      jogos: store.games, perfil, principal: perfis[0].id,
+      favoritos: (store.favorites || []).length, guardadas: todas[perfil] || {}
+    });
+    if (r.novas.length || primeiraVez) {
+      todas[perfil] = r.guardadas;
+      store.saveSettings({ conquistas: todas });
+    }
+    if (r.novas.length && !primeiraVez && !o.silencioso) {
+      enviar('conquista:nova', { perfil, conquistas: r.novas, pontos: r.pontos });
+    }
+    return { perfil, ...r, novas: primeiraVez ? [] : r.novas };
+  };
+
+  // perfis sem conquistas guardadas: registra o que já tinham feito, em silêncio,
+  // logo ao abrir — assim a PRÓXIMA conquista (até a primeira partida) aparece na tela
+  const iniciarConquistas = () => {
+    const guardadas = store.settings.conquistas || {};
+    for (const p of perfisDe(store.settings)) if (!guardadas[p.id]) { try { checarConquistas(p.id, { silencioso: true }); } catch { /* segue */ } }
+  };
+  const timerConquistas = setTimeout(iniciarConquistas, deps.atrasoConquistas != null ? deps.atrasoConquistas : 1500);
+  if (timerConquistas.unref) timerConquistas.unref();
+
   /* ---------------- sessões de jogo (tempo de jogo) ---------------- */
   const sessoesAtivas = new Map();          // gameId -> { title, inicio, origem }
   const pastasProibidas = () => [...(store.settings.folders || []), ...(store.settings.romFolders || [])];
 
   const marcarInicio = (game, origem, inicio) => {
     if (sessoesAtivas.has(game.id)) return;
-    sessoesAtivas.set(game.id, { title: game.title, inicio: inicio || Date.now(), origem });
+    sessoesAtivas.set(game.id, { title: game.title, inicio: inicio || Date.now(), origem, perfil: perfilAtivoDe(store.settings) });
     eventos.emit('sessao:inicio', { id: game.id, title: game.title });
     enviar('game:sessionStart', { id: game.id, title: game.title, origem });
   };
   const encerrar = (game, ms, info) => {
+    const sess = sessoesAtivas.get(game.id);
     const tinha = sessoesAtivas.delete(game.id);
-    const res = registrarSessao(store, game.id, ms);
+    const res = registrarSessao(store, game.id, ms, sess && sess.perfil);
+    if (res) setTimeout(() => checarConquistas(res.perfil), 50);
     const atual = store.games.find(g => g.id === game.id);
     if (tinha) eventos.emit('sessao:fim', { id: game.id, title: game.title, session: res, ativas: sessoesAtivas.size });
     enviar('game:sessionEnd', {
@@ -1981,7 +2062,7 @@ function register(ipcMain, deps) {
       const fim = it && it.ultimo ? it.ultimo : Date.now();
       sessoesAtivas.delete(id);
       vigia.parar(id);
-      registrarSessao(store, id, fim - sess.inicio);
+      registrarSessao(store, id, fim - sess.inicio, sess.perfil);
     }
   };
 
@@ -2071,7 +2152,14 @@ function register(ipcMain, deps) {
       sessoes: [...sessoesAtivas].map(([id, x]) => ({ id, ...x })),
       versions: { app: app.getVersion(), electron: process.versions.electron, os: `${os.platform()} ${os.release()}` },
       dataDir: store.dir,
-      avisoBiblioteca: store.recuperado || null
+      avisoBiblioteca: store.recuperado || null,
+      perfis: perfisDe(store.settings),
+      perfilAtivo: perfilAtivoDe(store.settings),
+      modoConsole: {
+        iniciarComWindows: consoleMod.estadoInicio(app),
+        abertoPeloWindows: process.argv.includes(consoleMod.ARG_CONSOLE),
+        energiaDisponivel: process.platform === 'win32' || process.platform === 'linux'
+      }
     };
   };
 
@@ -2191,7 +2279,83 @@ function register(ipcMain, deps) {
   });
 
   ipcMain.handle('game:favorite', (_e, id) => {
-    try { return ok(store.toggleFavorite(id)); } catch (e) { return fail(e); }
+    try {
+      const r = store.toggleFavorite(id);
+      setTimeout(() => checarConquistas(), 50);       // "Os escolhidos" (10 favoritos)
+      return ok(r);
+    } catch (e) { return fail(e); }
+  });
+
+  /* ---------------- perfis e conquistas ---------------- */
+  ipcMain.handle('perfis:salvar', (_e, lista) => {
+    try {
+      const perfis = limparPerfis(lista);
+      const ids = new Set(perfis.map(p => p.id));
+      const todas = { ...(store.settings.conquistas || {}) };
+      for (const k of Object.keys(todas)) if (!ids.has(k)) delete todas[k];
+      const ativo = ids.has(store.settings.perfilAtivo) ? store.settings.perfilAtivo : perfis[0].id;
+      store.saveSettings({ perfis, conquistas: todas, perfilAtivo: ativo });
+      iniciarConquistas();
+      return ok({ perfis, perfilAtivo: ativo });
+    } catch (e) { return fail(e); }
+  });
+  ipcMain.handle('perfis:ativar', (_e, id) => {
+    try {
+      if (!perfisDe(store.settings).some(p => p.id === id)) throw new Error('perfil não existe');
+      store.saveSettings({ perfilAtivo: id });
+      checarConquistas(id, { silencioso: true });
+      return ok(id);
+    } catch (e) { return fail(e); }
+  });
+  ipcMain.handle('conquistas:listar', (_e, perfilId) => {
+    try {
+      const r = checarConquistas(perfilId);
+      return ok({ perfil: r.perfil, lista: r.lista, pontos: r.pontos, total: r.total });
+    } catch (e) { return fail(e); }
+  });
+
+  /* ---------------- Modo Console ---------------- */
+  const ENERGIA = new Set(['desligar', 'reiniciar', 'suspender']);
+  ipcMain.handle('console:energia', async (_e, acao) => {
+    if (!ENERGIA.has(acao)) return fail('ação inválida');
+    // antes de desligar: grava o tempo das sessões abertas e a biblioteca
+    if (acao !== 'suspender') { try { fecharSessoes(); store.flush(); } catch { /* segue */ } }
+    const r = await consoleMod.energia(acao);
+    return r.ok ? ok(true) : fail(r.erro);
+  });
+  ipcMain.handle('console:iniciarComWindows', (_e, ligar) => {
+    const r = consoleMod.iniciarComWindows(app, !!ligar);
+    return r.ok ? ok(r.ligado) : fail(r.erro);
+  });
+  let instaladosCache = null;
+  ipcMain.handle('console:emuladores', (_e, opts) => {
+    try {
+      instaladosCache = consoleMod.acharInstalados();
+      const lista = consoleMod.statusEmuladores(store.settings, store.games, PLATFORM_LABEL, { instalados: instaladosCache, todos: !!(opts && opts.todos) });
+      return ok({ lista, instalados: instaladosCache });
+    } catch (e) { return fail(e); }
+  });
+  ipcMain.handle('console:usarEmulador', (_e, platformKey, emuladorId) => {
+    try {
+      // só caminhos que o próprio app achou (a interface não manda caminho)
+      const exe = (instaladosCache || consoleMod.acharInstalados())[emuladorId];
+      if (!exe || !PLATFORM_LABEL[platformKey]) throw new Error('emulador não encontrado');
+      if (emuladorId === 'retroarch') {
+        const cores = path.join(path.dirname(exe), 'cores');
+        store.saveSettings({ retroarch: { ...(store.settings.retroarch || {}), exe, cores: fs.existsSync(cores) ? cores : (store.settings.retroarch || {}).cores || '' } });
+      } else {
+        const emus = { ...store.settings.emulators };
+        emus[platformKey] = { ...(emus[platformKey] || {}), exe };
+        store.saveSettings({ emulators: emus });
+      }
+      return ok(exe);
+    } catch (e) { return fail(e); }
+  });
+  ipcMain.handle('console:abrirSite', async (_e, emuladorId) => {
+    const e = consoleMod.EMULADORES[emuladorId];
+    if (!e) return fail('emulador desconhecido');
+    await shell.openExternal(e.site);
+    return ok(true);
   });
 
   ipcMain.handle('game:hide', (_e, id) => {
@@ -2749,6 +2913,7 @@ function register(ipcMain, deps) {
 }
 
 module.exports = {
+  perfisDe, perfilAtivoDe, limparPerfis,
   DEFAULT_SETTINGS, Store, cifrar, decifrar, credScreenScraper, runScan, runScanAsync, registrarSessao, eventos, limparCacheLojas, launchersCacheados, extrairCapas, caminhoDeFileUrl, collectScan, finishScan, mergeScanned, buildLaunchPlan, register, genres,
   dedupeGames, installKey, markInstalled, dirOf, exeOf, startSession,
   detectLaunchers, refreshProblems, detectEmulators, retroarchCores, KNOWN_EMULATORS,
