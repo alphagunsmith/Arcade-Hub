@@ -138,7 +138,7 @@ const ModoTV = (() => {
       grupos.get(chave).push(g);
     }
     [...grupos].sort((a, b) => b[1].length - a[1].length).forEach(([nome, jogos]) => {
-      add(nome, [...jogos].sort((a, b) => a.title.localeCompare(b.title, 'pt-BR')));
+      add(nome, [...jogos].sort((a, b) => a.title.localeCompare(b.title, LOCALE())));
     });
     const naoInst = todos.filter(g => g.installed === false);
     add('Não instalados', naoInst);
@@ -280,11 +280,11 @@ const ModoTV = (() => {
     if (d < 3600) return 'agora há pouco';
     if (d < 86400) return `há ${Math.round(d / 3600)} h`;
     if (d < 86400 * 30) return `há ${Math.round(d / 86400)} dia(s)`;
-    return new Date(ts).toLocaleDateString('pt-BR');
+    return new Date(ts).toLocaleDateString(LOCALE());
   }
 
   function renderBiblioteca() {
-    listaBib = [...visiveis()].sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+    listaBib = [...visiveis()].sort((a, b) => a.title.localeCompare(b.title, LOCALE()));
     const grade = $t('.tv-bib-grade');
     grade.innerHTML = '';
     listaBib.forEach((g, i) => {
@@ -511,6 +511,7 @@ const ModoTV = (() => {
       ['limpar', 'Remover jogos que não estão mais no PC', 'Desinstalados ou com o arquivo apagado'],
       ['dualsense', `DualSense Auto: ${dsLigado() ? 'ligado' : 'desligado'}`, dsDescricao()],
       ['sons', `Sons do menu: ${typeof Som !== 'undefined' && Som.ligado ? 'ligados' : 'desligados'}`, ''],
+      ['idioma', `Idioma / Language: ${nomeIdioma()}`, ''],
       ['abertura', `Animação de abertura: ${aberturaLigada() ? 'ligada' : 'desligada'}`, ''],
       ['console', `Abrir com o Windows: ${mc.iniciarComWindows ? 'ligado' : 'desligado'}`, 'O PC liga direto no Arcade Hub, como um console'],
       ['suspender', 'Suspender o PC', 'Desliga a tela e economiza energia; volta de onde parou'],
@@ -519,6 +520,14 @@ const ModoTV = (() => {
       ['sair', 'Ir para a área de trabalho', 'Sai do Modo TV (o Arcade Hub continua aberto)'],
       ['fechar', 'Fechar o Arcade Hub', '']
     ];
+  }
+  const ORDEM_IDIOMAS = ['auto', 'pt-BR', 'en', 'es', 'ja', 'zh-CN'];
+  function idiomaSalvo() { return ((ui.state.settings || {}).idioma) || 'auto'; }
+  function nomeIdioma() {
+    const v = idiomaSalvo();
+    if (v === 'auto' || typeof I18N === 'undefined') return 'Auto';
+    const i = I18N.IDIOMAS.find(x => x.id === v);
+    return i ? i.nome : v;
   }
   function dsLigado() { return ((ui.state.settings || {}).dualsense || {}).ligado !== false; }
   function dsDescricao() {
@@ -552,6 +561,17 @@ const ModoTV = (() => {
     if (acao === 'escanear' || acao === 'sons' || acao === 'abertura' || acao === 'sair' || acao === 'fechar') {
       await executarMenu(acao);
       if (secao === 'sistema' && ativo) renderSistemaTV();
+      return;
+    }
+    if (acao === 'idioma') {
+      const atual = ORDEM_IDIOMAS.indexOf(idiomaSalvo());
+      const proximo = ORDEM_IDIOMAS[(atual + 1) % ORDEM_IDIOMAS.length];
+      const r = await api.saveSettings({ idioma: proximo });
+      if (!r || !r.ok) return;
+      ui.state = r.data;
+      if (typeof I18N !== 'undefined') I18N.lembrar(proximo);
+      try { sessionStorage.setItem('reabrir-tv', 'sistema'); } catch { /* sem armazenamento */ }
+      location.reload();
       return;
     }
     if (acao === 'dualsense') {
@@ -973,7 +993,7 @@ const ModoTV = (() => {
 
   function relogio() {
     const r = $t('.tv-relogio');
-    if (r) r.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    if (r) r.textContent = new Date().toLocaleTimeString(LOCALE(), { hour: '2-digit', minute: '2-digit' });
   }
 
   async function abrir(opts) {

@@ -106,6 +106,7 @@ class DualSenseAuto extends EventEmitter {
     this.ignorar = o.ignorar || [];
     this._spawn = o.spawn || spawn;
     this.esperaReligar = o.esperaReligar != null ? o.esperaReligar : 4000;
+    this.idioma = o.idioma || 'pt-BR';
     this.estado = this.comando ? 'desligado' : 'ausente';
     this.msg = '';
     this.porta = 0;
@@ -148,6 +149,7 @@ class DualSenseAuto extends EventEmitter {
           DUALSENSE_AUTO_DADOS: this.dados,
           DSA_TOKEN: this.token,
           DSA_IGNORAR: this.ignorar.join('|'),
+          DSA_IDIOMA: this.idioma || 'pt-BR',
           PYTHONIOENCODING: 'utf-8'
         },
         stdio: 'ignore',

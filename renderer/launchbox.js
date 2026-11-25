@@ -32,7 +32,7 @@
     set(k, v) { try { localStorage.setItem('arcadehub.lb.' + k, String(v)); } catch { /* sem storage: só não lembra */ } }
   };
   const tempo = ms => (typeof fmtPlaytime === 'function' ? fmtPlaytime(ms) : Math.round((ms || 0) / 36e5) + 'h');
-  const quando = ts => (typeof fmtDate === 'function' ? fmtDate(ts) : (ts ? new Date(ts).toLocaleDateString('pt-BR') : 'Nunca'));
+  const quando = ts => (typeof fmtDate === 'function' ? fmtDate(ts) : (ts ? new Date(ts).toLocaleDateString(LOCALE()) : 'Nunca'));
   const tamanho = b => (typeof fmtSize === 'function' ? fmtSize(b) : Math.round((b || 0) / 1048576) + ' MB');
   const genero = k => (typeof genreLabel === 'function' ? genreLabel(k) : k);
   const urlCss = u => 'url(' + JSON.stringify(String(u)) + ')';
@@ -274,7 +274,7 @@
     linha('Tempo jogado', minutos(j) ? tempo(minutos(j)) : (ultimaVez(j) ? 'sem registro' : 'Nunca jogado'));
     if (j.playtime && j.playtime.sessions) linha('Sessões', String(j.playtime.sessions));
     linha('Última vez', ultimaVez(j) ? quando(ultimaVez(j)) : 'Nunca');
-    if (j.addedAt) linha('Adicionado', new Date(j.addedAt).toLocaleDateString('pt-BR'));
+    if (j.addedAt) linha('Adicionado', new Date(j.addedAt).toLocaleDateString(LOCALE()));
     if (j.sizeOnDisk) linha('Tamanho', tamanho(j.sizeOnDisk));
     linha('Situação', j.problem ? j.problem : (j.installed === false ? 'Não instalado' : 'Pronto para jogar'));
     if (favs.has(j.id)) linha('Favorito', 'Sim');

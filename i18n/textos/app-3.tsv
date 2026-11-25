@@ -1,0 +1,327 @@
+Ana	Ana	Ana	アナ	安娜
+Sem controle — usando teclado	No controller — using keyboard	Sin mando: usando teclado	コントローラーなし — キーボードを使用	未连接手柄——使用键盘
+Sem desligar	Non-stop	Sin parar	ノンストップ	不停歇
+Sem emulador configurado para: {0}. ROMs dessas plataformas não abrem.	No emulator set up for: {0}. ROMs for these platforms won't open.	Sin emulador configurado para: {0}. Las ROMs de esas plataformas no se abren.	エミュレーター未設定: {0}。これらの機種の ROM は開けません。	以下平台未配置模拟器：{0}。这些平台的 ROM 无法打开。
+Sem executável	No executable	Sin ejecutable	実行ファイルなし	无可执行文件
+Sem fronteiras	Borderless	Sin fronteras	ボーダーレス	无国界
+Sem gênero	No genre	Sin género	ジャンルなし	无类型
+Sem link	No link	Sin enlace	リンクなし	无链接
+Sem nota no Metacritic	No Metacritic score	Sin nota en Metacritic	Metacritic スコアなし	无 Metacritic 评分
+Sem nota no Metacritic{0}	No Metacritic score{0}	Sin nota en Metacritic{0}	Metacritic スコアなし{0}	无 Metacritic 评分{0}
+Senha	Password	Contraseña	パスワード	密码
+Senha (guardada — deixe vazio para manter)	Password (saved — leave empty to keep it)	Contraseña (guardada: déjala vacía para mantenerla)	パスワード（保存済み — 空欄なら変更なし）	密码（已保存——留空则保持不变）
+Senha de desenvolvedor	Developer password	Contraseña de desarrollador	開発者パスワード	开发者密码
+Senha de dev. (guardada)	Dev. password (saved)	Contraseña de desarrollador (guardada)	開発者パスワード（保存済み）	开发者密码（已保存）
+Sequência	Streak	Racha	連続記録	连胜
+Sessões	Sessions	Sesiones	セッション	游戏次数
+Seu amigo está jogando {0}, mas esse jogo não está na sua biblioteca	Your friend is playing {0}, but that game isn't in your library	Tu amigo está jugando {0}, pero ese juego no está en tu biblioteca	友だちは {0} をプレイ中ですが、そのゲームはあなたのライブラリにありません	好友正在玩 {0}，但你的游戏库中没有这款游戏
+Seus amigos veem no Discord o que você está jogando e podem clicar em <b>Participar</b>. Tudo acontece pelo Discord aberto no seu PC: não passa por nenhum servidor do Arcade Hub.	Your friends see on Discord what you're playing and can click <b>Join</b>. Everything happens through the Discord app open on your PC: nothing goes through any Arcade Hub server.	Tus amigos ven en Discord a qué estás jugando y pueden hacer clic en <b>Unirse</b>. Todo pasa por el Discord abierto en tu PC: no pasa por ningún servidor de Arcade Hub.	友だちは Discord であなたが遊んでいるゲームを見て、<b>参加</b>をクリックできます。すべて PC で起動中の Discord 経由で行われ、Arcade Hub のサーバーは一切通りません。	好友可以在 Discord 上看到你在玩什么，并点击<b>加入</b>。一切都通过你电脑上打开的 Discord 完成：不经过任何 Arcade Hub 服务器。
+Seus dados ficam em um único <code>library.json</code> — fácil de fazer backup.	Your data lives in a single <code>library.json</code> — easy to back up.	Tus datos quedan en un único <code>library.json</code>: fácil de respaldar.	データは 1 つの <code>library.json</code> にまとまっていて、バックアップも簡単です。	你的数据都保存在一个 <code>library.json</code> 中——便于备份。
+Seções	Sections	Secciones	セクション	分区
+Sim	Yes	Sí	はい	是
+Simulação	Simulation	Simulación	シミュレーション	模拟
+Sistema	System	Sistema	システム	系统
+Site do {0}	{0} website	Sitio de {0}	{0} のサイト	{0} 网站
+Situação	Status	Situación	状態	状态
+Skin da interface	Interface skin	Skin de la interfaz	画面のスキン	界面皮肤
+Sobre	About	Acerca de	情報	关于
+Sobrevivência	Survival	Supervivencia	サバイバル	生存
+Some 1 hora de jogo.	Reach 1 hour of play.	Suma 1 hora de juego.	プレイ時間を合計 1 時間にする。	累计游玩 1 小时。
+Some 10 horas de jogo.	Reach 10 hours of play.	Suma 10 horas de juego.	プレイ時間を合計 10 時間にする。	累计游玩 10 小时。
+Some 100 horas de jogo.	Reach 100 hours of play.	Suma 100 horas de juego.	プレイ時間を合計 100 時間にする。	累计游玩 100 小时。
+Some 500 horas de jogo.	Reach 500 hours of play.	Suma 500 horas de juego.	プレイ時間を合計 500 時間にする。	累计游玩 500 小时。
+Sons do menu: {0}	Menu sounds: {0}	Sonidos del menú: {0}	メニュー音: {0}	菜单音效：{0}
+Stardew Valley — Steam não está instalada	Stardew Valley — Steam isn't installed	Stardew Valley — Steam no está instalado	Stardew Valley — Steam がインストールされていません	Stardew Valley — 未安装 Steam
+Steam não está instalada	Steam isn't installed	Steam no está instalado	Steam がインストールされていません	未安装 Steam
+Sua biblioteca	Your library	Tu biblioteca	あなたのライブラリ	你的游戏库
+Sua biblioteca está vazia	Your library is empty	Tu biblioteca está vacía	ライブラリは空です	你的游戏库是空的
+Suspender	Sleep	Suspender	スリープ	睡眠
+Suspender o PC	Put the PC to sleep	Suspender el PC	PC をスリープ	让电脑睡眠
+Suspender o PC?	Put the PC to sleep?	¿Suspender el PC?	PC をスリープしますか？	让电脑进入睡眠吗？
+Só a biblioteca, sem capas (.json)	Library only, no covers (.json)	Solo la biblioteca, sin portadas (.json)	ライブラリのみ、カバーなし（.json）	仅游戏库，不含封面（.json）
+Só cor	Color only	Solo color	カラーのみ	仅颜色
+Só importe se o backup é seu ou de alguém em quem você confia.	Only import it if the backup is yours or from someone you trust.	Importa solo si la copia es tuya o de alguien de confianza.	自分のバックアップか、信頼できる人のものだけを読み込んでください。	只导入你自己或信任之人的备份。
+Só jogos com nota {0} ou mais	Only games scored {0} or higher	Solo juegos con nota {0} o más	スコア {0} 以上のゲームのみ	仅显示 {0} 分及以上的游戏
+Só para jogos de CD.	Only for CD games.	Solo para juegos en CD.	CD のゲーム専用。	仅用于 CD 游戏。
+Só para jogos de Sega CD.	Only for Sega CD games.	Solo para juegos de Sega CD.	メガ CD のゲーム専用。	仅用于 Sega CD 游戏。
+Tabela com colunas que ordenam (clique no título da coluna) e detalhes ao lado.	A table with sortable columns (click the column title) and details on the side.	Tabla con columnas que se ordenan (haz clic en el título de la columna) y detalles al lado.	並べ替えできる列（列の見出しをクリック）と横に詳細がある表。	可排序列的表格（点击列标题），旁边显示详情。
+Tamanho	Size	Tamaño	サイズ	大小
+Tamanho das capas	Cover size	Tamaño de las portadas	カバーのサイズ	封面大小
+Tamanho dos cards	Card size	Tamaño de las tarjetas	カードのサイズ	卡片大小
+Tema	Theme	Tema	テーマ	主题
+Tema escuro técnico dos dashboards da cena: metal, verde e circuitos.	The technical dark theme of scene dashboards: metal, green and circuits.	Tema oscuro técnico de los dashboards de la escena: metal, verde y circuitos.	シーン系ダッシュボードの技術的なダークテーマ: メタル、グリーン、回路。	破解圈主界面的技术感深色主题：金属、绿色和电路。
+Tempo	Time	Tiempo	時間	时长
+Tempo contado pelo Arcade Hub. Jogos da Steam, Epic e GOG passaram a ser contados a partir da versão 1.0.2.	Time counted by Arcade Hub. Steam, Epic and GOG games started being counted in version 1.0.2.	Tiempo contado por Arcade Hub. Los juegos de Steam, Epic y GOG empezaron a contarse a partir de la versión 1.0.2.	Arcade Hub が計測した時間です。Steam、Epic、GOG のゲームはバージョン 1.0.2 から計測しています。	由 Arcade Hub 统计的时长。Steam、Epic 和 GOG 游戏从 1.0.2 版本开始统计。
+Tempo de jogo	Playtime	Tiempo de juego	プレイ時間	游戏时长
+Tenha 200 jogos na biblioteca.	Have 200 games in your library.	Ten 200 juegos en la biblioteca.	ライブラリに 200 本のゲームを入れる。	游戏库中拥有 200 款游戏。
+Tenha 50 jogos na biblioteca.	Have 50 games in your library.	Ten 50 juegos en la biblioteca.	ライブラリに 50 本のゲームを入れる。	游戏库中拥有 50 款游戏。
+Tente outra busca ou limpe os filtros de plataforma e origem.	Try another search or clear the platform and source filters.	Prueba otra búsqueda o quita los filtros de plataforma y origen.	別の検索を試すか、機種と入手元の絞り込みを解除してください。	换个关键词，或清除平台和来源筛选。
+Terror	Horror	Terror	ホラー	恐怖
+Tipo	Type	Tipo	種類	类型
+Tirar dos favoritos	Remove from favorites	Quitar de favoritos	お気に入りから外す	取消收藏
+Todos	All	Todos	すべて	全部
+Todos os jogos	All games	Todos los juegos	すべてのゲーム	全部游戏
+Todos os jogos já estão classificados	All games are already classified	Todos los juegos ya están clasificados	すべてのゲームが分類済みです	所有游戏都已分类
+Trocar de perfil	Switch profile	Cambiar de perfil	プロフィールを切り替え	切换个人资料
+Trocar de perfil{0}	Switch profile{0}	Cambiar de perfil{0}	プロフィールを切り替え{0}	切换个人资料{0}
+Tudo bem: a atualização instala quando você fechar o Arcade Hub	No problem: the update installs when you close Arcade Hub	Está bien: la actualización se instala cuando cierres Arcade Hub	大丈夫です。アップデートは Arcade Hub を閉じたときにインストールされます	没问题：更新会在你关闭 Arcade Hub 时安装
+Título	Title	Título	タイトル	标题
+Ultramaratona	Ultramarathon	Ultramaratón	ウルトラマラソン	超级马拉松
+Um amigo	A friend	Un amigo	友だち	一位好友
+Usar este	Use this	Usar este	これを使う	使用这个
+Usar imagem do meu PC…	Use an image from my PC…	Usar imagen de mi PC…	PC の画像を使う…	使用电脑上的图片…
+Usar outro aplicativo do Discord (avançado)	Use another Discord application (advanced)	Usar otra aplicación de Discord (avanzado)	別の Discord アプリを使う（上級者向け）	使用其他 Discord 应用（高级）
+Usar {0} (já está no PC)	Use {0} (already on the PC)	Usar {0} (ya está en el PC)	{0} を使う（PC にあります）	使用 {0}（已在电脑上）
+Usuário do ScreenScraper	ScreenScraper username	Usuario de ScreenScraper	ScreenScraper のユーザー名	ScreenScraper 用户名
+Variado	Variety	Variado	いろいろ	兴趣广泛
+Varre as pastas e as lojas de novo	Scans the folders and stores again	Vuelve a escanear las carpetas y tiendas	フォルダーとストアを再スキャンします	重新扫描文件夹和商店
+Varredura automática desligada	Automatic scan turned off	Escaneo automático desactivado	自動スキャンをオフにしました	已关闭自动扫描
+Ver	View	Ver	表示	查看
+Ver informações · Shift+clique para iniciar {0} direto	See info · Shift+click to start {0} right away	Ver información · Shift+clic para iniciar {0} directamente	詳細を表示 · Shift+クリックで {0} をすぐに開始	查看信息 · Shift+点击直接启动 {0}
+Ver jogo	See game	Ver juego	ゲームを見る	查看游戏
+Verificar de novo	Check again	Verificar de nuevo	再確認	重新检查
+Versão {0} do Arcade Hub pronta	Arcade Hub version {0} is ready	Versión {0} de Arcade Hub lista	Arcade Hub バージョン {0} の準備ができました	Arcade Hub {0} 版本已就绪
+Versão {0} pronta — reinicie para instalar.	Version {0} is ready — restart to install.	Versión {0} lista: reinicia para instalar.	バージョン {0} の準備ができました — 再起動してインストールします。	{0} 版本已就绪——重启以安装。
+Vibração e gatilhos adaptáveis inteligentes em qualquer jogo	Smart vibration and adaptive triggers in any game	Vibración y gatillos adaptativos inteligentes en cualquier juego	どのゲームでもスマートな振動とアダプティブトリガー	在任何游戏中实现智能振动和自适应扳机
+Vibração e gatilhos adaptáveis inteligentes em qualquer jogo de PC, controle de Xbox virtual (para jogos sem suporte ao DualSense) e instalação de mods. Ele vem junto com o Arcade Hub e abre com ele.	Smart vibration and adaptive triggers in any PC game, a virtual Xbox controller (for games without DualSense support) and mod installation. It ships with Arcade Hub and opens with it.	Vibración y gatillos adaptativos inteligentes en cualquier juego de PC, mando de Xbox virtual (para juegos sin soporte para DualSense) e instalación de mods. Viene con Arcade Hub y se abre con él.	あらゆる PC ゲームでのスマートな振動とアダプティブトリガー、仮想 Xbox コントローラー（DualSense 非対応のゲーム用）、MOD のインストール。Arcade Hub に同梱され、一緒に起動します。	在任何 PC 游戏中实现智能振动和自适应扳机、虚拟 Xbox 手柄（用于不支持 DualSense 的游戏）以及模组安装。它随 Arcade Hub 一起提供并一同启动。
+Vibração e gatilhos adaptáveis inteligentes, controle de Xbox virtual e mods	Smart vibration and adaptive triggers, virtual Xbox controller and mods	Vibración y gatillos adaptativos inteligentes, mando de Xbox virtual y mods	スマートな振動とアダプティブトリガー、仮想 Xbox コントローラー、MOD	智能振动和自适应扳机、虚拟 Xbox 手柄及模组
+Vibração e gatilhos inteligentes. A para desligar	Smart vibration and triggers. A to turn off	Vibración y gatillos inteligentes. A para desactivar	スマートな振動とトリガー。A でオフ	智能振动和扳机。按 A 关闭
+Visual do launcher	Launcher look	Aspecto del launcher	ランチャーの見た目	启动器外观
+Visual padrão restaurado	Default look restored	Aspecto predeterminado restaurado	既定の見た目に戻しました	已恢复默认外观
+Visão IA: coloque sua chave da API para ativar	AI vision: enter your API key to turn it on	Visión IA: pon tu clave de API para activarla	AI ビジョン: 有効にするには API キーを入力してください	AI 视觉：填写 API 密钥以启用
+Você	You	Tú	あなた	你
+Você está na versão mais recente.	You're on the latest version.	Tienes la versión más reciente.	最新バージョンです。	你使用的是最新版本。
+Você já jogou tudo o que está instalado. 🎉	You've already played everything that's installed. 🎉	Ya jugaste todo lo que está instalado. 🎉	インストール済みのゲームはすべてプレイ済みです。🎉	你已经玩过所有已安装的游戏。🎉
+Voltar	Back	Volver	戻る	返回
+Voltar ao padrão (Neon)	Back to default (Neon)	Volver al predeterminado (Neón)	既定に戻す（ネオン）	恢复默认（霓虹）
+Vídeo do jogo	Game video	Video del juego	ゲーム動画	游戏视频
+Vídeos de outras fontes	Videos from other sources	Videos de otras fuentes	他のソースの動画	其他来源的视频
+Xbox (clássico)	Xbox (classic)	Xbox (clásico)	Xbox（クラシック）	Xbox（经典）
+a chave do YouTube não tem permissão para buscar	the YouTube key isn't allowed to search	la clave de YouTube no tiene permiso para buscar	YouTube キーに検索の権限がありません	YouTube 密钥没有搜索权限
+a chave do YouTube tem restrição de site/IP — tire a restrição ou use "Nenhuma"	the YouTube key has a website/IP restriction — remove it or use "None"	la clave de YouTube tiene restricción de sitio/IP: quítala o usa "Ninguna"	YouTube キーにサイト／IP の制限があります — 制限を外すか「なし」にしてください	YouTube 密钥设置了网站/IP 限制——请移除限制或选择“无”
+a chave do YouTube é inválida	the YouTube key is invalid	la clave de YouTube no es válida	YouTube キーが無効です	YouTube 密钥无效
+abre o primeiro resultado,	opens the first result,	abre el primer resultado,	最初の結果を開く、	打开第一个结果，
+agora há pouco	a moment ago	hace un rato	少し前	刚才
+agora mesmo	just now	ahora mismo	たった今	刚刚
+arquivo da ROM não encontrado	ROM file not found	archivo de la ROM no encontrado	ROM ファイルが見つかりません	找不到 ROM 文件
+arquivo de vídeo inválido	invalid video file	archivo de video no válido	動画ファイルが無効です	视频文件无效
+arquivo grande demais no zip: {0}	file too big in the zip: {0}	archivo demasiado grande en el zip: {0}	zip 内のファイルが大きすぎます: {0}	zip 中的文件过大：{0}
+arquivo inválido (não parece um backup do Arcade Hub)	invalid file (it doesn't look like an Arcade Hub backup)	archivo no válido (no parece una copia de Arcade Hub)	無効なファイルです（Arcade Hub のバックアップではないようです）	文件无效（看起来不是 Arcade Hub 备份）
+arquivo não encontrado	file not found	archivo no encontrado	ファイルが見つかりません	找不到文件
+arquivo não é um .zip válido	the file isn't a valid .zip	el archivo no es un .zip válido	有効な .zip ファイルではありません	文件不是有效的 .zip
+ative a "YouTube Data API v3" no projeto da chave	enable "YouTube Data API v3" in the key's project	activa "YouTube Data API v3" en el proyecto de la clave	キーのプロジェクトで「YouTube Data API v3」を有効にしてください	请在密钥所属项目中启用“YouTube Data API v3”
+ação desconhecida	unknown action	acción desconocida	不明な操作	未知操作
+ação inválida	invalid action	acción no válida	無効な操作	无效操作
+backup grande demais (mais de 4 GB)	backup too big (over 4 GB)	copia demasiado grande (más de 4 GB)	バックアップが大きすぎます（4 GB 超）	备份过大（超过 4 GB）
+capa inválida	invalid cover	portada no válida	無効なカバー	封面无效
+capa local fora da pasta do Arcade Hub — use "Escolher imagem do PC"	local cover outside the Arcade Hub folder — use "Choose image from PC"	portada local fuera de la carpeta de Arcade Hub: usa "Elegir imagen del PC"	Arcade Hub のフォルダー外にあるローカルカバーです —「PC の画像を選ぶ」を使ってください	本地封面不在 Arcade Hub 文件夹内——请使用“从电脑选择图片”
+clique para ver · Shift+clique para jogar	click to see · Shift+click to play	clic para ver · Shift+clic para jugar	クリックで表示 · Shift+クリックでプレイ	点击查看 · Shift+点击开始游戏
+cole aqui sua API key do steamgriddb.com	paste your steamgriddb.com API key here	pega aquí tu API key de steamgriddb.com	steamgriddb.com の API キーをここに貼り付け	在此粘贴 steamgriddb.com 的 API 密钥
+com capa	with cover	con portada	カバーあり	有封面
+com gênero	with genre	con género	ジャンルあり	有类型
+com nota	with score	con nota	スコアあり	有评分
+configure o ScreenScraper ou o YouTube para vídeos de ROMs	set up ScreenScraper or YouTube for ROM videos	configura ScreenScraper o YouTube para videos de ROMs	ROM の動画には ScreenScraper か YouTube を設定してください	请配置 ScreenScraper 或 YouTube 以获取 ROM 视频
+conta {0} · {1} de {2} buscas hoje	account {0} · {1} of {2} searches today	cuenta {0} · {1} de {2} búsquedas hoy	アカウント {0} · 本日 {2} 回中 {1} 回検索	账号 {0} · 今日已搜索 {1}/{2} 次
+de ouro ou platina	gold or platinum	de oro o platino	ゴールドまたはプラチナ	金或白金
+de {0} pontos	of {0} points	de {0} puntos	/ {0} ポイント	/ {0} 分
+descrição do arquivo	file description	descripción del archivo	ファイルの説明	文件描述
+disponível só no Windows	only available on Windows	disponible solo en Windows	Windows でのみ利用できます	仅 Windows 可用
+disponível só no app instalado	only available in the installed app	disponible solo en la app instalada	インストール版のアプリでのみ利用できます	仅安装版应用可用
+do Discord. Os dois precisam do Arcade Hub, do Discord aberto, do RetroArch com o mesmo core e da	on Discord. Both of you need Arcade Hub, Discord open, RetroArch with the same core and the	de Discord. Ambos necesitan Arcade Hub, Discord abierto, RetroArch con el mismo core y la	（Discord）。両方に Arcade Hub、起動中の Discord、同じコアの RetroArch、そして次が必要です:	（Discord）。双方都需要 Arcade Hub、已打开的 Discord、使用相同核心的 RetroArch，以及
+e a	and the	y la	と	和
+e clique em	and click	y haz clic en	をクリック:	并点击
+e cole aqui; em	and paste it here; in	y pégalo aquí; en	をここに貼り付け。次に	并粘贴到这里；在
+e depois	and then	y luego	の後に	然后
+e {0} capas	and {0} covers	y {0} portadas	とカバー {0} 枚	和 {0} 张封面
+em disco	on disk	en disco	ディスク使用量	占用空间
+emulador não encontrado	emulator not found	emulador no encontrado	エミュレーターが見つかりません	找不到模拟器
+emulador não encontrado (	emulator not found (	emulador no encontrado (	エミュレーターが見つかりません（	找不到模拟器（
+endereço da capa inválido	invalid cover address	dirección de la portada no válida	カバーのアドレスが無効です	封面地址无效
+erro do Discord	Discord error	error de Discord	Discord のエラー	Discord 错误
+escolha uma imagem (jpg, png ou webp)	choose an image (jpg, png or webp)	elige una imagen (jpg, png o webp)	画像を選んでください（jpg、png、webp）	请选择图片（jpg、png 或 webp）
+essa pasta não existe mais	that folder no longer exists	esa carpeta ya no existe	そのフォルダーはもう存在しません	该文件夹已不存在
+essa plataforma não tem código no ScreenScraper	that platform has no code on ScreenScraper	esa plataforma no tiene código en ScreenScraper	その機種は ScreenScraper にコードがありません	该平台在 ScreenScraper 中没有代码
+esse .zip não é um backup do Arcade Hub (falta o biblioteca.json)	that .zip isn't an Arcade Hub backup (biblioteca.json is missing)	ese .zip no es una copia de Arcade Hub (falta el biblioteca.json)	その .zip は Arcade Hub のバックアップではありません（biblioteca.json がありません）	该 .zip 不是 Arcade Hub 备份（缺少 biblioteca.json）
+esse console ainda não tem jogo online pelo RetroArch	that console doesn't have online play through RetroArch yet	esa consola todavía no tiene juego en línea por RetroArch	その機種はまだ RetroArch でのオンラインプレイに対応していません	该主机尚不支持通过 RetroArch 联机
+esse tipo de link não é permitido (use http(s) ou o link de uma loja, como steam://)	that kind of link isn't allowed (use http(s) or a store link, like steam://)	ese tipo de enlace no está permitido (usa http(s) o el enlace de una tienda, como steam://)	その種類のリンクは使えません（http(s) か steam:// などのストアのリンクを使ってください）	不允许此类链接（请使用 http(s) 或商店链接，如 steam://）
+estante de capas, do jeito clássico	a shelf of covers, the classic way	estante de portadas, al estilo clásico	昔ながらのカバー棚	经典样式的封面书架
+este item está sem URL — use Editar para colar o link	this item has no URL — use Edit to paste the link	este elemento no tiene URL: usa Editar para pegar el enlace	この項目には URL がありません —「編集」でリンクを貼り付けてください	该项目没有 URL——请用“编辑”粘贴链接
+este jogo está sem o arquivo da ROM — use Editar para apontar o arquivo	this game has no ROM file — use Edit to point to the file	este juego no tiene el archivo de la ROM: usa Editar para indicarlo	このゲームには ROM ファイルがありません —「編集」でファイルを指定してください	该游戏缺少 ROM 文件——请用“编辑”指定文件
+este jogo está sem o caminho do .exe — use Editar para apontar o arquivo	this game has no .exe path — use Edit to point to the file	este juego no tiene la ruta del .exe: usa Editar para indicar el archivo	このゲームには .exe のパスがありません —「編集」でファイルを指定してください	该游戏缺少 .exe 路径——请用“编辑”指定文件
+executável direto	direct executable	ejecutable directo	実行ファイルを直接起動	直接运行可执行文件
+executável pequeno demais (stub)	executable too small (stub)	ejecutable demasiado pequeño (stub)	実行ファイルが小さすぎます（スタブ）	可执行文件太小（存根）
+executável pequeno e sem identificação	small executable without identification	ejecutable pequeño y sin identificación	小さく識別情報のない実行ファイル	体积小且无标识的可执行文件
+falha na varredura	scan failed	error en el escaneo	スキャンに失敗しました	扫描失败
+falta o core {0} no RetroArch (baixe pelo "Atualizador online" do RetroArch)	RetroArch is missing the {0} core (download it from RetroArch's "Online Updater")	falta el core {0} en RetroArch (descárgalo con el "Actualizador en línea" de RetroArch)	RetroArch に {0} コアがありません（RetroArch の「オンラインアップデーター」でダウンロード）	RetroArch 缺少 {0} 核心（请通过 RetroArch 的“在线更新器”下载）
+faltou o arquivo	the file is missing	falta el archivo	ファイルがありません	缺少文件
+foca a busca,	focuses search,	enfoca la búsqueda,	検索に移動、	聚焦搜索，
+forma de abrir inválida (link não permitido ou tipo desconhecido)	invalid way to open (link not allowed or unknown type)	forma de abrir no válida (enlace no permitido o tipo desconocido)	起動方法が無効です（許可されていないリンクか不明な種類）	启动方式无效（链接不被允许或类型未知）
+formato inválido	invalid format	formato no válido	無効な形式	格式无效
+gameplay de ROMs, os mesmos vídeos do EmulationStation	ROM gameplay, the same videos as EmulationStation	gameplay de ROMs, los mismos videos de EmulationStation	ROM のプレイ動画（EmulationStation と同じ動画）	ROM 实机画面，与 EmulationStation 相同的视频
+gênero	genre	género	ジャンル	类型
+gêneros	genres	géneros	ジャンル	类型
+heurística	heuristic	heurística	推定	启发式
+há {0} dia(s)	{0} day(s) ago	hace {0} día(s)	{0} 日前	{0} 天前
+há {0} dias	{0} days ago	hace {0} días	{0} 日前	{0} 天前
+há {0} h	{0} h ago	hace {0} h	{0} 時間前	{0} 小时前
+há {0} min	{0} min ago	hace {0} min	{0} 分前	{0} 分钟前
+imagem indisponível	image unavailable	imagen no disponible	画像を利用できません	图片不可用
+imagem vazia/inválida	empty/invalid image	imagen vacía/no válida	画像が空か無効です	图片为空或无效
+jogando agora	playing now	jugando ahora	プレイ中	正在游玩
+jogo da Epic sem identificador	Epic game without an identifier	juego de Epic sin identificador	識別子のない Epic のゲーム	缺少标识符的 Epic 游戏
+jogo não encontrado	game not found	juego no encontrado	ゲームが見つかりません	找不到游戏
+jogo online só funciona com ROMs	online play only works with ROMs	el juego en línea solo funciona con ROMs	オンラインプレイは ROM でのみ使えます	联机仅支持 ROM
+jogo que não está	game that is no longer	juego que ya no está	ゲーム（PC にない）	款已不在
+jogo saiu	game left	juego salió	本のゲームが外れました	个游戏已移除
+jogo sem nome	untitled game	juego sin nombre	名前のないゲーム	未命名游戏
+jogos com tempo	games with playtime	juegos con tiempo	プレイ時間のあるゲーム	有游戏时长的游戏
+jogos que não estão	games that are no longer	juegos que ya no están	ゲーム（PC にない）	款已不在
+jogos saíram	games left	juegos salieron	本のゲームが外れました	个游戏已移除
+já configurado	already set up	ya configurado	設定済み	已配置
+limite de uso do ScreenScraper atingido (tente mais tarde)	ScreenScraper usage limit reached (try later)	se alcanzó el límite de uso de ScreenScraper (inténtalo más tarde)	ScreenScraper の利用上限に達しました（後でもう一度お試しください）	已达 ScreenScraper 使用上限（请稍后再试）
+lista de perfis inválida	invalid profile list	lista de perfiles no válida	プロフィール一覧が無効です	个人资料列表无效
+menos de 1 min	less than 1 min	menos de 1 min	1 分未満	不到 1 分钟
+modo demonstração	demo mode	modo de demostración	デモモード	演示模式
+média por sessão	average per session	promedio por sesión	1 回あたりの平均	平均每次
+método de compressão não suportado ({0})	unsupported compression method ({0})	método de compresión no compatible ({0})	未対応の圧縮方式（{0}）	不支持的压缩方式（{0}）
+na biblioteca	in the library	en la biblioteca	ライブラリ内	在游戏库中
+nada encontrado	nothing found	no se encontró nada	見つかりませんでした	未找到任何内容
+nenhum jogo encontrado — confira as pastas nos ajustes	no games found — check the folders in Settings	no se encontraron juegos: revisa las carpetas en Ajustes	ゲームが見つかりません — 設定でフォルダーを確認してください	未找到游戏——请在设置中检查文件夹
+no navegador	in the browser	en el navegador	ブラウザーで	在浏览器中
+nome da pasta	folder name	nombre de la carpeta	フォルダー名	文件夹名称
+nome do arquivo	file name	nombre del archivo	ファイル名	文件名
+nome do jogo ausente	game name missing	falta el nombre del juego	ゲーム名がありません	缺少游戏名称
+nome do produto	product name	nombre del producto	製品名	产品名称
+não abriu o processo de varredura:	the scan process didn't start:	no se abrió el proceso de escaneo:	スキャン処理を開始できませんでした:	扫描进程未能启动：
+não achei esse jogo no Steam	couldn't find that game on Steam	no encontré ese juego en Steam	Steam でそのゲームが見つかりませんでした	在 Steam 上找不到该游戏
+não consegui abrir esse .zip:	couldn't open that .zip:	no pude abrir ese .zip:	その .zip を開けませんでした:	无法打开该 .zip：
+não consegui baixar o trailer desse jogo	couldn't download that game's trailer	no pude descargar el tráiler de ese juego	そのゲームの予告編をダウンロードできませんでした	无法下载该游戏的预告片
+não consegui ler essa imagem	couldn't read that image	no pude leer esa imagen	その画像を読み込めませんでした	无法读取该图片
+não consegui ler esse arquivo — ele não é um JSON válido (o backup foi salvo pelo Arcade Hub?)	couldn't read that file — it isn't valid JSON (was the backup saved by Arcade Hub?)	no pude leer ese archivo: no es un JSON válido (¿la copia se guardó con Arcade Hub?)	そのファイルを読み込めませんでした — 有効な JSON ではありません（Arcade Hub で保存したバックアップですか？）	无法读取该文件——不是有效的 JSON（备份是由 Arcade Hub 保存的吗？）
+não consegui ler o trailer desse jogo	couldn't read that game's trailer	no pude leer el tráiler de ese juego	そのゲームの予告編を読み込めませんでした	无法读取该游戏的预告片
+não encontrado	not found	no encontrado	見つかりません	未找到
+não instalado	not installed	no instalado	未インストール	未安装
+o ID do aplicativo do Discord tem só números (17 a 20 dígitos)	the Discord application ID is numbers only (17 to 20 digits)	el ID de la aplicación de Discord tiene solo números (17 a 20 dígitos)	Discord のアプリケーション ID は数字のみ（17〜20 桁）です	Discord 应用 ID 只能是数字（17 到 20 位）
+o ScreenScraper está fora do ar agora	ScreenScraper is down right now	ScreenScraper está caído en este momento	ScreenScraper は現在停止しています	ScreenScraper 目前无法访问
+o ScreenScraper não achou essa ROM	ScreenScraper couldn't find that ROM	ScreenScraper no encontró esa ROM	ScreenScraper でその ROM が見つかりませんでした	ScreenScraper 找不到该 ROM
+o ScreenScraper não tem vídeo dessa ROM	ScreenScraper has no video for that ROM	ScreenScraper no tiene video de esa ROM	ScreenScraper にはその ROM の動画がありません	ScreenScraper 没有该 ROM 的视频
+o ScreenScraper recusou ({0})	ScreenScraper refused ({0})	ScreenScraper rechazó ({0})	ScreenScraper が拒否しました（{0}）	ScreenScraper 拒绝了请求（{0}）
+o ScreenScraper só busca ROMs	ScreenScraper only searches ROMs	ScreenScraper solo busca ROMs	ScreenScraper は ROM のみ検索します	ScreenScraper 只搜索 ROM
+o Steam não tem trailer desse jogo	Steam has no trailer for that game	Steam no tiene tráiler de ese juego	Steam にはそのゲームの予告編がありません	Steam 没有该游戏的预告片
+o YouTube não achou um vídeo confiável desse jogo	YouTube didn't find a reliable video for that game	YouTube no encontró un video confiable de ese juego	YouTube でそのゲームの信頼できる動画が見つかりませんでした	YouTube 未找到该游戏的可靠视频
+o YouTube não achou vídeo desse jogo	YouTube didn't find a video for that game	YouTube no encontró video de ese juego	YouTube でそのゲームの動画が見つかりませんでした	YouTube 未找到该游戏的视频
+o YouTube recusou a busca ({0})	YouTube refused the search ({0})	YouTube rechazó la búsqueda ({0})	YouTube が検索を拒否しました（{0}）	YouTube 拒绝了搜索（{0}）
+o biblioteca.json dentro do .zip está corrompido	the biblioteca.json inside the .zip is corrupted	el biblioteca.json dentro del .zip está dañado	.zip 内の biblioteca.json が壊れています	.zip 中的 biblioteca.json 已损坏
+o jogo online usa o RetroArch: configure o RetroArch em Ajustes › Emuladores (ou na seção Emuladores do Modo TV)	online play uses RetroArch: set up RetroArch in Settings › Emulators (or in TV Mode's Emulators section)	el juego en línea usa RetroArch: configura RetroArch en Ajustes › Emuladores (o en la sección Emuladores del Modo TV)	オンラインプレイには RetroArch を使います。設定 › エミュレーター（または TV モードのエミュレーター）で RetroArch を設定してください	联机使用 RetroArch：请在“设置 › 模拟器”（或电视模式的“模拟器”分区）中配置 RetroArch
+o limite diário da chave do YouTube acabou (volta amanhã)	the YouTube key's daily limit ran out (resets tomorrow)	se acabó el límite diario de la clave de YouTube (vuelve mañana)	YouTube キーの 1 日の上限に達しました（明日リセット）	YouTube 密钥的每日配额已用完（明天恢复）
+pasta local	local folder	carpeta local	ローカルフォルダー	本地文件夹
+pasta não encontrada: {0}	folder not found: {0}	carpeta no encontrada: {0}	フォルダーが見つかりません: {0}	找不到文件夹：{0}
+pedido inválido	invalid request	solicitud no válida	無効なリクエスト	请求无效
+perfil não existe	profile doesn't exist	el perfil no existe	プロフィールが存在しません	个人资料不存在
+porta entre 1024 e 65535	port between 1024 and 65535	puerto entre 1024 y 65535	ポートは 1024〜65535	端口需在 1024 到 65535 之间
+precisa ter pelo menos um perfil	there must be at least one profile	debe haber al menos un perfil	プロフィールは 1 つ以上必要です	至少需要一个个人资料
+preencha usuário, senha, ID e senha de desenvolvedor	fill in username, password, developer ID and developer password	completa usuario, contraseña, ID y contraseña de desarrollador	ユーザー名、パスワード、開発者 ID と開発者パスワードを入力してください	请填写用户名、密码、开发者 ID 和开发者密码
+processo de varredura saiu (	scan process exited (	el proceso de escaneo terminó (	スキャン処理が終了しました（	扫描进程已退出（
+pré-visualização	preview	vista previa	プレビュー	预览
+resposta inválida	invalid response	respuesta no válida	無効な応答	响应无效
+retrô	retro	retro	レトロ	复古
+roda com o jogo no centro e vídeo no topo	a wheel with the game in the center and video on top	rueda con el juego en el centro y video arriba	ゲームが中央、上に動画のホイール	游戏居中、视频在上方的转盘
+sem chave do YouTube	no YouTube key	sin clave de YouTube	YouTube キーなし	无 YouTube 密钥
+sem conexão com o ScreenScraper	no connection to ScreenScraper	sin conexión con ScreenScraper	ScreenScraper に接続できません	无法连接 ScreenScraper
+sem conexão com o YouTube	no connection to YouTube	sin conexión con YouTube	YouTube に接続できません	无法连接 YouTube
+sem emulador para	no emulator for	sin emulador para	エミュレーターなし:	没有模拟器：
+sem executável definido	no executable set	sin ejecutable definido	実行ファイルが未設定	未设置可执行文件
+sem fonte de vídeo	no video source	sin fuente de video	動画ソースなし	无视频来源
+sem gênero	no genre	sin género	ジャンルなし	无类型
+sem gênero identificado	no genre identified	sin género identificado	ジャンルを特定できません	未识别出类型
+sem internet	no internet	sin internet	インターネット接続なし	无网络
+sem link definido	no link set	sin enlace definido	リンクが未設定	未设置链接
+sem nome identificável	no identifiable name	sin nombre identificable	識別できる名前なし	无可识别名称
+sem nota	no score	sin nota	スコアなし	无评分
+sem registro	no record	sin registro	記録なし	无记录
+sem vídeo	no video	sin video	動画なし	无视频
+sem vídeo local	no local video	sin video local	ローカル動画なし	无本地视频
+sessão	session	sesión	セッション	次
+sessões	sessions	sesiones	セッション	次
+som do jogo + tipo	game sound + type	sonido del juego + tipo	ゲーム音 + 種類	游戏声音 + 类型
+também em	also on	también en	こちらにも:	也在
+também em Pasta	also in Folder	también en Carpeta	フォルダーにも	也在文件夹中
+tempo de jogo	playtime	tiempo de juego	プレイ時間	游戏时长
+todas as plataformas (RetroArch)	all platforms (RetroArch)	todas las plataformas (RetroArch)	すべての機種（RetroArch）	所有平台（RetroArch）
+trailer de qualquer jogo · toca pela internet	a trailer for any game · streams from the internet	tráiler de cualquier juego · se reproduce por internet	どのゲームの予告編も · ネットから再生	任意游戏的预告片 · 在线播放
+trailer em formato antigo (TS), não suportado	trailer in an old format (TS), not supported	tráiler en formato antiguo (TS), no compatible	古い形式（TS）の予告編のため非対応	预告片为旧格式（TS），不支持
+trailer sem variante de vídeo	trailer without a video variant	tráiler sin variante de video	動画形式のない予告編	预告片没有可用的视频版本
+título	title	título	タイトル	标题
+um emulador	an emulator	un emulador	エミュレーター	一个模拟器
+usuário ou senha do ScreenScraper recusados	ScreenScraper username or password rejected	usuario o contraseña de ScreenScraper rechazados	ScreenScraper のユーザー名またはパスワードが拒否されました	ScreenScraper 用户名或密码被拒绝
+utilityProcess indisponível	utilityProcess unavailable	utilityProcess no disponible	utilityProcess を利用できません	utilityProcess 不可用
+varredura de Steam/Epic/GOG está desligada nos ajustes	Steam/Epic/GOG scanning is turned off in Settings	el escaneo de Steam/Epic/GOG está desactivado en Ajustes	Steam/Epic/GOG のスキャンは設定でオフになっています	已在设置中关闭 Steam/Epic/GOG 扫描
+versão	version	versión	バージョン	版本
+versão não reconhecida	version not recognized	versión no reconocida	バージョン不明	无法识别版本
+vídeo grande demais	video too big	video demasiado grande	動画が大きすぎます	视频过大
+zip com arquivos demais	zip with too many files	zip con demasiados archivos	ファイルが多すぎる zip	zip 中文件过多
+zip protegido por senha não é suportado	password-protected zip isn't supported	no se admiten zip protegidos con contraseña	パスワード付き zip には対応していません	不支持带密码的 zip
+{0} ({1}) — skin do Arcade Hub	{0} ({1}) — Arcade Hub skin	{0} ({1}) — skin de Arcade Hub	{0}（{1}）— Arcade Hub のスキン	{0}（{1}）— Arcade Hub 皮肤
+{0} O tempo de jogo, a capa e as conquistas ficam guardados: se você reinstalar, o jogo volta com tudo.	{0} Playtime, cover and achievements are kept: if you reinstall, the game comes back with everything.	{0} El tiempo de juego, la portada y los logros se guardan: si lo reinstalas, el juego vuelve con todo.	{0} プレイ時間、カバー、実績は保存されます。再インストールすれば、すべて元どおりに戻ります。	{0} 游戏时长、封面和成就都会保留：重新安装后游戏会完整恢复。
+{0} ROM(s) não estão mais no caminho salvo	{0} ROM(s) are no longer at the saved path	{0} ROM(s) ya no están en la ruta guardada	{0} 個の ROM が保存されたパスにありません	{0} 个 ROM 已不在保存的路径中
+{0} aberto online. O Discord não está aberto, então o convite não aparece para os amigos	{0} opened online. Discord isn't open, so the invite won't show up for friends	{0} abierto en línea. Discord no está abierto, así que la invitación no aparece para los amigos	{0} をオンラインで開きました。Discord が起動していないため、友だちに招待が表示されません	{0} 已联机打开。Discord 未打开，好友看不到邀请
+{0} aberto online: seus amigos já podem clicar em "Participar" no Discord	{0} opened online: your friends can now click "Join" on Discord	{0} abierto en línea: tus amigos ya pueden hacer clic en "Unirse" en Discord	{0} をオンラインで開きました。友だちは Discord の「参加」をクリックできます	{0} 已联机打开：好友现在可以在 Discord 上点击“加入”
+{0} aberto — contando o tempo de jogo	{0} opened — counting playtime	{0} abierto: contando el tiempo de juego	{0} を開きました — プレイ時間を計測中	{0} 已打开——正在记录游戏时长
+{0} agora abre com o {1}	{0} now opens with {1}	{0} ahora se abre con {1}	{0} は {1} で開くようになりました	{0} 现在用 {1} 打开
+{0} chaves do registro	{0} registry keys	{0} claves del registro	レジストリキー {0} 件	{0} 个注册表项
+{0} de {1} jogos	{0} of {1} games	{0} de {1} juegos	{1} 本中 {0} 本	{1} 个游戏中的 {0} 个
+{0} emulador(es) encontrado(s) em {1} pasta(s). Desmarque o que não quiser usar.	{0} emulator(s) found in {1} folder(s). Uncheck the ones you don't want to use.	{0} emulador(es) encontrado(s) en {1} carpeta(s). Desmarca los que no quieras usar.	{1} 個のフォルダーで {0} 個のエミュレーターが見つかりました。使わないものはチェックを外してください。	在 {1} 个文件夹中找到 {0} 个模拟器。取消勾选不想使用的。
+{0} está entrando na sua partida pelo Discord	{0} is joining your match through Discord	{0} está entrando en tu partida por Discord	{0} が Discord からあなたの対戦に参加しています	{0} 正在通过 Discord 加入你的对局
+{0} jogo(s) apontam para um .exe que não existe mais no disco	{0} game(s) point to an .exe that no longer exists on disk	{0} juego(s) apuntan a un .exe que ya no existe en el disco	{0} 本のゲームが、ディスクにもう存在しない .exe を指しています	{0} 个游戏指向的 .exe 已不在磁盘上
+{0} jogo(s) classificado(s){1}	{0} game(s) classified{1}	{0} juego(s) clasificado(s){1}	{0} 本のゲームを分類しました{1}	已分类 {0} 个游戏{1}
+{0} jogo(s) saíram da biblioteca (desinstalados)	{0} game(s) left the library (uninstalled)	{0} juego(s) salieron de la biblioteca (desinstalados)	{0} 本のゲームがライブラリから外れました（アンインストール済み）	{0} 个游戏已从游戏库移除（已卸载）
+{0} jogos na biblioteca	{0} games in the library	{0} juegos en la biblioteca	ライブラリに {0} 本	游戏库中有 {0} 个游戏
+{0} jogos novos: {1}{2}	{0} new games: {1}{2}	{0} juegos nuevos: {1}{2}	新しいゲーム {0} 本: {1}{2}	{0} 个新游戏：{1}{2}
+{0} jogos · saíram {1} que não estão mais no PC ({2}{3})	{0} games · {1} that are no longer on the PC were removed ({2}{3})	{0} juegos · salieron {1} que ya no están en el PC ({2}{3})	{0} 本 · PC にない {1} 本を外しました（{2}{3}）	{0} 个游戏 · 已移除 {1} 个不在电脑上的游戏（{2}{3}）
+{0} já está aberto	{0} is already open	{0} ya está abierto	{0} はすでに開いています	{0} 已经打开
+{0} pediu para entrar (pedidos estão desligados em Ajustes › Discord)	{0} asked to join (requests are turned off in Settings › Discord)	{0} pidió entrar (las solicitudes están desactivadas en Ajustes › Discord)	{0} が参加を希望しています（リクエストは設定 › Discord でオフになっています）	{0} 请求加入（已在“设置 › Discord”中关闭请求）
+{0} saiu da biblioteca	{0} left the library	{0} salió de la biblioteca	{0} がライブラリから外れました	{0} 已从游戏库移除
+{0} saiu dos favoritos	{0} removed from favorites	{0} salió de favoritos	{0} をお気に入りから外しました	已取消收藏 {0}
+{0} saíram da biblioteca	{0} left the library	{0} salieron de la biblioteca	{0} がライブラリから外れました	{0} 已从游戏库移除
+{0}: {1} nesta sessão · total {2}	{0}: {1} this session · total {2}	{0}: {1} en esta sesión · total {2}	{0}: 今回 {1} · 合計 {2}	{0}：本次 {1} · 总计 {2}
+· {0} sem resultado	· {0} with no result	· {0} sin resultado	· 結果なし {0}	· {0} 个无结果
+Área de trabalho em tabela: ordene por título, plataforma, tempo jogado, última vez ou nota.	Table dashboard: sort by title, platform, time played, last played or score.	Escritorio en tabla: ordena por título, plataforma, tiempo jugado, última vez o nota.	表形式のダッシュボード: タイトル、機種、プレイ時間、最終プレイ、スコアで並べ替え。	表格式主界面：按标题、平台、游玩时长、最后游玩时间或评分排序。
+Área de trabalho: plataformas à esquerda, capas por letra e detalhes com vídeo à direita.	Dashboard: platforms on the left, covers by letter and details with video on the right.	Escritorio: plataformas a la izquierda, portadas por letra y detalles con video a la derecha.	ダッシュボード: 左に機種、頭文字別のカバー、右に動画付きの詳細。	主界面：左侧为平台，中间按字母排列封面，右侧为带视频的详情。
+Última varredura {0}	Last scan {0}	Último escaneo {0}	最終スキャン {0}	上次扫描 {0}
+Última vez	Last played	Última vez	最終プレイ	最后游玩
+Última vez jogado	Last played	Última vez jugado	最終プレイ日	最后游玩时间
+última vez	last played	última vez	最終プレイ	最后游玩
+última vez {0}	last played {0}	última vez {0}	最終プレイ {0}	最后游玩 {0}
+— arquivo não definido	— file not set	— archivo no definido	— ファイル未設定	— 未设置文件
+— sem origem definida	— no source set	— sin origen definido	— 入手元未設定	— 未设置来源
+— {0} jogo(s)	— {0} game(s)	— {0} juego(s)	— {0} 本	— {0} 个游戏
+… e mais {0}	… and {0} more	… y {0} más	… ほか {0} 件	……还有 {0} 个
+← → escolher · A / Enter confirmar	← → choose · A / Enter confirm	← → elegir · A / Enter confirmar	← → 選択 · A / Enter 決定	← → 选择 · A / Enter 确认
+← → escolher · A / Enter confirmar · B / Esc voltar	← → choose · A / Enter confirm · B / Esc back	← → elegir · A / Enter confirmar · B / Esc volver	← → 選択 · A / Enter 決定 · B / Esc 戻る	← → 选择 · A / Enter 确认 · B / Esc 返回
+← → para girar · arraste · Enter para abrir	← → to spin · drag · Enter to open	← → para girar · arrastra · Enter para abrir	← → で回転 · ドラッグ · Enter で開く	← → 旋转 · 拖动 · Enter 打开
+▶ Jogar	▶ Play	▶ Jugar	▶ プレイ	▶ 开始游戏
+● jogando agora	● playing now	● jugando ahora	● プレイ中	● 正在游玩
+★ Remover dos favoritos	★ Remove from favorites	★ Quitar de favoritos	★ お気に入りから外す	★ 取消收藏
+⚠ Steam não está instalada	⚠ Steam isn't installed	⚠ Steam no está instalado	⚠ Steam がインストールされていません	⚠ 未安装 Steam
+⚠ arquivo da ROM não encontrado	⚠ ROM file not found	⚠ archivo de la ROM no encontrado	⚠ ROM ファイルが見つかりません	⚠ 找不到 ROM 文件
+✗ emulador sumiu da pasta	✗ emulator is missing from the folder	✗ el emulador desapareció de la carpeta	✗ エミュレーターがフォルダーから消えました	✗ 模拟器已从文件夹中消失
+✗ sem emulador	✗ no emulator	✗ sin emulador	✗ エミュレーターなし	✗ 无模拟器
+Retro	Retro	Retro	レトロ	复古
+Indie	Indie	Indie	インディー	独立
+Roguelike	Roguelike	Roguelike	ローグライク	Roguelike
+Metroidvania	Metroidvania	Metroidvania	メトロイドヴァニア	类银河战士恶魔城
+Boss	Boss	Jefe	ボス	Boss
+Quest	Quest	Misión	クエスト	任务
+Pixel	Pixel	Píxel	ドット絵	像素
+Sega	Sega	Sega	セガ	世嘉
+Nintendo	Nintendo	Nintendo	任天堂	任天堂
+Pasta · 3.1 GB	Folder · 3.1 GB	Carpeta · 3.1 GB	フォルダー · 3.1 GB	文件夹 · 3.1 GB
+Pasta · 3.5 GB	Folder · 3.5 GB	Carpeta · 3.5 GB	フォルダー · 3.5 GB	文件夹 · 3.5 GB
+beat em up	beat 'em up	beat 'em up	ベルトスクロール	清版动作
+shoot em up	shoot 'em up	shoot 'em up	シューティング	射击
+Português (Brasil)	Português (Brasil)	Português (Brasil)	Português (Brasil)	Português (Brasil)
+Jogando: {0}	Playing: {0}	Jugando: {0}	プレイ中: {0}	正在游玩：{0}
+Arcade Hub — jogando {0}	Arcade Hub — playing {0}	Arcade Hub — jugando {0}	Arcade Hub — {0} をプレイ中	Arcade Hub — 正在游玩 {0}
+Idioma / Language	Language	Idioma	言語 / Language	语言 / Language
+Exportar biblioteca	Export library	Exportar biblioteca	ライブラリを書き出し	导出游戏库
+Importar biblioteca	Import library	Importar biblioteca	ライブラリを読み込み	导入游戏库

@@ -1,7 +1,7 @@
 {
   "name": "arcade-hub",
   "productName": "Arcade Hub",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Todos os seus jogos (Steam, Epic, GOG, portateis e emuladores) em um so lugar.",
   "main": "main.js",
   "author": "Arcade Hub",

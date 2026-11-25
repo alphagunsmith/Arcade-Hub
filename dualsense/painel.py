@@ -18,6 +18,46 @@ PORTA = 47823
 HTML_FILE = os.path.join(RECURSOS, "painel.html")
 
 
+IDIOMAS = ("en", "es", "ja", "zh-CN")
+
+
+def idioma():
+    """Idioma do painel: o do Arcade Hub (DSA_IDIOMA) ou, avulso, o do Windows."""
+    i = os.environ.get("DSA_IDIOMA", "")
+    if i in IDIOMAS or i == "pt-BR":
+        return i
+    try:
+        import locale
+        loc = (locale.getlocale()[0] or "").lower()
+    except Exception:
+        loc = ""
+    for prefixo, valor in (("pt", "pt-BR"), ("es", "es"), ("ja", "ja"), ("zh", "zh-CN"), ("en", "en")):
+        if loc.startswith(prefixo):
+            return valor
+    return "pt-BR"
+
+
+def script_i18n():
+    pasta = os.path.join(RECURSOS, "i18n")
+    i = idioma()
+    try:
+        with open(os.path.join(pasta, "runtime.js"), encoding="utf-8") as f:
+            codigo = f.read()
+        dic = "null"
+        if i != "pt-BR":
+            with open(os.path.join(pasta, i + ".json"), encoding="utf-8") as f:
+                dic = f.read()
+    except OSError:
+        return b"/* sem traducao */"
+    codigo += (f"\nI18N.iniciar({json.dumps(i)}, {{ dicionario: {dic} }});"
+               "\ndocument.addEventListener('DOMContentLoaded', function () { I18N.aplicar(document); });"
+               "\n(function () { var t = function (m) { return String(m == null ? '' : m).split('\\n').map(I18N.tr).join('\\n'); };"
+               " var c = window.confirm.bind(window), p = window.prompt.bind(window), a = window.alert.bind(window);"
+               " window.confirm = function (m) { return c(t(m)); }; window.prompt = function (m, d) { return p(t(m), d); };"
+               " window.alert = function (m) { return a(t(m)); }; })();\n")
+    return codigo.encode("utf-8")
+
+
 def estado_ui(eng):
     now = time.time()
     left, right, rgb = eng.trig_out
@@ -81,6 +121,14 @@ def make_handler(eng, token, desligar):
                 self.send_header("Content-Length", str(len(html)))
                 self.end_headers()
                 self.wfile.write(html)
+            elif path == "/i18n.js":       # tradução do painel (o idioma vem do Arcade Hub)
+                b = script_i18n()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/javascript; charset=utf-8")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Content-Length", str(len(b)))
+                self.end_headers()
+                self.wfile.write(b)
             elif path == "/api/leitor":
                 if not self._ok_token():
                     self.send_error(403)

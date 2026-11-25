@@ -164,12 +164,12 @@ function criarBandeja(titulo) {
     tray.on('click', mostrarJanela);
     tray.on('double-click', mostrarJanela);
   }
-  tray.setToolTip(`Arcade Hub — jogando ${titulo}`);
+  tray.setToolTip(lib.tr(`Arcade Hub — jogando ${titulo}`));
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: `Jogando: ${titulo}`, enabled: false },
+    { label: lib.tr(`Jogando: ${titulo}`), enabled: false },
     { type: 'separator' },
-    { label: 'Abrir o Arcade Hub', click: mostrarJanela },
-    { label: 'Sair', click: () => app.quit() }
+    { label: lib.tr('Abrir o Arcade Hub'), click: mostrarJanela },
+    { label: lib.tr('Sair'), click: () => app.quit() }
   ]));
 }
 

@@ -1,5 +1,13 @@
 # Novidades
 
+## 1.5.0
+
+- **O Arcade Hub agora fala inglês, espanhol, japonês e chinês simplificado**, além do português.
+  - **Como trocar:** em Ajustes › Geral › Idioma, ou no Modo TV › Sistema. "Automático" segue o idioma do Windows (idiomas sem tradução ficam em inglês).
+  - **O que é traduzido:** toda a interface, incluindo menus, avisos, skins, Modo TV, conquistas, as caixas do Windows (abrir arquivo, exportar backup) e o ícone perto do relógio.
+  - **O DualSense Auto acompanha:** o painel dele abre no mesmo idioma.
+- **Página do projeto no GitHub** com um README em inglês explicando o app e as funções.
+
 ## 1.4.1
 
 - **O DualSense Auto agora acha os jogos que estão no Arcade Hub,** e não só os da Steam, Epic e GOG. Vale para jogos em pastas, .exe soltos, jogos adicionados à mão e de outras lojas, como Xbox/Game Pass, EA e Ubisoft, desde que estejam na sua biblioteca.

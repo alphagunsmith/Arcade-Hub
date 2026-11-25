@@ -1,0 +1,269 @@
+(na pasta de instalação do Arcade Hub, em	(in the Arcade Hub install folder, under	(en la carpeta de instalación de Arcade Hub, en	（Arcade Hub のインストールフォルダー内の	（位于 Arcade Hub 安装文件夹中的
+(ou	(or	(o	（または	（或
+, clique em	, click	, haz clic en	で、次をクリック:	，点击
+, envie uma imagem com o nome	, upload an image named	, sube una imagen con el nombre	で、次の名前の画像をアップロード:	中，上传名为以下名称的图片：
+, procure	, search for	, busca	で、次を検索:	中，搜索
+: o RetroArch abre a partida e seus amigos entram pelo	: RetroArch opens the match and your friends join through	: RetroArch abre la partida y tus amigos entran con	: RetroArch で対戦が始まり、友だちは次から参加します:	：RetroArch 会开启对局，好友通过以下方式加入：
+APIs e serviços › Biblioteca	APIs & Services › Library	APIs y servicios › Biblioteca	API とサービス › ライブラリ	API 和服务 › 库
+APIs e serviços › Credenciais	APIs & Services › Credentials	APIs y servicios › Credenciales	API とサービス › 認証情報	API 和服务 › 凭据
+Action	Action	Acción	アクション	动作
+Adventure	Adventure	Aventura	アドベンチャー	冒险
+Arcade 1	Arcade 1	Arcade 1	アーケード 1	街机 1
+Bronze	Bronze	Bronce	ブロンズ	铜
+Casual	Casual	Casual	カジュアル	休闲
+Delete	Delete	Supr	Delete	Delete
+Documents	Documents	Documentos	ドキュメント	文档
+Escape	Escape	Escape	Escape	Escape
+Jogo portátil (.exe), ROM de emulador, link de loja ou qualquer coisa que você queira no launcher.	A portable game (.exe), an emulator ROM, a store link or anything else you want in the launcher.	Juego portátil (.exe), ROM de emulador, enlace de tienda o cualquier cosa que quieras en el launcher.	ポータブル版ゲーム（.exe）、エミュレーターの ROM、ストアのリンクなど、ランチャーに入れたいものなら何でも。	便携版游戏（.exe）、模拟器 ROM、商店链接，或任何你想放进启动器的东西。
+Jogo removido do launcher	Game removed from the launcher	Juego quitado del launcher	ランチャーからゲームを削除しました	已从启动器移除游戏
+Jogo sem nome	Untitled game	Juego sin nombre	名前のないゲーム	未命名游戏
+Jogo: {0}{1}{2}	Game: {0}{1}{2}	Juego: {0}{1}{2}	ゲーム: {0}{1}{2}	游戏：{0}{1}{2}
+Jogos	Games	Juegos	ゲーム	游戏
+Jogos de PC	PC games	Juegos de PC	PC ゲーム	PC 游戏
+Jogos novos vão aparecer sozinhos	New games will show up on their own	Los juegos nuevos aparecerán solos	新しいゲームは自動で表示されます	新游戏会自动出现
+Jogue 25 jogos diferentes.	Play 25 different games.	Juega 25 juegos diferentes.	25 種類のゲームを遊ぶ。	玩 25 款不同的游戏。
+Jogue 5 jogos diferentes.	Play 5 different games.	Juega 5 juegos diferentes.	5 種類のゲームを遊ぶ。	玩 5 款不同的游戏。
+Jogue ROMs de 3 consoles diferentes.	Play ROMs from 3 different consoles.	Juega ROMs de 3 consolas diferentes.	3 種類の機種の ROM を遊ぶ。	玩 3 种不同主机的 ROM。
+Jogue ROMs de 6 consoles diferentes.	Play ROMs from 6 different consoles.	Juega ROMs de 6 consolas diferentes.	6 種類の機種の ROM を遊ぶ。	玩 6 种不同主机的 ROM。
+Jogue jogos de 3 lojas diferentes (Steam, Epic, GOG…).	Play games from 3 different stores (Steam, Epic, GOG…).	Juega juegos de 3 tiendas diferentes (Steam, Epic, GOG…).	3 つの異なるストア（Steam、Epic、GOG…）のゲームを遊ぶ。	玩来自 3 个不同商店（Steam、Epic、GOG…）的游戏。
+Jogue no sábado e no domingo do mesmo fim de semana.	Play on Saturday and Sunday of the same weekend.	Juega el sábado y el domingo del mismo fin de semana.	同じ週末の土曜と日曜に遊ぶ。	在同一个周末的周六和周日都玩。
+Jogue o mesmo jogo em 7 dias diferentes.	Play the same game on 7 different days.	Juega el mismo juego en 7 días diferentes.	同じゲームを 7 日間遊ぶ。	在 7 个不同的日子玩同一款游戏。
+Jogue sua primeira partida pelo Arcade Hub.	Play your first session through Arcade Hub.	Juega tu primera partida desde Arcade Hub.	Arcade Hub から初めてゲームを遊ぶ。	通过 Arcade Hub 玩第一局游戏。
+Já existe um DualSense Auto aberto fora do Arcade Hub	Another DualSense Auto is already open outside Arcade Hub	Ya hay un DualSense Auto abierto fuera de Arcade Hub	Arcade Hub の外で DualSense Auto がすでに起動しています	已有一个 DualSense Auto 在 Arcade Hub 之外运行
+Já existe um DualSense Auto aberto fora do Arcade Hub. Feche ele (botão "Desligar o app" no painel dele) e ligue aqui de novo.	Another DualSense Auto is already open outside Arcade Hub. Close it ("Turn off the app" button in its panel) and turn it on here again.	Ya hay un DualSense Auto abierto fuera de Arcade Hub. Ciérralo (botón "Apagar la app" en su panel) y vuelve a activarlo aquí.	Arcade Hub の外で DualSense Auto がすでに起動しています。そちらを閉じて（パネルの「アプリを終了」ボタン）、ここでもう一度オンにしてください。	已有一个 DualSense Auto 在 Arcade Hub 之外运行。请关闭它（在其面板中点击“关闭应用”），然后在这里重新开启。
+Já vem pronto com o aplicativo "Arcade Hub" e não precisa mexer aqui. Só se quiser outro nome ou ícone no status: em discord.com/developers/applications crie um aplicativo, copie o <b>Application ID</b> e cole aqui; em <b>Rich Presence › Art Assets</b>, envie uma imagem com o nome <b>logo</b>. Deixe vazio para voltar ao padrão.	It comes ready with the "Arcade Hub" application, so there's nothing to change here. Only if you want a different name or icon in the status: create an application at discord.com/developers/applications, copy the <b>Application ID</b> and paste it here; in <b>Rich Presence › Art Assets</b>, upload an image named <b>logo</b>. Leave empty to go back to the default.	Ya viene listo con la aplicación "Arcade Hub" y no hace falta tocar nada aquí. Solo si quieres otro nombre o ícono en el estado: en discord.com/developers/applications crea una aplicación, copia el <b>Application ID</b> y pégalo aquí; en <b>Rich Presence › Art Assets</b>, sube una imagen con el nombre <b>logo</b>. Déjalo vacío para volver al predeterminado.	「Arcade Hub」アプリが設定済みなので、ここは変更不要です。ステータスの名前やアイコンを変えたい場合のみ: discord.com/developers/applications でアプリを作成し、<b>Application ID</b> をコピーしてここに貼り付けます。<b>Rich Presence › Art Assets</b> で <b>logo</b> という名前の画像をアップロードしてください。空欄にすると既定に戻ります。	已预先配置好“Arcade Hub”应用，这里无需修改。只有在想更换状态中的名称或图标时：在 discord.com/developers/applications 创建应用，复制 <b>Application ID</b> 并粘贴到这里；在 <b>Rich Presence › Art Assets</b> 中上传名为 <b>logo</b> 的图片。留空即恢复默认。
+LaunchBox — Clássico	LaunchBox — Classic	LaunchBox — Clásico	LaunchBox — クラシック	LaunchBox — 经典
+Layout	Layout	Diseño	レイアウト	布局
+Layout e cores da interface	Interface layout and colors	Diseño y colores de la interfaz	画面のレイアウトとカラー	界面布局和颜色
+Lenda do sofá	Couch legend	Leyenda del sofá	ソファの伝説	沙发传奇
+Ligado	On	Activado	オン	已开启
+Ligar o DualSense Auto junto com o Arcade Hub	Start DualSense Auto together with Arcade Hub	Activar DualSense Auto junto con Arcade Hub	Arcade Hub と一緒に DualSense Auto を起動する	随 Arcade Hub 一起启动 DualSense Auto
+Ligue o DualSense Auto primeiro	Turn on DualSense Auto first	Activa DualSense Auto primero	先に DualSense Auto をオンにしてください	请先开启 DualSense Auto
+Lista	List	Lista	リスト	列表
+Lista de títulos à esquerda, vídeo e ficha à direita. ↑ ↓ andam, ← → trocam a plataforma.	Title list on the left, video and info on the right. ↑ ↓ move, ← → switch platform.	Lista de títulos a la izquierda, video y ficha a la derecha. ↑ ↓ se mueven, ← → cambian de plataforma.	左にタイトル一覧、右に動画と詳細。↑ ↓ で移動、← → で機種を切り替え。	左侧为标题列表，右侧为视频和详情。↑ ↓ 移动，← → 切换平台。
+Local	Local	Local	ローカル	本地
+Lojas	Stores	Tiendas	ストア	商店
+Luta	Fighting	Lucha	格闘	格斗
+Mais jogados	Most played	Más jugados	よく遊ぶゲーム	最常玩
+Mais profundo = encontra mais jogos, mas demora mais.	Deeper = finds more games, but takes longer.	Más profundo = encuentra más juegos, pero tarda más.	深くするほど多くのゲームが見つかりますが、時間がかかります。	越深 = 找到的游戏越多，但耗时越长。
+Manual	Manual	Manual	手動	手动
+Maratona	Marathon	Maratón	マラソン	马拉松
+Marque 10 jogos como favoritos.	Mark 10 games as favorites.	Marca 10 juegos como favoritos.	10 本のゲームをお気に入りに登録する。	将 10 款游戏加入收藏。
+Maximizar	Maximize	Maximizar	最大化	最大化
+Menu	Menu	Menú	メニュー	菜单
+Metacritic ↗	Metacritic ↗	Metacritic ↗	Metacritic ↗	Metacritic ↗
+Minimizar	Minimize	Minimizar	最小化	最小化
+Modo Console: abrir junto com o Windows, já no Modo TV	Console Mode: open with Windows, straight into TV Mode	Modo Consola: abrir con Windows, directamente en Modo TV	コンソールモード: Windows と同時に TV モードで起動	主机模式：随 Windows 启动并直接进入电视模式
+Modo TV em parede, com cor própria para cada plataforma: a tela muda de cor ao trocar.	Wall-style TV Mode with its own color for each platform: the screen changes color when you switch.	Modo TV en mural, con un color propio para cada plataforma: la pantalla cambia de color al cambiar.	機種ごとに色が変わるウォール型 TV モード。切り替えると画面の色も変わります。	墙面式电视模式，每个平台有专属颜色：切换时屏幕颜色随之改变。
+Modo TV — tela cheia para jogar com controle (botão Guia do controle)	TV Mode — full screen for playing with a controller (controller Guide button)	Modo TV — pantalla completa para jugar con mando (botón Guía del mando)	TV モード — コントローラーで遊ぶための全画面（コントローラーのガイドボタン）	电视模式——全屏，方便用手柄游玩（手柄的 Guide 键）
+Modo TV: lista de títulos à esquerda, vídeo e ficha completa à direita.	TV Mode: title list on the left, video and full info on the right.	Modo TV: lista de títulos a la izquierda, video y ficha completa a la derecha.	TV モード: 左にタイトル一覧、右に動画と詳細。	电视模式：左侧为标题列表，右侧为视频和完整详情。
+Modo TV: mural de capas em três fileiras sobre o vídeo do jogo selecionado.	TV Mode: a wall of covers in three rows over the selected game's video.	Modo TV: mural de portadas en tres filas sobre el video del juego seleccionado.	TV モード: 選択中のゲームの動画の上に 3 段のカバーウォール。	电视模式：在所选游戏视频上方显示三排封面墙。
+Modo TV: roda de títulos à direita, vídeo grande e ficha à esquerda.	TV Mode: title wheel on the right, big video and info on the left.	Modo TV: rueda de títulos a la derecha, video grande y ficha a la izquierda.	TV モード: 右にタイトルホイール、左に大きな動画と詳細。	电视模式：右侧为标题转盘，左侧为大视频和详情。
+Mostrando só os instalados	Showing installed only	Mostrando solo los instalados	インストール済みのみ表示中	仅显示已安装
+Mostrando todos os jogos	Showing all games	Mostrando todos los juegos	すべてのゲームを表示中	显示全部游戏
+Mostrar "Escolhendo um jogo" mesmo sem jogo aberto	Show "Choosing a game" even with no game open	Mostrar "Eligiendo un juego" aunque no haya juego abierto	ゲームを開いていなくても「ゲームを選択中」と表示する	即使没有打开游戏也显示“正在选择游戏”
+Mostrar no Discord o jogo que estou jogando	Show the game I'm playing on Discord	Mostrar en Discord el juego al que estoy jugando	プレイ中のゲームを Discord に表示する	在 Discord 上显示我正在玩的游戏
+Mostrar só jogos com nota alta	Show only highly rated games	Mostrar solo juegos con nota alta	高評価のゲームだけ表示	仅显示高分游戏
+Mostrar só jogos instalados	Show installed games only	Mostrar solo juegos instalados	インストール済みのゲームだけ表示	仅显示已安装的游戏
+Mural de capas em três fileiras sobre o vídeo do jogo. Setas andam pelo mural.	A wall of covers in three rows over the game's video. Arrows move across the wall.	Mural de portadas en tres filas sobre el video del juego. Las flechas recorren el mural.	ゲーム動画の上に 3 段のカバーウォール。矢印キーで移動。	在游戏视频上方显示三排封面墙。方向键在墙上移动。
+NES, SNES, GBA, PS1/PS2, Mega Drive, MAME… o Arcade Hub identifica a plataforma pela extensão e pela pasta.	NES, SNES, GBA, PS1/PS2, Mega Drive, MAME… Arcade Hub identifies the platform from the file extension and folder.	NES, SNES, GBA, PS1/PS2, Mega Drive, MAME… Arcade Hub identifica la plataforma por la extensión y la carpeta.	NES、SNES、GBA、PS1/PS2、メガドライブ、MAME… Arcade Hub は拡張子とフォルダーから機種を判別します。	NES、SNES、GBA、PS1/PS2、Mega Drive、MAME…… Arcade Hub 会根据扩展名和文件夹识别平台。
+Na ficha de uma ROM, use <b>Jogar online</b>: o RetroArch abre a partida e seus amigos entram pelo <b>Participar</b> do Discord. Os dois precisam do Arcade Hub, do Discord aberto, do RetroArch com o mesmo core e da <b>mesma ROM</b>.	On a ROM's info page, use <b>Play online</b>: RetroArch opens the match and your friends join with Discord's <b>Join</b>. Both of you need Arcade Hub, Discord open, RetroArch with the same core and the <b>same ROM</b>.	En la ficha de una ROM, usa <b>Jugar en línea</b>: RetroArch abre la partida y tus amigos entran con <b>Unirse</b> en Discord. Ambos necesitan Arcade Hub, Discord abierto, RetroArch con el mismo core y la <b>misma ROM</b>.	ROM の詳細画面で <b>オンラインで遊ぶ</b> を使うと、RetroArch で対戦が始まり、友だちは Discord の <b>参加</b> から入れます。両方に Arcade Hub、起動中の Discord、同じコアの RetroArch、そして<b>同じ ROM</b> が必要です。	在 ROM 的详情页中使用<b>联机游玩</b>：RetroArch 开启对局，好友通过 Discord 的<b>加入</b>进入。双方都需要 Arcade Hub、已打开的 Discord、使用相同核心的 RetroArch，以及<b>相同的 ROM</b>。
+Na pasta "bios" do DuckStation ou na "system" do RetroArch.	In DuckStation's "bios" folder or RetroArch's "system" folder.	En la carpeta "bios" de DuckStation o en la "system" de RetroArch.	DuckStation の「bios」フォルダー、または RetroArch の「system」フォルダーに。	放在 DuckStation 的“bios”文件夹或 RetroArch 的“system”文件夹中。
+Na pasta "system" do RetroArch.	In RetroArch's "system" folder.	En la carpeta "system" de RetroArch.	RetroArch の「system」フォルダーに。	放在 RetroArch 的“system”文件夹中。
+Na pasta "system/dc" do RetroArch ou "data" do Flycast.	In RetroArch's "system/dc" folder or Flycast's "data" folder.	En la carpeta "system/dc" de RetroArch o "data" de Flycast.	RetroArch の「system/dc」、または Flycast の「data」フォルダーに。	放在 RetroArch 的“system/dc”或 Flycast 的“data”文件夹中。
+Nada encontrado com esse nome. Tente encurtar (ex.: só "Metroid") ou use uma imagem do seu PC.	Nothing found with that name. Try shortening it (e.g. just "Metroid") or use an image from your PC.	No se encontró nada con ese nombre. Prueba a acortarlo (ej.: solo "Metroid") o usa una imagen de tu PC.	その名前では見つかりませんでした。短くするか（例: 「Metroid」だけ）、PC の画像を使ってください。	没有找到该名称的结果。试着缩短（例如只输入“Metroid”）或使用电脑上的图片。
+Nada selecionado	Nothing selected	Nada seleccionado	何も選択されていません	未选择任何内容
+Navegador	Browser	Navegador	ブラウザー	浏览器
+Nenhum arquivo selecionado	No file selected	Ningún archivo seleccionado	ファイルが選択されていません	未选择文件
+Nenhum emulador configurado para {0}. Abra Ajustes › Emuladores e aponte o executável (ou o RetroArch).	No emulator set up for {0}. Open Settings › Emulators and point to the executable (or RetroArch).	No hay emulador configurado para {0}. Abre Ajustes › Emuladores e indica el ejecutable (o RetroArch).	{0} のエミュレーターが設定されていません。設定 › エミュレーターで実行ファイル（または RetroArch）を指定してください。	未为 {0} 配置模拟器。请打开“设置 › 模拟器”并指定可执行文件（或 RetroArch）。
+Nenhum emulador encontrado em {0} pasta(s) verificada(s). Configure manualmente abaixo.	No emulator found in {0} folder(s) checked. Set it up manually below.	No se encontró ningún emulador en {0} carpeta(s) revisada(s). Configúralo manualmente abajo.	確認した {0} 個のフォルダーにエミュレーターは見つかりませんでした。下で手動設定してください。	在检查的 {0} 个文件夹中未找到模拟器。请在下方手动配置。
+Nenhum jogo GOG encontrado. Confira: (1) o GOG Galaxy está instalado e você entrou na conta;	No GOG games found. Check that: (1) GOG Galaxy is installed and you're signed in;	No se encontraron juegos de GOG. Revisa: (1) que GOG Galaxy esté instalado y hayas iniciado sesión;	GOG のゲームが見つかりません。確認してください: (1) GOG Galaxy がインストールされ、ログインしている。	未找到 GOG 游戏。请检查：(1) 已安装 GOG Galaxy 并已登录；
+Nenhum jogo ainda — escaneie pelo menu (Start).	No games yet — scan from the menu (Start).	Todavía no hay juegos: escanea desde el menú (Start).	まだゲームがありません — メニュー（Start）からスキャンしてください。	还没有游戏——请从菜单（Start）扫描。
+Nenhum jogo aqui.	No games here.	No hay juegos aquí.	ここにはゲームがありません。	这里没有游戏。
+Nenhum jogo disponível para sortear	No games available to pick from	No hay juegos disponibles para sortear	ランダムに選べるゲームがありません	没有可供随机选择的游戏
+Nenhum jogo encontrado	No games found	No se encontraron juegos	ゲームが見つかりません	未找到游戏
+Nenhum jogo sumido: tudo está no PC	No missing games: everything is on the PC	Ningún juego desaparecido: todo está en el PC	なくなったゲームはありません。すべて PC にあります	没有丢失的游戏：全部都在电脑上
+Nenhum jogo sumido: tudo na biblioteca está no PC	No missing games: everything in the library is on the PC	Ningún juego desaparecido: todo lo de la biblioteca está en el PC	なくなったゲームはありません。ライブラリのゲームはすべて PC にあります	没有丢失的游戏：游戏库中的全部都在电脑上
+Nenhuma ROM na biblioteca ainda. Adicione uma pasta de ROMs em Ajustes › Pastas.	No ROMs in the library yet. Add a ROM folder in Settings › Folders.	Todavía no hay ROMs en la biblioteca. Agrega una carpeta de ROMs en Ajustes › Carpetas.	ライブラリにまだ ROM がありません。設定 › フォルダーで ROM フォルダーを追加してください。	游戏库中还没有 ROM。请在“设置 › 文件夹”中添加 ROM 文件夹。
+Nenhuma atualização pronta para instalar.	No update ready to install.	No hay ninguna actualización lista para instalar.	インストールできるアップデートはありません。	没有可安装的更新。
+Nenhuma capa encontrada para este jogo	No cover found for this game	No se encontró portada para este juego	このゲームのカバーは見つかりませんでした	未找到该游戏的封面
+Nenhuma pasta (o rondel baixa trailers do Steam quando precisar)	No folder (the carousel downloads Steam trailers when needed)	Ninguna carpeta (el carrusel descarga tráileres de Steam cuando hace falta)	フォルダーなし（必要に応じてカルーセルが Steam の予告編をダウンロード）	未设置文件夹（转盘会在需要时下载 Steam 预告片）
+Nenhuma pasta adicionada	No folders added	Ninguna carpeta agregada	フォルダーが追加されていません	未添加文件夹
+Nenhuma pasta ou emulador configurado ainda.	No folder or emulator set up yet.	Todavía no hay carpetas ni emuladores configurados.	フォルダーもエミュレーターもまだ設定されていません。	尚未配置文件夹或模拟器。
+Neon (padrão)	Neon (default)	Neón (predeterminado)	ネオン（既定）	霓虹（默认）
+No painel ficam a chave da IA (visão), os ajustes de vibração e gatilhos, o driver do controle de Xbox virtual e os mods. As chaves ficam cifradas neste PC e não entram no backup da biblioteca.	The panel has the AI key (vision), the vibration and trigger settings, the virtual Xbox controller driver and the mods. The keys are stored encrypted on this PC and are not included in the library backup.	En el panel están la clave de la IA (visión), los ajustes de vibración y gatillos, el controlador del mando de Xbox virtual y los mods. Las claves se guardan cifradas en este PC y no entran en la copia de seguridad de la biblioteca.	パネルでは AI キー（ビジョン）、振動とトリガーの設定、仮想 Xbox コントローラーのドライバー、MOD を管理できます。キーはこの PC に暗号化して保存され、ライブラリのバックアップには含まれません。	面板中包含 AI 密钥（视觉）、振动和扳机设置、虚拟 Xbox 手柄驱动以及模组。密钥在本机加密保存，不会写入游戏库备份。
+Nome	Name	Nombre	名前	名称
+Nome do Jogo.mp4	Game Name.mp4	Nombre del Juego.mp4	ゲーム名.mp4	游戏名称.mp4
+Nome do perfil	Profile name	Nombre del perfil	プロフィール名	个人资料名称
+Nome para buscar (ex.: Hollow Knight)	Name to search (e.g. Hollow Knight)	Nombre para buscar (ej.: Hollow Knight)	検索する名前（例: Hollow Knight）	要搜索的名称（例如 Hollow Knight）
+Nota	Score	Nota	スコア	评分
+Nota mín.	Min. score	Nota mín.	最低スコア	最低评分
+Notas prontas: {0} de {1} jogos	Scores ready: {0} of {1} games	Notas listas: {0} de {1} juegos	スコア取得完了: {1} 本中 {0} 本	评分已就绪：{1} 个游戏中的 {0} 个
+Nunca	Never	Nunca	なし	从未
+Não configurado	Not set up	No configurado	未設定	未配置
+Não consegui abrir a partida online	Couldn't start the online match	No pude abrir la partida en línea	オンライン対戦を開始できませんでした	无法开启联机对局
+Não consegui abrir esse jogo	Couldn't open that game	No pude abrir ese juego	そのゲームを開けませんでした	无法打开该游戏
+Não consegui abrir o DualSense Auto:	Couldn't open DualSense Auto:	No pude abrir DualSense Auto:	DualSense Auto を開けませんでした:	无法打开 DualSense Auto：
+Não consegui abrir o painel	Couldn't open the panel	No pude abrir el panel	パネルを開けませんでした	无法打开面板
+Não consegui abrir online	Couldn't open online	No pude abrir en línea	オンラインで開けませんでした	无法联机打开
+Não consegui abrir {0}: {1}	Couldn't open {0}: {1}	No pude abrir {0}: {1}	{0} を開けませんでした: {1}	无法打开 {0}：{1}
+Não consegui buscar a ficha ({0}).	Couldn't fetch the info ({0}).	No pude buscar la ficha ({0}).	詳細を取得できませんでした（{0}）。	无法获取详情（{0}）。
+Não consegui buscar as notas agora	Couldn't fetch the scores right now	No pude buscar las notas ahora	今はスコアを取得できませんでした	暂时无法获取评分
+Não consegui buscar capas	Couldn't search covers	No pude buscar portadas	カバーを検索できませんでした	无法搜索封面
+Não consegui buscar: {0}	Couldn't search: {0}	No pude buscar: {0}	検索できませんでした: {0}	无法搜索：{0}
+Não consegui carregar a biblioteca	Couldn't load the library	No pude cargar la biblioteca	ライブラリを読み込めませんでした	无法加载游戏库
+Não consegui carregar as conquistas.	Couldn't load the achievements.	No pude cargar los logros.	実績を読み込めませんでした。	无法加载成就。
+Não consegui conferir	Couldn't check	No pude comprobar	確認できませんでした	无法检查
+Não consegui configurar	Couldn't set it up	No pude configurarlo	設定できませんでした	无法配置
+Não consegui entrar na partida	Couldn't join the match	No pude entrar en la partida	対戦に参加できませんでした	无法加入对局
+Não consegui favoritar	Couldn't add to favorites	No pude agregar a favoritos	お気に入りに追加できませんでした	无法收藏
+Não consegui instalar agora	Couldn't install right now	No pude instalar ahora	今はインストールできませんでした	暂时无法安装
+Não consegui mudar	Couldn't change it	No pude cambiarlo	変更できませんでした	无法更改
+Não consegui procurar agora	Couldn't search right now	No pude buscar ahora	今は検索できませんでした	暂时无法搜索
+Não consegui procurar atualizações agora (sem internet?).	Couldn't check for updates right now (no internet?).	No pude buscar actualizaciones ahora (¿sin internet?).	今はアップデートを確認できませんでした（インターネット接続なし？）。	暂时无法检查更新（没有网络？）。
+Não consegui remover	Couldn't remove	No pude quitarlo	削除できませんでした	无法移除
+Não consegui salvar	Couldn't save	No pude guardar	保存できませんでした	无法保存
+Não consegui salvar o caminho	Couldn't save the path	No pude guardar la ruta	パスを保存できませんでした	无法保存路径
+Não instalado	Not installed	No instalado	未インストール	未安装
+Não instalados	Not installed	No instalados	未インストール	未安装
+Não sei como abrir este jogo	I don't know how to open this game	No sé cómo abrir este juego	このゲームの開き方がわかりません	不知道如何打开该游戏
+Não veio nesta instalação (só existe na versão para Windows)	Not included in this installation (only in the Windows version)	No viene en esta instalación (solo existe en la versión para Windows)	このインストールには含まれていません（Windows 版のみ）	此安装中不包含（仅 Windows 版提供）
+O Arcade Hub não abre mais com o Windows	Arcade Hub no longer opens with Windows	Arcade Hub ya no se abre con Windows	Arcade Hub は Windows と同時に起動しなくなりました	Arcade Hub 不再随 Windows 启动
+O Arcade Hub procura emuladores nas pastas comuns (C:\Emuladores, RetroArch, Downloads…) e preenche o que encontrar.	Arcade Hub looks for emulators in the usual folders (C:\Emulators, RetroArch, Downloads…) and fills in what it finds.	Arcade Hub busca emuladores en las carpetas habituales (C:\Emuladores, RetroArch, Descargas…) y completa lo que encuentre.	Arcade Hub は一般的なフォルダー（C:\Emulators、RetroArch、ダウンロード…）からエミュレーターを探し、見つかったものを入力します。	Arcade Hub 会在常见文件夹（C:\Emulators、RetroArch、下载…）中查找模拟器，并填入找到的内容。
+O Arcade Hub vai abrir com o Windows, no Modo TV	Arcade Hub will open with Windows, in TV Mode	Arcade Hub se abrirá con Windows, en Modo TV	Arcade Hub は Windows と同時に TV モードで起動します	Arcade Hub 将随 Windows 启动并进入电视模式
+O Arcade Hub vai abrir junto com o Windows	Arcade Hub will open together with Windows	Arcade Hub se abrirá junto con Windows	Arcade Hub は Windows と同時に起動します	Arcade Hub 将随 Windows 一起启动
+O Arcade Hub vai abrir na tela normal	Arcade Hub will open in the normal screen	Arcade Hub se abrirá en la pantalla normal	Arcade Hub は通常画面で起動します	Arcade Hub 将以普通界面启动
+O Arcade Hub vai abrir no Modo TV	Arcade Hub will open in TV Mode	Arcade Hub se abrirá en Modo TV	Arcade Hub は TV モードで起動します	Arcade Hub 将以电视模式启动
+O Discord fechou; reconecta sozinho quando ele abrir	Discord closed; it reconnects on its own when it opens	Discord se cerró; se reconecta solo cuando se abra	Discord が終了しました。起動すると自動で再接続します	Discord 已关闭；重新打开后会自动重连
+O Discord não está aberto neste PC (ele conecta sozinho quando você abrir)	Discord isn't open on this PC (it connects on its own when you open it)	Discord no está abierto en este PC (se conecta solo cuando lo abras)	この PC で Discord が起動していません（起動すると自動で接続します）	此电脑上未打开 Discord（打开后会自动连接）
+O Discord recusou a conexão	Discord refused the connection	Discord rechazó la conexión	Discord が接続を拒否しました	Discord 拒绝了连接
+O Discord recusou o ID do aplicativo: confira o número	Discord rejected the application ID: check the number	Discord rechazó el ID de la aplicación: revisa el número	Discord がアプリケーション ID を拒否しました。番号を確認してください	Discord 拒绝了应用 ID：请检查号码
+O DualSense Auto ainda está abrindo, tente em alguns segundos	DualSense Auto is still opening, try again in a few seconds	DualSense Auto todavía se está abriendo, inténtalo en unos segundos	DualSense Auto はまだ起動中です。数秒後にもう一度お試しください	DualSense Auto 仍在启动，请几秒后再试
+O DualSense Auto fechou com erro várias vezes	DualSense Auto closed with an error several times	DualSense Auto se cerró con error varias veces	DualSense Auto が何度もエラーで終了しました	DualSense Auto 多次出错退出
+O DualSense Auto fechou; abrindo de novo…	DualSense Auto closed; opening it again…	DualSense Auto se cerró; abriéndolo de nuevo…	DualSense Auto が終了しました。再起動しています…	DualSense Auto 已关闭；正在重新打开…
+O DualSense Auto não respondeu	DualSense Auto didn't respond	DualSense Auto no respondió	DualSense Auto が応答しませんでした	DualSense Auto 没有响应
+O DualSense Auto não veio nesta instalação	DualSense Auto isn't included in this installation	DualSense Auto no viene en esta instalación	このインストールには DualSense Auto が含まれていません	此安装中不包含 DualSense Auto
+O PC liga direto no Arcade Hub, como um console	The PC boots straight into Arcade Hub, like a console	El PC arranca directo en Arcade Hub, como una consola	PC を起動するとゲーム機のように Arcade Hub が開きます	电脑开机直接进入 Arcade Hub，就像游戏主机
+O ScreenScraper também exige um <b>ID de desenvolvedor</b> para cada programa. Peça o seu no fórum do site, na seção de desenvolvedores, dizendo que é para o Arcade Hub. É grátis.	ScreenScraper also requires a <b>developer ID</b> for each program. Request yours on the site's forum, in the developers section, saying it's for Arcade Hub. It's free.	ScreenScraper también exige un <b>ID de desarrollador</b> para cada programa. Pide el tuyo en el foro del sitio, en la sección de desarrolladores, diciendo que es para Arcade Hub. Es gratis.	ScreenScraper ではプログラムごとに<b>開発者 ID</b> も必要です。サイトのフォーラムの開発者セクションで、Arcade Hub 用だと伝えて申請してください。無料です。	ScreenScraper 还要求每个程序有一个<b>开发者 ID</b>。请在网站论坛的开发者版块申请，说明是用于 Arcade Hub。免费。
+O Windows negou acesso a {0} — normalmente é porque o jogo exige administrador.	Windows denied access to {0} — usually because the game requires administrator rights.	Windows negó el acceso a {0}; normalmente es porque el juego requiere administrador.	Windows が {0} へのアクセスを拒否しました。通常、ゲームに管理者権限が必要なためです。	Windows 拒绝访问 {0}——通常是因为游戏需要管理员权限。
+O Windows não conseguiu executar {0} (arquivo bloqueado, corrompido ou de outra arquitetura).	Windows couldn't run {0} (blocked, corrupted or built for another architecture).	Windows no pudo ejecutar {0} (archivo bloqueado, dañado o de otra arquitectura).	Windows は {0} を実行できませんでした（ブロック、破損、または別アーキテクチャ用のファイル）。	Windows 无法运行 {0}（文件被阻止、已损坏或架构不同）。
+O Windows não deixou	Windows didn't allow it	Windows no lo permitió	Windows が許可しませんでした	Windows 不允许
+O YouTube escolheu o vídeo errado? Pega o próximo da busca	Did YouTube pick the wrong video? Takes the next one from the search	¿YouTube eligió el video equivocado? Toma el siguiente de la búsqueda	YouTube の動画が違う？ 検索結果の次の動画にします	YouTube 选错了视频？换成搜索结果中的下一个
+O arquivo da biblioteca estava danificado (provavelmente uma queda de energia). Recuperei a gravação anterior, com {0} jogo(s); só as últimas mudanças podem ter se perdido.	The library file was damaged (probably a power outage). I restored the previous save, with {0} game(s); only the latest changes may have been lost.	El archivo de la biblioteca estaba dañado (probablemente un corte de luz). Recuperé la copia anterior, con {0} juego(s); solo pueden haberse perdido los últimos cambios.	ライブラリファイルが壊れていました（停電などが原因と思われます）。{0} 本のゲームを含む前回の保存を復元しました。失われたのは直近の変更だけです。	游戏库文件已损坏（可能是断电所致）。已恢复上一次保存的数据，共 {0} 个游戏；只有最近的更改可能丢失。
+O arquivo da biblioteca estava danificado e não havia cópia de segurança. A biblioteca começou vazia: use "Escanear" para achar os jogos de novo, ou importe um backup em Ajustes.	The library file was damaged and there was no backup copy. The library started empty: use "Scan" to find your games again, or import a backup in Settings.	El archivo de la biblioteca estaba dañado y no había copia de seguridad. La biblioteca empezó vacía: usa "Escanear" para encontrar los juegos de nuevo o importa una copia en Ajustes.	ライブラリファイルが壊れていて、バックアップもありませんでした。ライブラリは空の状態です。「スキャン」でゲームを探し直すか、設定でバックアップを読み込んでください。	游戏库文件已损坏且没有备份。游戏库已重置为空：请使用“扫描”重新查找游戏，或在设置中导入备份。
+O arquivo danificado foi guardado como {0}, na pasta de dados do app, caso queira recuperá-lo.	The damaged file was kept as {0}, in the app's data folder, in case you want to recover it.	El archivo dañado se guardó como {0}, en la carpeta de datos de la app, por si quieres recuperarlo.	壊れたファイルは、復旧したい場合に備えてアプリのデータフォルダーに {0} として保存しました。	损坏的文件已保存为 {0}，位于应用数据文件夹中，以便你需要时恢复。
+O arquivo danificado foi guardado como {0}, na pasta de dados do app.	The damaged file was kept as {0}, in the app's data folder.	El archivo dañado se guardó como {0}, en la carpeta de datos de la app.	壊れたファイルはアプリのデータフォルダーに {0} として保存しました。	损坏的文件已保存为 {0}，位于应用数据文件夹中。
+O arquivo desta ROM não está mais no caminho salvo (foi movido ou apagado?).	This ROM's file is no longer at the saved path (was it moved or deleted?).	El archivo de esta ROM ya no está en la ruta guardada (¿se movió o se borró?).	この ROM のファイルが保存されたパスにありません（移動または削除されましたか？）。	该 ROM 文件已不在保存的路径中（被移动或删除了？）。
+O convite do Discord veio num formato que esta versão não entende. Atualize o Arcade Hub.	The Discord invite came in a format this version doesn't understand. Update Arcade Hub.	La invitación de Discord llegó en un formato que esta versión no entiende. Actualiza Arcade Hub.	Discord の招待がこの版では読めない形式でした。Arcade Hub をアップデートしてください。	Discord 邀请的格式无法被此版本识别。请更新 Arcade Hub。
+O convite veio sem endereço para conectar	The invite came without an address to connect to	La invitación llegó sin dirección para conectarse	招待に接続先のアドレスがありません	邀请中没有可连接的地址
+O executável deste jogo não está mais no caminho salvo (foi movido ou desinstalado?).	This game's executable is no longer at the saved path (was it moved or uninstalled?).	El ejecutable de este juego ya no está en la ruta guardada (¿se movió o se desinstaló?).	このゲームの実行ファイルが保存されたパスにありません（移動またはアンインストールされましたか？）。	该游戏的可执行文件已不在保存的路径中（被移动或卸载了？）。
+O histórico por mês começa a ser registrado a partir desta versão: cada sessão nova entra aqui.	Monthly history starts being recorded from this version on: each new session shows up here.	El historial mensual se registra a partir de esta versión: cada sesión nueva aparece aquí.	月別の履歴はこの版から記録されます。新しいセッションはここに追加されます。	从此版本开始记录每月历史：每次新的游戏会话都会出现在这里。
+O launcher fica aberto durante o jogo	The launcher stays open while you play	El launcher queda abierto durante el juego	ゲーム中もランチャーを開いたままにする	游戏时启动器保持打开
+O launcher sai da frente enquanto você joga	The launcher gets out of the way while you play	El launcher se aparta mientras juegas	ゲーム中はランチャーを隠す	游戏时启动器自动让开
+O que o launcher encontrou, o que está quebrado e de onde vieram os dados.	What the launcher found, what's broken and where the data came from.	Lo que encontró el launcher, lo que está roto y de dónde vienen los datos.	ランチャーが見つけたもの、壊れているもの、データの出どころ。	启动器找到了什么、哪些出了问题，以及数据来自哪里。
+Onde está a ROM de {0}?	Where is the ROM for {0}?	¿Dónde está la ROM de {0}?	{0} の ROM はどこですか？	{0} 的 ROM 在哪里？
+Onde está o executável de {0}?	Where is the executable for {0}?	¿Dónde está el ejecutable de {0}?	{0} の実行ファイルはどこですか？	{0} 的可执行文件在哪里？
+Onde ficam os dados	Where the data is stored	Dónde se guardan los datos	データの保存場所	数据存储位置
+Onde ficam seus .exe portáteis / pastas de jogos.	Where your portable .exe files / game folders are.	Dónde están tus .exe portátiles / carpetas de juegos.	ポータブル版 .exe やゲームフォルダーの場所。	你的便携 .exe / 游戏文件夹所在位置。
+Online com um amigo · {0}	Online with a friend · {0}	En línea con un amigo · {0}	友だちとオンライン · {0}	与好友联机 · {0}
+Online · {0} · chame no "Participar"	Online · {0} · invite with "Join"	En línea · {0} · invita con "Unirse"	オンライン · {0} · 「参加」で招待	联机 · {0} · 通过“加入”邀请
+Opcional no melonDS (ele tem uma BIOS livre embutida).	Optional in melonDS (it has a free built-in BIOS).	Opcional en melonDS (tiene una BIOS libre incorporada).	melonDS では任意（フリーの BIOS を内蔵）。	在 melonDS 中可选（它内置了免费 BIOS）。
+Opcional. O rondel procura <code>Nome do Jogo.mp4</code> aqui primeiro; se não achar, baixa o trailer do Steam (uma vez só) e guarda em cache. Serve para jogos de emulador também.	Optional. The carousel looks for <code>Game Name.mp4</code> here first; if it doesn't find it, it downloads the Steam trailer (just once) and caches it. Works for emulator games too.	Opcional. El carrusel busca <code>Nombre del Juego.mp4</code> aquí primero; si no lo encuentra, descarga el tráiler de Steam (una sola vez) y lo guarda en caché. Sirve también para juegos de emulador.	任意。カルーセルはまずここで <code>ゲーム名.mp4</code> を探し、なければ Steam の予告編を（1 回だけ）ダウンロードしてキャッシュします。エミュレーターのゲームにも使えます。	可选。转盘会先在这里查找 <code>游戏名称.mp4</code>；找不到时会下载 Steam 预告片（仅一次）并缓存。也适用于模拟器游戏。
+Opcional: a maioria dos jogos roda sem.	Optional: most games run without it.	Opcional: la mayoría de los juegos funcionan sin ella.	任意: ほとんどのゲームはなくても動きます。	可选：大多数游戏无需它也能运行。
+Ordem	Sort	Orden	並び順	排序
+Origem	Source	Origen	入手元	来源
+Os escolhidos	The chosen ones	Los elegidos	選ばれし者	天选之作
+Ouro	Gold	Oro	ゴールド	金
+Outro vídeo	Another video	Otro video	別の動画	换个视频
+PC · jogado há 5 h	PC · played 5 h ago	PC · jugado hace 5 h	PC · 5 時間前にプレイ	PC · 5 小时前玩过
+PS2 — utilitário	PS2 — utility	PS2 — utilidad	PS2 — ユーティリティ	PS2 — 工具
+Painéis horizontais em perspectiva. Q / E ou ← → giram as abas.	Horizontal panels in perspective. Q / E or ← → rotate the tabs.	Paneles horizontales en perspectiva. Q / E o ← → giran las pestañas.	遠近感のある横並びのパネル。Q / E または ← → でタブを回転。	透视排列的横向面板。Q / E 或 ← → 旋转标签。
+Para a conexão chegar até você, o mais fácil é os dois estarem na mesma VPN de jogos (Radmin VPN, ZeroTier ou Tailscale) ou na mesma rede de casa. Pela internet direto, é preciso liberar a porta abaixo no roteador. Quem entra recebe o seu endereço de rede, então convide só quem você conhece.	For the connection to reach you, the easiest way is for both of you to be on the same gaming VPN (Radmin VPN, ZeroTier or Tailscale) or the same home network. Directly over the internet, you need to open the port below on your router. Whoever joins receives your network address, so only invite people you know.	Para que la conexión te llegue, lo más fácil es que ambos estén en la misma VPN de juegos (Radmin VPN, ZeroTier o Tailscale) o en la misma red de casa. Directamente por internet, hay que abrir el puerto de abajo en el router. Quien entra recibe tu dirección de red, así que invita solo a quien conozcas.	接続を届ける一番簡単な方法は、二人が同じゲーム用 VPN（Radmin VPN、ZeroTier、Tailscale）か同じ家庭内ネットワークにいることです。インターネット経由で直接つなぐ場合は、ルーターで下のポートを開放する必要があります。参加した人にはあなたのネットワークアドレスが伝わるので、知っている人だけを招待してください。	要让连接到达你这边，最简单的方法是双方处于同一个游戏 VPN（Radmin VPN、ZeroTier 或 Tailscale）或同一个家庭网络中。如果直接通过互联网连接，需要在路由器上开放下方的端口。加入者会获得你的网络地址，所以只邀请你认识的人。
+Para entrar, você precisa da mesma ROM que seu amigo (a sua é diferente ou não está na biblioteca)	To join, you need the same ROM as your friend (yours is different or isn't in the library)	Para entrar, necesitas la misma ROM que tu amigo (la tuya es diferente o no está en la biblioteca)	参加するには友だちと同じ ROM が必要です（あなたの ROM が違うか、ライブラリにありません）	要加入，你需要和好友相同的 ROM（你的不同或不在游戏库中）
+Para gerar um instalador: <code>npm install</code> e depois <code>npm run dist</code>.	To build an installer: <code>npm install</code> and then <code>npm run dist</code>.	Para generar un instalador: <code>npm install</code> y luego <code>npm run dist</code>.	インストーラーを作るには: <code>npm install</code> の後に <code>npm run dist</code>。	生成安装程序：先运行 <code>npm install</code>，再运行 <code>npm run dist</code>。
+Para o jogo não ver dois controles: desative o Steam Input do jogo, ou use o HidHide para esconder o DualSense "real". Nesse caso, libere no HidHide o <b>DualSenseAuto.exe</b> (na pasta de instalação do Arcade Hub, em <span class="mono">resources\dualsense</span>).	So the game doesn't see two controllers: turn off Steam Input for the game, or use HidHide to hide the "real" DualSense. In that case, allow <b>DualSenseAuto.exe</b> in HidHide (in the Arcade Hub install folder, under <span class="mono">resources\dualsense</span>).	Para que el juego no vea dos mandos: desactiva el Steam Input del juego o usa HidHide para ocultar el DualSense "real". En ese caso, permite en HidHide el <b>DualSenseAuto.exe</b> (en la carpeta de instalación de Arcade Hub, en <span class="mono">resources\dualsense</span>).	ゲームにコントローラーが 2 台見えないようにするには、そのゲームの Steam Input をオフにするか、HidHide で「本物の」DualSense を隠してください。その場合は HidHide で <b>DualSenseAuto.exe</b>（Arcade Hub のインストールフォルダー内 <span class="mono">resources\dualsense</span>）を許可します。	为避免游戏识别到两个手柄：关闭该游戏的 Steam Input，或使用 HidHide 隐藏“真实”的 DualSense。这种情况下，请在 HidHide 中放行 <b>DualSenseAuto.exe</b>（位于 Arcade Hub 安装文件夹的 <span class="mono">resources\dualsense</span> 中）。
+Participar	Join	Unirse	参加	加入
+Pasta	Folder	Carpeta	フォルダー	文件夹
+Pasta cores/	cores/ folder	Carpeta cores/	cores/ フォルダー	cores/ 文件夹
+Pasta de ROMs	ROM folder	Carpeta de ROMs	ROM フォルダー	ROM 文件夹
+Pasta de jogos	Game folder	Carpeta de juegos	ゲームフォルダー	游戏文件夹
+Pasta de vídeos (trailers)	Video folder (trailers)	Carpeta de videos (tráileres)	動画フォルダー（予告編）	视频文件夹（预告片）
+Pasta de vídeos salva	Video folder saved	Carpeta de videos guardada	動画フォルダーを保存しました	视频文件夹已保存
+Pastas	Folders	Carpetas	フォルダー	文件夹
+Pastas de ROMs	ROM folders	Carpetas de ROMs	ROM フォルダー	ROM 文件夹
+Pastas de jogos de PC	PC game folders	Carpetas de juegos de PC	PC ゲームのフォルダー	PC 游戏文件夹
+Pastas, emuladores, vídeos e opções gerais	Folders, emulators, videos and general options	Carpetas, emuladores, videos y opciones generales	フォルダー、エミュレーター、動画、一般設定	文件夹、模拟器、视频和常规选项
+Pegando o jeito	Getting the hang of it	Agarrándole la mano	コツをつかんだ	渐入佳境
+Perfil	Profile	Perfil	プロフィール	个人资料
+Perfis	Profiles	Perfiles	プロフィール	个人资料
+Perfis e conquistas	Profiles and achievements	Perfiles y logros	プロフィールと実績	个人资料与成就
+Perfis, conquistas e quem está jogando	Profiles, achievements and who's playing	Perfiles, logros y quién está jugando	プロフィール、実績、だれが遊んでいるか	个人资料、成就和当前玩家
+Plataforma	Platform	Plataforma	機種	平台
+Plataforma do emulador	Emulator platform	Plataforma del emulador	エミュレーターの機種	模拟器平台
+Plataformas	Platforms	Plataformas	機種	平台
+Plataformas à esquerda, capas por letra no meio e detalhes com vídeo à direita.	Platforms on the left, covers by letter in the middle and details with video on the right.	Plataformas a la izquierda, portadas por letra en el medio y detalles con video a la derecha.	左に機種、中央に頭文字別のカバー、右に動画付きの詳細。	左侧为平台，中间按字母排列封面，右侧为带视频的详情。
+Platina	Platinum	Platino	プラチナ	白金
+Por mês (últimos 12)	By month (last 12)	Por mes (últimos 12)	月別（直近 12 か月）	按月（最近 12 个月）
+Por origem	By source	Por origen	入手元別	按来源
+Por plataforma	By platform	Por plataforma	機種別	按平台
+Porta	Port	Puerto	ポート	端口
+Prata	Silver	Plata	シルバー	银
+Preencha os quatro campos e clique em Salvar e testar.	Fill in the four fields and click Save and test.	Completa los cuatro campos y haz clic en Guardar y probar.	4 つの欄を入力して「保存してテスト」をクリックしてください。	填写四个字段，然后点击“保存并测试”。
+Preto total (bom em tela OLED) com destaque verde-água.	Pure black (great on OLED screens) with a teal accent.	Negro total (ideal en pantallas OLED) con detalles verde agua.	完全な黒（OLED 画面向け）にティールのアクセント。	纯黑（适合 OLED 屏幕）配青绿色点缀。
+Procurando jogos novos…	Looking for new games…	Buscando juegos nuevos…	新しいゲームを探しています…	正在查找新游戏…
+Procurando no Metacritic, Wikidata e Steam…	Searching Metacritic, Wikidata and Steam…	Buscando en Metacritic, Wikidata y Steam…	Metacritic、Wikidata、Steam を検索中…	正在搜索 Metacritic、Wikidata 和 Steam…
+Procurando outro vídeo…	Looking for another video…	Buscando otro video…	別の動画を探しています…	正在查找其他视频…
+Procurando uma capa melhor (retrato)…	Looking for a better cover (portrait)…	Buscando una portada mejor (vertical)…	より良いカバー（縦長）を探しています…	正在查找更好的封面（竖版）…
+Procurar atualizações	Check for updates	Buscar actualizaciones	アップデートを確認	检查更新
+Procurar executável	Browse for executable	Buscar ejecutable	実行ファイルを参照	浏览可执行文件
+Procurar jogos novos	Look for new games	Buscar juegos nuevos	新しいゲームを探す	查找新游戏
+Procurar jogos novos sozinho (ao abrir e quando as pastas mudam)	Look for new games automatically (on startup and when folders change)	Buscar juegos nuevos solo (al abrir y cuando cambian las carpetas)	新しいゲームを自動で探す（起動時とフォルダー変更時）	自动查找新游戏（启动时以及文件夹变化时）
+Procurar…	Browse…	Buscar…	参照…	浏览…
+Profundidade da varredura de pastas:	Folder scan depth:	Profundidad del escaneo de carpetas:	フォルダーのスキャンの深さ:	文件夹扫描深度：
+Pronto para jogar	Ready to play	Listo para jugar	プレイ準備完了	准备就绪
+Pronto: seus amigos entram pelo "Participar" do Discord	Done: your friends join with Discord's "Join"	Listo: tus amigos entran con "Unirse" en Discord	準備完了: 友だちは Discord の「参加」から入れます	完成：好友可通过 Discord 的“加入”进入
+Próxima plataforma (E / RB)	Next platform (E / RB)	Siguiente plataforma (E / RB)	次の機種 (E / RB)	下一个平台 (E / RB)
+Próximo jogo	Next game	Siguiente juego	次のゲーム	下一个游戏
+Puzzle	Puzzle	Puzle	パズル	益智
+Qualquer BIOS do PS2 (.bin) na pasta "bios" do PCSX2.	Any PS2 BIOS (.bin) in PCSX2's "bios" folder.	Cualquier BIOS de PS2 (.bin) en la carpeta "bios" de PCSX2.	PS2 の BIOS（.bin）なら何でも、PCSX2 の「bios」フォルダーに。	任意 PS2 BIOS（.bin），放在 PCSX2 的“bios”文件夹中。
+Quando o Steam não tem o vídeo (jogos de console, ROMs), o Arcade Hub tenta estas fontes. A pasta acima sempre vem primeiro.	When Steam doesn't have the video (console games, ROMs), Arcade Hub tries these sources. The folder above always comes first.	Cuando Steam no tiene el video (juegos de consola, ROMs), Arcade Hub prueba estas fuentes. La carpeta de arriba siempre va primero.	Steam に動画がない場合（ゲーム機のゲームや ROM）、Arcade Hub はこれらのソースを試します。上のフォルダーが常に最優先です。	当 Steam 没有视频时（主机游戏、ROM），Arcade Hub 会尝试这些来源。上方的文件夹始终优先。
+Quem está jogando conta o tempo e as conquistas	Whoever is playing gets the time and achievements	Quien está jugando suma el tiempo y los logros	遊んでいる人にプレイ時間と実績が記録されます	当前玩家会累计时长和成就
+Raiz	Old school	De la vieja escuela	レトロ魂	怀旧派
+Recentes	Recent	Recientes	最近	最近
+Reiniciando para instalar…	Restarting to install…	Reiniciando para instalar…	インストールのため再起動しています…	正在重启以安装…
+Reiniciar	Restart	Reiniciar	再起動	重启
+Reiniciar agora	Restart now	Reiniciar ahora	今すぐ再起動	立即重启
+Reiniciar o PC	Restart the PC	Reiniciar el PC	PC を再起動	重启电脑
+Reiniciar o PC agora?	Restart the PC now?	¿Reiniciar el PC ahora?	今すぐ PC を再起動しますか？	现在重启电脑吗？
+Remover	Remove	Quitar	削除	移除
+Remover "{0}" do Arcade Hub? Isso só tira o jogo do launcher.	Remove "{0}" from Arcade Hub? This only takes the game out of the launcher.	¿Quitar "{0}" de Arcade Hub? Esto solo saca el juego del launcher.	「{0}」を Arcade Hub から削除しますか？ ランチャーから外すだけです。	从 Arcade Hub 移除“{0}”？这只会把游戏从启动器中移除。
+Remover "{0}" do Arcade Hub? O jogo continua instalado no PC — isso só tira ele do launcher.	Remove "{0}" from Arcade Hub? The game stays installed on the PC — this only takes it out of the launcher.	¿Quitar "{0}" de Arcade Hub? El juego sigue instalado en el PC; esto solo lo saca del launcher.	「{0}」を Arcade Hub から削除しますか？ ゲームは PC にインストールされたままで、ランチャーから外すだけです。	从 Arcade Hub 移除“{0}”？游戏仍安装在电脑上——这只会把它从启动器中移除。
+Remover da biblioteca	Remove from library	Quitar de la biblioteca	ライブラリから削除	从游戏库移除
+Remover da biblioteca?	Remove from library?	¿Quitar de la biblioteca?	ライブラリから削除しますか？	从游戏库移除？
+Remover dos favoritos	Remove from favorites	Quitar de favoritos	お気に入りから外す	取消收藏
+Remover jogos que não estão mais no PC	Remove games that are no longer on the PC	Quitar juegos que ya no están en el PC	PC にないゲームを削除	移除已不在电脑上的游戏
+Remover jogos que não estão mais no PC…	Remove games that are no longer on the PC…	Quitar juegos que ya no están en el PC…	PC にないゲームを削除…	移除已不在电脑上的游戏…
+Remover {0} da biblioteca? (o jogo não é apagado do PC)	Remove {0} from the library? (the game isn't deleted from the PC)	¿Quitar {0} de la biblioteca? (el juego no se borra del PC)	{0} をライブラリから削除しますか？（PC からは削除されません）	从游戏库移除 {0}？（游戏不会从电脑删除）
+Remover {0} {1} mais no PC?	Remove {0} {1} on the PC anymore?	¿Quitar {0} {1} en el PC?	PC にない {0} {1} を削除しますか？	移除 {0} {1}？
+Remover {0} {1} que não estão mais no PC? ({2}{3})	Remove {0} {1} that are no longer on the PC? ({2}{3})	¿Quitar {0} {1} que ya no están en el PC? ({2}{3})	PC にない {0} {1} を削除しますか？（{2}{3}）	移除已不在电脑上的 {0} {1}？（{2}{3}）
+Retrô	Retro	Retro	レトロ	复古
+Ritmo	Rhythm	Ritmo	リズム	节奏
+Roda de capas grandes com reflexo. ← → giram a roda.	A wheel of big covers with reflections. ← → spin the wheel.	Rueda de portadas grandes con reflejo. ← → giran la rueda.	反射付きの大きなカバーのホイール。← → で回転。	带倒影的大封面转盘。← → 旋转转盘。
+Roda de títulos à direita, vídeo grande e ficha à esquerda. ↑ ↓ giram, ← → trocam a plataforma.	Title wheel on the right, big video and info on the left. ↑ ↓ spin, ← → switch platform.	Rueda de títulos a la derecha, video grande y ficha a la izquierda. ↑ ↓ giran, ← → cambian de plataforma.	右にタイトルホイール、左に大きな動画と詳細。↑ ↓ で回転、← → で機種を切り替え。	右侧为标题转盘，左侧为大视频和详情。↑ ↓ 旋转，← → 切换平台。
+Rondel	Carousel	Carrusel	カルーセル	转盘
+Rondel de jogos	Game carousel	Carrusel de juegos	ゲームカルーセル	游戏转盘
+Rotina de campeão	Champion's routine	Rutina de campeón	王者の日課	冠军日常
+Sai do Modo TV (o Arcade Hub continua aberto)	Leaves TV Mode (Arcade Hub stays open)	Sale del Modo TV (Arcade Hub sigue abierto)	TV モードを終了します（Arcade Hub は開いたまま）	退出电视模式（Arcade Hub 保持打开）
+Sair	Exit	Salir	終了	退出
+Sair do Modo TV	Exit TV Mode	Salir del Modo TV	TV モードを終了	退出电视模式
+Salvar	Save	Guardar	保存	保存
+Salvar e escanear	Save and scan	Guardar y escanear	保存してスキャン	保存并扫描
+Salvar e testar	Save and test	Guardar y probar	保存してテスト	保存并测试
+Salvar jogo	Save game	Guardar juego	ゲームを保存	保存游戏
+Salve o jogo primeiro — depois é só clicar em "Trocar capa"	Save the game first — then just click "Change cover"	Guarda el juego primero; después solo haz clic en "Cambiar portada"	先にゲームを保存してください — その後「カバーを変更」をクリックするだけです	请先保存游戏——之后点击“更换封面”即可
+ScreenScraper sem conta configurada	ScreenScraper account not set up	ScreenScraper sin cuenta configurada	ScreenScraper のアカウントが未設定です	未配置 ScreenScraper 账号
+Selecione um jogo	Select a game	Selecciona un juego	ゲームを選択してください	请选择游戏
+Sem ROM	No ROM	Sin ROM	ROM なし	无 ROM
+Sem agrupar	No grouping	Sin agrupar	グループ化しない	不分组
+Sem capa:	No cover:	Sin portada:	カバーなし:	无封面：
+Sem chave, as capas vêm da Steam (ótima cobertura para jogos de PC) e do acervo Libretro (boxarts oficiais de ROMs). Com a chave gratuita do SteamGridDB você também recebe capas da comunidade — inclusive de jogos que não estão na Steam.	Without a key, covers come from Steam (great coverage for PC games) and the Libretro collection (official ROM boxarts). With a free SteamGridDB key you also get community covers — including for games that aren't on Steam.	Sin clave, las portadas vienen de Steam (excelente cobertura para juegos de PC) y del acervo Libretro (portadas oficiales de ROMs). Con la clave gratuita de SteamGridDB también recibes portadas de la comunidad, incluso de juegos que no están en Steam.	キーがなくても、カバーは Steam（PC ゲームを広くカバー）と Libretro コレクション（ROM の公式パッケージ）から取得します。無料の SteamGridDB キーがあれば、Steam にないゲームも含めてコミュニティ製のカバーも使えます。	没有密钥时，封面来自 Steam（PC 游戏覆盖面很广）和 Libretro 收藏（ROM 官方封面）。有了免费的 SteamGridDB 密钥，你还能获得社区制作的封面——包括不在 Steam 上的游戏。

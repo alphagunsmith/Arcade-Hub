@@ -682,7 +682,7 @@ input[type=range] { accent-color: var(--accent); }
 }
 .card.not-installed .card-art { filter: grayscale(.85) brightness(.7); }
 .card.not-installed .card-art::before {
-  content: "não instalado"; position: absolute; left: 7px; bottom: 7px; z-index: 3;
+  content: var(--txt-nao-instalado, "não instalado"); position: absolute; left: 7px; bottom: 7px; z-index: 3;
   font-size: 8.5px; letter-spacing: .07em; text-transform: uppercase; font-weight: 700;
   padding: 3px 6px; border-radius: 5px; color: #cbd5e1;
   background: rgba(8, 11, 16, .85); border: 1px solid var(--line-strong);

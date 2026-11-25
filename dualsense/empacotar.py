@@ -64,7 +64,7 @@ def main():
 
     sep = ";"
     dados = [(os.path.join(AQUI, "painel.html"), "."), (os.path.join(AQUI, "perfis.json"), "."),
-             (os.path.join(AQUI, "LEIA-ME.md"), "."), (os.path.join(AQUI, "mods"), "mods"),
+             (os.path.join(AQUI, "LEIA-ME.md"), "."), (os.path.join(AQUI, "mods"), "mods"), (os.path.join(AQUI, "i18n"), "i18n"),
              # o vgamepad inteiro (o ViGEmClient.dll e o instalador do driver ficam ao lado do código dele)
              (os.path.join(FONTE, "vgamepad"), "vgamepad")]
     cmd = [sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--onedir", "--windowed",
@@ -81,7 +81,8 @@ def main():
     final = os.path.join(SAIDA, "DualSenseAuto")
     interno = os.path.join(final, "_internal")
     precisa = [os.path.join(final, "DualSenseAuto.exe"), os.path.join(interno, "painel.html"),
-               os.path.join(interno, "perfis.json"),
+               os.path.join(interno, "perfis.json"), os.path.join(interno, "i18n", "runtime.js"),
+               os.path.join(interno, "i18n", "ja.json"),
                os.path.join(interno, "mods", "cod_infinite_warfare", "iw7-mod", "custom_scripts", "dualsense_auto.gsc")]
     for p in precisa:
         if not os.path.exists(p):

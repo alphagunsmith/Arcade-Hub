@@ -23,6 +23,37 @@ const conquistas = require('./conquistas');
 const consoleMod = require('./console');
 const discord = require('./discord');
 const dualsenseMod = require('./dualsense');
+const I18N = require('../renderer/i18n.js');
+
+/* ---------- idioma do processo principal (caixas de diálogo, bandeja) ---------- */
+function definirIdioma(escolha, sistema) {
+  const id = I18N.resolver(escolha || 'auto', sistema || 'pt-BR');
+  let dicionario = null;
+  if (id !== 'pt-BR') { try { dicionario = require(`../renderer/i18n/${id}.js`); } catch { /* sem dicionário: português */ } }
+  I18N.iniciar(escolha || 'auto', { sistema, dicionario });
+  return I18N.idioma;
+}
+const tr = t => I18N.tr(t);
+/** Caixas de diálogo do Electron com título, mensagem, botões e filtros traduzidos. */
+function dialogoTraduzido(dialog) {
+  if (!dialog) return dialog;
+  const opcoes = o => {
+    if (!o || typeof o !== 'object') return o;
+    const c = { ...o };
+    for (const k of ['title', 'message', 'detail', 'buttonLabel']) if (typeof c[k] === 'string') c[k] = c[k].split('\n').map(tr).join('\n');
+    if (Array.isArray(c.buttons)) c.buttons = c.buttons.map(tr);
+    if (Array.isArray(c.filters)) c.filters = c.filters.map(f => ({ ...f, name: tr(f.name) }));
+    return c;
+  };
+  return new Proxy(dialog, {
+    get(alvo, nome) {
+      const v = alvo[nome];
+      if (typeof v !== 'function') return v;
+      if (!/^show/.test(String(nome))) return v.bind(alvo);
+      return (...args) => v.apply(alvo, args.map((a, i) => (i === args.length - 1 || typeof a === 'object' && !a.webContents ? opcoes(a) : a)));
+    }
+  });
+}
 
 /* Senhas guardadas cifradas pelo sistema (Windows DPAPI via safeStorage). */
 function cifrar(txt) {
@@ -230,6 +261,7 @@ const DEFAULT_SETTINGS = {
   perfilAtivo: '',
   conquistas: {},           // { perfilId: { conquistaId: quando } }
   biosFolder: '',           // pasta extra onde procurar BIOS (opcional)
+  idioma: 'auto',           // 'auto' (o do Windows), 'pt-BR', 'en', 'es', 'ja' ou 'zh-CN'
   discord: {
     appId: '',              // vazio = o ID padrão do Arcade Hub (DISCORD_APP_ID)
     ligado: true,           // mostrar "Jogando X" no Discord
@@ -2050,7 +2082,10 @@ function traduzErroSpawn(e, plan) {
 }
 
 function register(ipcMain, deps) {
-  const { shell, dialog, BrowserWindow, app } = deps;
+  const { shell, BrowserWindow, app } = deps;
+  const dialog = dialogoTraduzido(deps.dialog);
+  const sistemaIdioma = () => { try { return app && typeof app.getLocale === 'function' ? app.getLocale() : 'pt-BR'; } catch { return 'pt-BR'; } };
+  definirIdioma((deps.store.settings || {}).idioma, sistemaIdioma());
   let win = null;
   if (BrowserWindow) {
     const windows = BrowserWindow.getAllWindows();
@@ -2111,6 +2146,7 @@ function register(ipcMain, deps) {
     dados: path.join(store.dir, 'dualsense'),
     ignorar: [path.basename(process.execPath)]
   });
+  ds.idioma = I18N.idioma;
   ds.on('estado', e => enviar('dualsense:estado', e));
   let janelaDs = null;
   const abrirPainelDs = () => {
@@ -2478,6 +2514,14 @@ function register(ipcMain, deps) {
       }
       if (patch && 'youtubeKey' in patch) patch = { ...patch, youtubeKey: String(patch.youtubeKey || '').trim() };
       store.saveSettings(patch || {});
+      if (patch && 'idioma' in patch) {
+        definirIdioma(store.settings.idioma, sistemaIdioma());
+        // o painel do DualSense Auto abre no idioma novo
+        if (ds.idioma !== I18N.idioma) {
+          ds.idioma = I18N.idioma;
+          if (ds.rodando) ds.parar().then(() => { if ((store.settings.dualsense || {}).ligado !== false) ds.iniciar(); });
+        }
+      }
       // mudou emulador/pasta? recalcula quais jogos estão quebrados
       if (patch && (patch.emulators || patch.retroarch || patch.folders || patch.romFolders)) {
         refreshProblems(store);
@@ -3258,6 +3302,7 @@ function register(ipcMain, deps) {
 }
 
 module.exports = {
+  tr, definirIdioma, dialogoTraduzido,
   planoNetplay, chaveDaRom, DISCORD_APP_ID,
   perfisDe, perfilAtivoDe, limparPerfis,
   DEFAULT_SETTINGS, Store, cifrar, decifrar, credScreenScraper, runScan, runScanAsync, registrarSessao, eventos, limparCacheLojas, launchersCacheados, extrairCapas, caminhoDeFileUrl, collectScan, finishScan, mergeScanned, buildLaunchPlan, register, genres,

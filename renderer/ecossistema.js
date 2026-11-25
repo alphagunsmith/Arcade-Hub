@@ -141,7 +141,7 @@ const Ecossistema = (() => {
   /* grade de conquistas                                                 */
   /* ------------------------------------------------------------------ */
   function dataCurta(ts) {
-    try { return new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return ''; }
+    try { return new Date(ts).toLocaleDateString(LOCALE(), { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return ''; }
   }
   function fmtProgresso(c) {
     const fmt = n => (Number.isInteger(n) ? String(n) : n.toFixed(1).replace('.', ','));

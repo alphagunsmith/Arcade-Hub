@@ -368,7 +368,7 @@ const fmtDate = ts => {
   if (h < 24) return `há ${h} h`;
   if (days === 1) return 'ontem';
   if (days < 30) return `há ${days} dias`;
-  return d.toLocaleDateString('pt-BR');
+  return d.toLocaleDateString(LOCALE());
 };
 
 /* ---------- toasts ---------- */
@@ -448,7 +448,7 @@ function visibleGames() {
   }
 
   const sorters = {
-    title: (a, b) => a.title.localeCompare(b.title, 'pt-BR', { numeric: true, sensitivity: 'base' }),
+    title: (a, b) => a.title.localeCompare(b.title, LOCALE(), { numeric: true, sensitivity: 'base' }),
     recent: (a, b) => (b.playedAt || 0) - (a.playedAt || 0) || a.title.localeCompare(b.title),
     added: (a, b) => (b.addedAt || 0) - (a.addedAt || 0),
     // nota: maior primeiro, sem nota (SN) no fim
@@ -894,7 +894,7 @@ function groupGames(games) {
     return [...buckets.values()].sort((a, b) => {
       if (a.key === 'sem-genero') return 1;
       if (b.key === 'sem-genero') return -1;
-      return b.games.length - a.games.length || a.title.localeCompare(b.title, 'pt-BR');
+      return b.games.length - a.games.length || a.title.localeCompare(b.title, LOCALE());
     });
   }
 
@@ -2481,6 +2481,7 @@ function openSettings() {
   ligarFontesDeVideo(s);
   ligarDiscord(s);
   ligarDualSense(s);
+  ligarIdioma(s);
   $('#btn-limpar-sumidos').onclick = limparJogosSumidos;
   $('#opt-launchers').checked = s.includeStoreLaunchers !== false;
   $('#opt-autoscan').checked = s.autoScan !== false;
@@ -3512,7 +3513,7 @@ function renderStats() {
   const meses = [];
   for (let k = 11; k >= 0; k--) {
     const d = new Date(agora.getFullYear(), agora.getMonth() - k, 1);
-    meses.push({ chave: `${d.getFullYear()}-${d.getMonth()}`, rotulo: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''), ms: 0 });
+    meses.push({ chave: `${d.getFullYear()}-${d.getMonth()}`, rotulo: d.toLocaleDateString(LOCALE(), { month: 'short' }).replace('.', ''), ms: 0 });
   }
   const porChave = new Map(meses.map(m => [m.chave, m]));
   let temHistorico = false;
@@ -3558,7 +3559,7 @@ function renderStats() {
   box.appendChild(cols);
 
   // instalados e ainda sem tempo
-  const parados = jogos.filter(g => g.installed !== false && !ms(g)).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+  const parados = jogos.filter(g => g.installed !== false && !ms(g)).sort((a, b) => a.title.localeCompare(b.title, LOCALE()));
   const chips = el('div', 'stats-chips');
   for (const g of parados.slice(0, 60)) {
     const b = el('button', null, g.title);
@@ -3577,6 +3578,41 @@ function renderStats() {
   if (tipo === 'dragover' && e.dataTransfer) e.dataTransfer.dropEffect = 'none';
 }));
 
+/* ---------- idioma ---------- */
+function ligarIdioma(s) {
+  const sel = $('#opt-idioma');
+  if (!sel || typeof I18N === 'undefined') return;
+  sel.innerHTML = '';
+  const auto = document.createElement('option');
+  auto.value = 'auto';
+  const sistema = I18N.IDIOMAS.find(i => i.id === I18N.doSistema(navigator.language));
+  auto.textContent = `Automático / Automatic (${sistema ? sistema.nome : 'English'})`;
+  sel.appendChild(auto);
+  for (const i of I18N.IDIOMAS) {
+    const o = document.createElement('option');
+    o.value = i.id; o.textContent = i.nome;
+    sel.appendChild(o);
+  }
+  sel.value = s.idioma || 'auto';
+  sel.onchange = async e => {
+    const v = e.target.value;
+    const r = await api.saveSettings({ idioma: v });
+    if (!r || !r.ok) { toast((r && r.error) || 'Não consegui salvar', 'err'); return; }
+    I18N.lembrar(v);
+    location.reload();
+  };
+}
+/** Idioma salvo nos ajustes ≠ o que esta janela abriu: grava e recarrega (uma vez). */
+function conferirIdioma(s) {
+  if (typeof I18N === 'undefined') return false;
+  const salvo = (s && s.idioma) || 'auto';
+  if (salvo === I18N.lembrado()) return false;
+  I18N.lembrar(salvo);
+  if (I18N.resolver(salvo, navigator.language) === I18N.idioma) return false;
+  location.reload();
+  return true;
+}
+
 /* ---------- boot ---------- */
 (async function boot() {
   wire();
@@ -3585,6 +3621,7 @@ function renderStats() {
   const r = await api.getState();
   if (r.ok) {
     ui.state = r.data;
+    if (conferirIdioma(r.data.settings)) return;
     applySkinId(currentSkinId());
     if (r.data.avisoBiblioteca) setTimeout(() => avisarRecuperacao(r.data.avisoBiblioteca), 600);
   } else {
@@ -3597,7 +3634,9 @@ function renderStats() {
   aplicarTamanhoCards(ui.state.settings && ui.state.settings.cardSize);
   // Modo Console (aberto pelo Windows) ou "abrir no Modo TV": vai direto para a TV
   const comoConsole = ui.state.modoConsole && ui.state.modoConsole.abertoPeloWindows;
-  if ((comoConsole || (ui.state.settings && ui.state.settings.abrirNoModoTV)) && typeof ModoTV !== 'undefined') {
+  let voltarParaTV = false;
+  try { voltarParaTV = !!sessionStorage.getItem('reabrir-tv'); sessionStorage.removeItem('reabrir-tv'); } catch { /* sem armazenamento */ }
+  if ((voltarParaTV || comoConsole || (ui.state.settings && ui.state.settings.abrirNoModoTV)) && typeof ModoTV !== 'undefined') {
     setTimeout(() => ModoTV.abrir({ console: comoConsole }), 0);
   }
   // conquista desbloqueada: aviso na hora (na TV ou na tela normal)

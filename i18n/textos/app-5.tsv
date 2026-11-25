@@ -1,0 +1,73 @@
+ligado	on	activado	オン	开启
+ligada	on	activada	オン	开启
+ligados	on	activados	オン	开启
+ligadas	on	activadas	オン	开启
+desligado	off	desactivado	オフ	关闭
+desligada	off	desactivada	オフ	关闭
+desligados	off	desactivados	オフ	关闭
+desligadas	off	desactivadas	オフ	关闭
+DualSense Auto: {0}	DualSense Auto: {0}	DualSense Auto: {0}	DualSense Auto: {0}	DualSense Auto：{0}
+(agora: {0})	(now: {0})	(ahora: {0})	（現在: {0}）	（当前：{0}）
+Neon (padrão)	Neon (default)	Neón (predeterminado)	ネオン（既定）	霓虹（默认）
+automaticamente	automatically	automáticamente	自動で	自动
+Classificar gêneros automaticamente	Classify genres automatically	Clasificar géneros automáticamente	ジャンルを自動で分類	自动分类类型
+nunca contado	never counted	nunca contado	記録なし	尚未统计
+tempo total	total time	tiempo total	合計時間	总时长
+nunca jogado	never played	nunca jugado	未プレイ	从未游玩
+imagem vazia	empty image	imagen vacía	空の画像	空图片
+chave funcionando	key working	clave funcionando	キーは有効です	密钥可用
+multiplayer massivo	massively multiplayer	multijugador masivo	MMO	大型多人在线
+acesso antecipado	early access	acceso anticipado	早期アクセス	抢先体验
+arquivo sumiu	file is missing	el archivo desapareció	ファイルがありません	文件丢失
+varredura demorou demais	scan took too long	el escaneo tardó demasiado	スキャンに時間がかかりすぎました	扫描耗时过长
+emulador desconhecido	unknown emulator	emulador desconocido	不明なエミュレーター	未知模拟器
+fonte desconhecida	unknown source	fuente desconocida	不明なソース	未知来源
+caminho vazio	empty path	ruta vacía	パスが空です	路径为空
+trailer protegido	protected trailer	tráiler protegido	保護された予告編	受保护的预告片
+trailer vazio	empty trailer	tráiler vacío	空の予告編	预告片为空
+download incompleto	incomplete download	descarga incompleta	ダウンロードが不完全です	下载不完整
+zip corrompido	corrupted zip	zip dañado	壊れた zip	zip 已损坏
+id ausente	missing id	falta el id	ID がありません	缺少 ID
+nome interno	internal name	nombre interno	内部名	内部名称
+(outro console)	(another console)	(otra consola)	（別の機種）	（其他主机）
++ Novo perfil	+ New profile	+ Nuevo perfil	+ 新しいプロフィール	+ 新建个人资料
+, {0} capas	, {0} covers	, {0} portadas	、カバー {0} 枚	，{0} 张封面
+Abrindo…	Opening…	Abriendo…	開いています…	正在打开…
+BIOS opcional	Optional BIOS	BIOS opcional	BIOS（任意）	可选 BIOS
+Cancelando…	Cancelling…	Cancelando…	キャンセル中…	正在取消…
+Capas: 0/{0}	Covers: 0/{0}	Portadas: 0/{0}	カバー: 0/{0}	封面：0/{0}
+Conectando…	Connecting…	Conectando…	接続中…	正在连接…
+Escaneando…	Scanning…	Escaneando…	スキャン中…	正在扫描…
+Falhou:	Failed:	Falló:	失敗:	失败：
+Importado: {0} novo(s), {1} atualizado(s){2}	Imported: {0} new, {1} updated{2}	Importado: {0} nuevo(s), {1} actualizado(s){2}	読み込み完了: 新規 {0} 本、更新 {1} 本{2}	已导入：新增 {0} 个，更新 {1} 个{2}
+Notas: 0/{0}	Scores: 0/{0}	Notas: 0/{0}	スコア: 0/{0}	评分：0/{0}
+Procurando…	Searching…	Buscando…	検索中…	正在查找…
+Sons: {0}	Sounds: {0}	Sonidos: {0}	サウンド: {0}	音效：{0}
+Sorteado: {0}	Picked: {0}	Sorteado: {0}	ランダムで選ばれたゲーム: {0}	随机选中：{0}
+Suspendendo…	Going to sleep…	Suspendiendo…	スリープしています…	正在进入睡眠…
+dados: {0} · {1} · Electron {2}	data: {0} · {1} · Electron {2}	datos: {0} · {1} · Electron {2}	データ: {0} · {1} · Electron {2}	数据：{0} · {1} · Electron {2}
+testando…	testing…	probando…	テスト中…	正在测试…
+{0} capa(s) adicionada(s){1}	{0} cover(s) added{1}	{0} portada(s) agregada(s){1}	カバーを {0} 枚追加しました{1}	已添加 {0} 张封面{1}
+{0} emulador(es) configurado(s)	{0} emulator(s) set up	{0} emulador(es) configurado(s)	エミュレーターを {0} 個設定しました	已配置 {0} 个模拟器
+{0} pts · {1}/{2} conquistas	{0} pts · {1}/{2} achievements	{0} pts · {1}/{2} logros	{0} pt · 実績 {1}/{2}	{0} 分 · 成就 {1}/{2}
+{0} · comunidade (SteamGridDB)	{0} · community (SteamGridDB)	{0} · comunidad (SteamGridDB)	{0} · コミュニティ（SteamGridDB）	{0} · 社区（SteamGridDB）
+{0} · jogado {1}	{0} · played {1}	{0} · jugado {1}	{0} · {1}にプレイ	{0} · {1}玩过
+{0}: caminho corrigido	{0}: path fixed	{0}: ruta corregida	{0}: パスを修正しました	{0}：路径已修正
+— fontes: {0}	— sources: {0}	— fuentes: {0}	— 出典: {0}	— 来源：{0}
+fontes: {0}	sources: {0}	fuentes: {0}	出典: {0}	来源：{0}
+— origem desconhecida	— unknown source	— origen desconocido	— 入手元不明	— 来源未知
+★ Nos favoritos	★ In favorites	★ En favoritos	★ お気に入り済み	★ 已收藏
+☆ Favoritar	☆ Favorite	☆ Añadir a favoritos	☆ お気に入りに追加	☆ 收藏
+(consultado: {0})	(checked: {0})	(consultado: {0})	（取得: {0}）	（查询于：{0}）
+via Steam	via Steam	por Steam	Steam 経由	通过 Steam
+via Epic Games	via Epic Games	por Epic Games	Epic Games 経由	通过 Epic Games
+via GOG	via GOG	por GOG	GOG 経由	通过 GOG
+emulador	emulator	emulador	エミュレーター	模拟器
+3DS — carrossel	3DS — carousel	3DS — carrusel	3DS — カルーセル	3DS — 转盘
+GameCube — carrossel	GameCube — carousel	GameCube — carrusel	ゲームキューブ — カルーセル	GameCube — 转盘
+hack & slash	hack & slash	hack & slash	ハクスラ	砍杀
+, {0} tiros por minuto	, {0} rounds per minute	, {0} disparos por minuto	、毎分 {0} 発	，每分钟 {0} 发
+Premium: downloads diretos	Premium: direct downloads	Premium: descargas directas	プレミアム: 直接ダウンロード	高级会员：直接下载
+dados: {0}	data: {0}	datos: {0}	データ: {0}	数据：{0}
+{0} ({1} sessão)	{0} ({1} session)	{0} ({1} sesión)	{0}（{1} 回）	{0}（{1} 次）
+{0} ({1} sessões)	{0} ({1} sessions)	{0} ({1} sesiones)	{0}（{1} 回）	{0}（{1} 次）

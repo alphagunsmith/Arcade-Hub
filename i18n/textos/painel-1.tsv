@@ -1,0 +1,312 @@
+(nenhum)	(none)	(ninguno)	（なし）	（无）
+(não disponível)	(not available)	(no disponible)	（利用不可）	（不可用）
+(versão	(version	(versión	（バージョン	（版本
++ dados do jogo	+ game data	+ datos del juego	+ ゲームのデータ	+ 游戏数据
+, automática	, automatic	, automática	、フルオート	，全自动
+, força {0} de 8	, strength {0} of 8	, fuerza {0} de 8	、強さ {0}/8	，力度 {0}/8
+, semiautomática	, semi-automatic	, semiautomática	、セミオート	，半自动
+, versão	, version	, versión	、バージョン	，版本
+, {0} substituem arquivos do jogo (vão para o backup)	, {0} replace game files (they go to the backup)	, {0} reemplazan archivos del juego (van a la copia de seguridad)	、{0} 件はゲームのファイルを置き換えます（バックアップされます）	，其中 {0} 个会替换游戏文件（原文件会备份）
+1 arma com setup salvo.	1 weapon with a saved setup.	1 arma con configuración guardada.	設定を保存した武器 1 個。	已保存 1 把武器的设置。
+A IA está lendo as instruções do mod	The AI is reading the mod's instructions	La IA está leyendo las instrucciones del mod	AI が MOD の説明を読んでいます	AI 正在阅读模组说明
+A IA não conseguiu ler as instruções ({0}); usando as regras do app.	The AI couldn't read the instructions ({0}); using the app's rules.	La IA no pudo leer las instrucciones ({0}); usando las reglas de la app.	AI は説明を読めませんでした（{0}）。アプリのルールを使います。	AI 无法读取说明（{0}）；改用应用的规则。
+A IA não devolveu um plano válido	The AI didn't return a valid plan	La IA no devolvió un plan válido	AI から有効な計画が返ってきませんでした	AI 没有返回有效的方案
+A pé	On foot	A pie	徒歩	步行
+Abra o jogo pelo iw7-mod.	Open the game through iw7-mod.	Abre el juego con iw7-mod.	iw7-mod からゲームを起動してください。	请通过 iw7-mod 打开游戏。
+Abra o jogo primeiro	Open the game first	Abre el juego primero	先にゲームを開いてください	请先打开游戏
+Abra um jogo para começar.	Open a game to get started.	Abre un juego para empezar.	ゲームを開いて始めましょう。	打开一个游戏即可开始。
+Abrindo o arquivo do mod	Opening the mod file	Abriendo el archivo del mod	MOD ファイルを開いています	正在打开模组文件
+Abrir guia dos mods	Open the mods guide	Abrir la guía de mods	MOD ガイドを開く	打开模组指南
+Adicionar	Add	Agregar	追加	添加
+Adicionar outro mod pelo link	Add another mod by link	Agregar otro mod por enlace	リンクから MOD を追加	通过链接添加其他模组
+Apertado	Pressed	Presionado	押し込み	按下
+Arco	Bow	Arco	弓	弓
+Areia	Sand	Arena	砂	沙地
+Arma	Weapon	Arma	武器	武器
+Arma de energia	Energy weapon	Arma de energía	エネルギー武器	能量武器
+Arquivo do mod com caminho inválido; instalação cancelada	Mod file with an invalid path; installation cancelled	Archivo del mod con ruta no válida; instalación cancelada	MOD のファイルに無効なパスがあります。インストールを中止しました	模组文件路径无效；已取消安装
+Arquivos	Files	Archivos	ファイル	文件
+Arquivos .pak vão para {0}.	.pak files go to {0}.	Los archivos .pak van a {0}.	.pak ファイルは {0} に入ります。	.pak 文件放入 {0}。
+Arquivos do mod vão para a pasta Data do jogo.	The mod's files go to the game's Data folder.	Los archivos del mod van a la carpeta Data del juego.	MOD のファイルはゲームの Data フォルダーに入ります。	模组文件放入游戏的 Data 文件夹。
+Arquivos soltos distribuídos nas pastas certas do Cyberpunk (archive, r6, CET).	Loose files placed in the right Cyberpunk folders (archive, r6, CET).	Archivos sueltos repartidos en las carpetas correctas de Cyberpunk (archive, r6, CET).	ばらばらのファイルを Cyberpunk の正しいフォルダー（archive、r6、CET）に配置します。	将零散文件分配到 Cyberpunk 的正确文件夹（archive、r6、CET）。
+Arquivos, na mesma estrutura dentro da pasta do jogo	Files, in the same structure inside the game folder	Archivos, con la misma estructura dentro de la carpeta del juego	ファイル（ゲームフォルダー内の同じ構成）	文件，按相同结构放入游戏文件夹
+As pastas do mod batem com as pastas do jogo; copiando por cima.	The mod's folders match the game's folders; copying over them.	Las carpetas del mod coinciden con las del juego; copiando encima.	MOD のフォルダーがゲームのフォルダーと一致するので、上書きコピーします。	模组的文件夹与游戏文件夹一致；直接覆盖复制。
+Asfalto	Asphalt	Asfalto	アスファルト	柏油路
+Atingido	Hit	Golpeado	被弾	被击中
+Ação / Aventura	Action / Adventure	Acción / Aventura	アクション／アドベンチャー	动作 / 冒险
+Ação desconhecida	Unknown action	Acción desconocida	不明な操作	未知操作
+Ação e aventura	Action and adventure	Acción y aventura	アクション・アドベンチャー	动作冒险
+Baixa	Low	Baja	低い	低
+Baixado{0}	Downloaded{0}	Descargado{0}	ダウンロード済み{0}	已下载{0}
+Baixando	Downloading	Descargando	ダウンロード中	下载中
+Baixando o mod	Downloading the mod	Descargando el mod	MOD をダウンロード中	正在下载模组
+Baixar	Download	Descargar	ダウンロード	下载
+Baixar e instalar	Download and install	Descargar e instalar	ダウンロードしてインストール	下载并安装
+Banco de armas	Weapon database	Banco de armas	武器データベース	武器库
+Base de scripts usada pelo mod de gatilhos.	Script framework used by the triggers mod.	Base de scripts usada por el mod de gatillos.	トリガー MOD が使うスクリプト基盤。	扳机模组使用的脚本框架。
+Biblioteca 'hidapi' não instalada (pip install hidapi)	'hidapi' library not installed (pip install hidapi)	Biblioteca 'hidapi' no instalada (pip install hidapi)	'hidapi' ライブラリがインストールされていません（pip install hidapi）	未安装 'hidapi' 库（pip install hidapi）
+Cada arma com gatilho próprio. Precisa do REFramework.	Each weapon with its own trigger. Requires REFramework.	Cada arma con su propio gatillo. Necesita REFramework.	武器ごとに専用のトリガー。REFramework が必要です。	每把武器都有专属扳机效果。需要 REFramework。
+Cancelado porque um requisito falhou	Cancelled because a requirement failed	Cancelado porque falló un requisito	必要な項目が失敗したため中止しました	因某个依赖项失败而取消
+Cascalho	Gravel	Grava	砂利	碎石
+Chave da API do Claude	Claude API key	Clave de la API de Claude	Claude API キー	Claude API 密钥
+Chave do Nexus inválida	Invalid Nexus key	Clave de Nexus no válida	Nexus キーが無効です	Nexus 密钥无效
+Chuva ou neve	Rain or snow	Lluvia o nieve	雨・雪	雨或雪
+Cole a chave aqui	Paste the key here	Pega la clave aquí	ここにキーを貼り付け	在此粘贴密钥
+Cole o caminho da pasta do jogo (onde fica o executável):	Paste the path of the game folder (where the executable is):	Pega la ruta de la carpeta del juego (donde está el ejecutable):	ゲームフォルダー（実行ファイルのある場所）のパスを貼り付けてください:	粘贴游戏文件夹（可执行文件所在处）的路径：
+Cole um link de mod do Nexus, como nexusmods.com/jogo/mods/1234	Paste a Nexus mod link, like nexusmods.com/game/mods/1234	Pega un enlace de mod de Nexus, como nexusmods.com/juego/mods/1234	nexusmods.com/game/mods/1234 のような Nexus の MOD リンクを貼り付けてください	粘贴 Nexus 模组链接，例如 nexusmods.com/game/mods/1234
+Coloque sua chave do Nexus Mods primeiro	Enter your Nexus Mods key first	Pon tu clave de Nexus Mods primero	先に Nexus Mods のキーを入力してください	请先填写 Nexus Mods 密钥
+Como instalar os mods	How to install the mods	Cómo instalar los mods	MOD のインストール方法	如何安装模组
+Compilador de scripts do jogo.	The game's script compiler.	Compilador de scripts del juego.	ゲームのスクリプトコンパイラー。	游戏的脚本编译器。
+Conectar	Connect	Conectar	接続	连接
+Consultando o Nexus	Checking Nexus	Consultando Nexus	Nexus に問い合わせ中	正在查询 Nexus
+Conta grátis: ligue 'Receber os links Mod Manager Download' e tente de novo	Free account: turn on 'Receive Mod Manager Download links' and try again	Cuenta gratis: activa 'Recibir los enlaces Mod Manager Download' e inténtalo de nuevo	無料アカウント:「Mod Manager Download のリンクを受け取る」をオンにして再試行してください	免费账号：请开启“接收 Mod Manager Download 链接”后重试
+Continuando o download	Resuming the download	Continuando la descarga	ダウンロードを再開しています	正在继续下载
+Controle não encontrado - conecte o DualSense (USB ou Bluetooth)	Controller not found - connect the DualSense (USB or Bluetooth)	Mando no encontrado: conecta el DualSense (USB o Bluetooth)	コントローラーが見つかりません - DualSense を接続してください（USB または Bluetooth）	未找到手柄——请连接 DualSense（USB 或蓝牙）
+Cor atual da barra de luz do controle	Current color of the controller's light bar	Color actual de la barra de luz del mando	コントローラーのライトバーの現在の色	手柄灯条的当前颜色
+Corpo a corpo	Melee	Cuerpo a cuerpo	近接	近战
+Crie a chave em console.anthropic.com.	Create the key at console.anthropic.com.	Crea la clave en console.anthropic.com.	console.anthropic.com でキーを作成してください。	请在 console.anthropic.com 创建密钥。
+Cyberpunk 2077, CoD: Infinite Warfare e Dying Light: The Beast têm o passo a passo no guia.	Cyberpunk 2077, CoD: Infinite Warfare and Dying Light: The Beast have step-by-step instructions in the guide.	Cyberpunk 2077, CoD: Infinite Warfare y Dying Light: The Beast tienen el paso a paso en la guía.	Cyberpunk 2077、CoD: Infinite Warfare、Dying Light: The Beast の手順はガイドにあります。	Cyberpunk 2077、CoD: Infinite Warfare 和 Dying Light: The Beast 的分步说明见指南。
+De onde veio o dano	Where the damage came from	De dónde vino el daño	ダメージの方向	伤害来源
+Descoberto por: {3}	Found by: {3}	Descubierto por: {3}	検出方法: {3}	识别依据：{3}
+Desligando	Turning off	Apagando	終了中	正在关闭
+Desligar o DualSense Auto	Turn off DualSense Auto	Apagar DualSense Auto	DualSense Auto を終了	关闭 DualSense Auto
+Desligar o DualSense Auto? O controle volta ao normal.	Turn off DualSense Auto? The controller goes back to normal.	¿Apagar DualSense Auto? El mando vuelve a la normalidad.	DualSense Auto を終了しますか？ コントローラーは通常の状態に戻ります。	关闭 DualSense Auto？手柄将恢复正常。
+Desligar o app	Turn off the app	Apagar la app	アプリを終了	关闭应用
+Direção do último dano	Direction of the last damage	Dirección del último daño	最後のダメージの方向	最近一次伤害的方向
+Dirigindo	Driving	Conduciendo	運転中	驾驶中
+Do mod	From the mod	Del mod	MOD から	来自模组
+Driver ViGEmBus não encontrado. Instale-o (botão 'Instalar driver Xbox') e reinicie o PC. Detalhe: {0}	ViGEmBus driver not found. Install it ('Install Xbox driver' button) and restart the PC. Detail: {0}	Controlador ViGEmBus no encontrado. Instálalo (botón 'Instalar controlador de Xbox') y reinicia el PC. Detalle: {0}	ViGEmBus ドライバーが見つかりません。インストールして（「Xbox ドライバーをインストール」ボタン）PC を再起動してください。詳細: {0}	未找到 ViGEmBus 驱动。请安装（“安装 Xbox 驱动”按钮）并重启电脑。详情：{0}
+Emular controle de Xbox	Emulate an Xbox controller	Emular mando de Xbox	Xbox コントローラーをエミュレート	模拟 Xbox 手柄
+Ensinar o tipo deste jogo	Teach this game's type	Enseñar el tipo de este juego	このゲームの種類を教える	设定此游戏的类型
+Enviando o arquivo para o app...	Sending the file to the app...	Enviando el archivo a la app...	アプリにファイルを送信中...	正在将文件发送到应用...
+Erro ao abrir o controle: {0}	Error opening the controller: {0}	Error al abrir el mando: {0}	コントローラーを開く際のエラー: {0}	打开手柄时出错：{0}
+Escolha o jogo	Choose the game	Elige el juego	ゲームを選択	选择游戏
+Escolher arquivo do mod	Choose mod file	Elegir archivo del mod	MOD ファイルを選択	选择模组文件
+Escopeta	Shotgun	Escopeta	ショットガン	霰弹枪
+Esperando o jogo abrir pelo jogar_com_dualsense.bat	Waiting for the game to open through jogar_com_dualsense.bat	Esperando a que el juego se abra con jogar_com_dualsense.bat	jogar_com_dualsense.bat からゲームが起動するのを待っています	正在等待通过 jogar_com_dualsense.bat 打开游戏
+Essa pasta não existe	That folder doesn't exist	Esa carpeta no existe	そのフォルダーは存在しません	该文件夹不存在
+Esse mod não está instalado	That mod isn't installed	Ese mod no está instalado	その MOD はインストールされていません	该模组未安装
+Esse mod não tem arquivo principal para baixar	That mod has no main file to download	Ese mod no tiene archivo principal para descargar	その MOD にはダウンロードできるメインファイルがありません	该模组没有可下载的主文件
+Este mod tem instalador com opções (FOMOD). Escolhas usadas:	This mod has an installer with options (FOMOD). Choices used:	Este mod tiene un instalador con opciones (FOMOD). Opciones usadas:	この MOD にはオプション付きのインストーラー（FOMOD）があります。使用した選択:	此模组带有选项安装程序（FOMOD）。使用的选项：
+Extensor de scripts (SKSE/F4SE): arquivos vão para a pasta do jogo.	Script extender (SKSE/F4SE): files go to the game folder.	Extensor de scripts (SKSE/F4SE): los archivos van a la carpeta del juego.	スクリプト拡張（SKSE/F4SE）: ファイルはゲームフォルダーに入ります。	脚本扩展（SKSE/F4SE）：文件放入游戏文件夹。
+Extensor de scripts, exigido pelo Cyber Engine Tweaks.	Script extender, required by Cyber Engine Tweaks.	Extensor de scripts, requerido por Cyber Engine Tweaks.	Cyber Engine Tweaks に必要なスクリプト拡張。	脚本扩展，Cyber Engine Tweaks 需要它。
+Fechar esta janela não desliga o app: ele continua controlando o DualSense. Use este botão para desligar de vez.	Closing this window doesn't turn off the app: it keeps controlling the DualSense. Use this button to turn it off for good.	Cerrar esta ventana no apaga la app: sigue controlando el DualSense. Usa este botón para apagarla del todo.	このウィンドウを閉じてもアプリは終了せず、DualSense の制御を続けます。完全に終了するにはこのボタンを使ってください。	关闭此窗口不会关闭应用：它会继续控制 DualSense。要彻底关闭，请使用此按钮。
+Força dos gatilhos	Trigger strength	Fuerza de los gatillos	トリガーの強さ	扳机力度
+Fuzil	Rifle	Fusil	ライフル	步枪
+Gatilho de arma	Weapon trigger	Gatillo de arma	武器トリガー	武器扳机
+Gatilhos conforme o tipo de arma. Precisa do SKSE.	Triggers by weapon type. Requires SKSE.	Gatillos según el tipo de arma. Necesita SKSE.	武器の種類に応じたトリガー。SKSE が必要です。	按武器类型调整扳机。需要 SKSE。
+Gatilhos e vibração seguem o terreno sob as rodas.	Triggers and vibration follow the ground under the wheels.	Los gatillos y la vibración siguen el terreno bajo las ruedas.	トリガーと振動がタイヤの下の路面に合わせて変わります。	扳机和振动随车轮下的地面变化。
+Gatilhos leves até aparecer uma arma.	Light triggers until a weapon shows up.	Gatillos suaves hasta que aparezca un arma.	武器が出るまでトリガーは軽め。	在出现武器之前扳机较轻。
+Gatilhos para armas, arco, laço, pesca e corpo a corpo; luz mostra vida e dead eye. Precisa do ScriptHookRDR2 (site dev-c.com).	Triggers for guns, bow, lasso, fishing and melee; the light shows health and dead eye. Requires ScriptHookRDR2 (dev-c.com).	Gatillos para armas, arco, lazo, pesca y cuerpo a cuerpo; la luz muestra vida y dead eye. Necesita ScriptHookRDR2 (sitio dev-c.com).	銃、弓、投げ縄、釣り、近接用のトリガー。ライトで体力とデッドアイを表示。ScriptHookRDR2（dev-c.com）が必要です。	枪械、弓、套索、钓鱼和近战的扳机效果；灯光显示生命值和死神之眼。需要 ScriptHookRDR2（dev-c.com）。
+Gatilhos por tipo de arma, configuráveis. Precisa do F4SE.	Configurable triggers by weapon type. Requires F4SE.	Gatillos por tipo de arma, configurables. Necesita F4SE.	武器の種類ごとに設定できるトリガー。F4SE が必要です。	可按武器类型配置扳机。需要 F4SE。
+Gelo	Ice	Hielo	氷	冰面
+Genérico	Generic	Genérico	汎用	通用
+Grama	Grass	Césped	草地	草地
+Granada	Grenade	Granada	手榴弾	手雷
+IA e Xbox	AI and Xbox	IA y Xbox	AI と Xbox	AI 与 Xbox
+Identifica arma, clima, terreno e dano. Pausa sozinha quando um mod manda os dados.	Identifies weapon, weather, terrain and damage. Pauses on its own when a mod sends the data.	Identifica arma, clima, terreno y daño. Se pausa sola cuando un mod envía los datos.	武器、天気、地形、ダメージを判別します。MOD がデータを送っているときは自動で一時停止します。	识别武器、天气、地形和伤害。当模组发送数据时会自动暂停。
+Informar pasta	Set folder	Indicar carpeta	フォルダーを指定	指定文件夹
+Instalado	Installed	Instalado	インストール済み	已安装
+Instalado em {0}: {1} arquivos.	Installed in {0}: {1} files.	Instalado en {0}: {1} archivos.	{0} にインストールしました: {1} ファイル。	已安装到 {0}：{1} 个文件。
+Instalado{0}	Installed{0}	Instalado{0}	インストール済み{0}	已安装{0}
+Instalando	Installing	Instalando	インストール中	安装中
+Instalar	Install	Instalar	インストール	安装
+Instalar driver do Xbox	Install Xbox driver	Instalar controlador de Xbox	Xbox ドライバーをインストール	安装 Xbox 驱动
+Instalar no jogo	Install into the game	Instalar en el juego	ゲームにインストール	安装到游戏
+Instalação iniciada	Installation started	Instalación iniciada	インストールを開始しました	已开始安装
+Intensidade da vibração	Vibration intensity	Intensidad de la vibración	振動の強さ	振动强度
+Jogo	Game	Juego	ゲーム	游戏
+Jogo de destino	Target game	Juego de destino	対象のゲーム	目标游戏
+Jogos e mods	Games and mods	Juegos y mods	ゲームと MOD	游戏与模组
+Lama	Mud	Barro	泥	泥地
+Lançador	Launcher	Lanzador	ランチャー	发射器
+Leia-me do mod	Mod readme	Léeme del mod	MOD の Readme	模组说明文件
+Lendo a página do mod no Nexus	Reading the mod's page on Nexus	Leyendo la página del mod en Nexus	Nexus の MOD ページを読んでいます	正在读取 Nexus 上的模组页面
+Lendo o leia-me e procurando o jogo	Reading the readme and looking for the game	Leyendo el léeme y buscando el juego	Readme を読んでゲームを探しています	正在读取说明文件并查找游戏
+Ler a tela a cada	Read the screen every	Leer la pantalla cada	画面を読み取る間隔	屏幕读取间隔
+Ler a tela com IA	Read the screen with AI	Leer la pantalla con IA	AI で画面を読み取る	用 AI 读取屏幕
+Limite de pedidos do Nexus atingido; tente em alguns minutos	Nexus request limit reached; try again in a few minutes	Se alcanzó el límite de solicitudes de Nexus; inténtalo en unos minutos	Nexus のリクエスト上限に達しました。数分後にもう一度お試しください	已达到 Nexus 请求上限；请几分钟后再试
+Link nxm inválido	Invalid nxm link	Enlace nxm no válido	無効な nxm リンク	nxm 链接无效
+Links do Nexus agora abrem no DualSense Auto	Nexus links now open in DualSense Auto	Los enlaces de Nexus ahora se abren en DualSense Auto	Nexus のリンクは DualSense Auto で開くようになりました	Nexus 链接现在会在 DualSense Auto 中打开
+Links do Nexus desligados	Nexus links turned off	Enlaces de Nexus desactivados	Nexus のリンクをオフにしました	已关闭 Nexus 链接
+Links do Nexus devolvidos ao programa anterior	Nexus links handed back to the previous program	Enlaces de Nexus devueltos al programa anterior	Nexus のリンクを以前のプログラムに戻しました	Nexus 链接已交还给之前的程序
+Livre	Free	Libre	フリー	自由
+Madeira	Wood	Madera	木	木地板
+Mais de 60 efeitos feitos à mão para armas e veículos, troca de marcha, batidas e pneu furado. Conversa com o app pelo protocolo do DSX (porta 6969).	Over 60 handmade effects for weapons and vehicles, gear shifts, crashes and flat tires. Talks to the app through the DSX protocol (port 6969).	Más de 60 efectos hechos a mano para armas y vehículos, cambios de marcha, choques y pinchazos. Se comunica con la app por el protocolo de DSX (puerto 6969).	武器や乗り物、シフトチェンジ、衝突、パンク用に手作りされた 60 以上のエフェクト。DSX のプロトコル（ポート 6969）でアプリと通信します。	为武器和载具、换挡、碰撞和爆胎手工打造的 60 多种效果。通过 DSX 协议（端口 6969）与应用通信。
+Menu de configurações dos mods dentro do jogo.	In-game mod settings menu.	Menú de configuración de los mods dentro del juego.	ゲーム内の MOD 設定メニュー。	游戏内的模组设置菜单。
+Metal	Metal	Metal	金属	金属
+Metralhadora	Machine gun	Ametralladora	マシンガン	机枪
+Mod Unreal: arquivos .pak vão para {0}/~mods.	Unreal mod: .pak files go to {0}/~mods.	Mod de Unreal: los archivos .pak van a {0}/~mods.	Unreal の MOD: .pak ファイルは {0}/~mods に入ります。	Unreal 模组：.pak 文件放入 {0}/~mods。
+Mods fora da lista são só baixados; a instalação segue a página do mod.	Mods not on the list are only downloaded; follow the mod's page to install them.	Los mods fuera de la lista solo se descargan; la instalación sigue la página del mod.	一覧にない MOD はダウンロードのみです。インストールは MOD のページの手順に従ってください。	不在列表中的模组只会下载；请按模组页面说明安装。
+Na fila	Queued	En cola	待機中	排队中
+Na página que abriu, clique em 'Slow download'	On the page that opened, click 'Slow download'	En la página que se abrió, haz clic en 'Slow download'	開いたページで「Slow download」をクリックしてください	在打开的页面上点击“Slow download”
+Necessário em conta grátis: o app abre a página do mod, você clica em "Slow download" e ele termina sozinho. Se você usa Vortex ou Mod Organizer, desligar isto devolve os links para eles.	Needed for free accounts: the app opens the mod page, you click "Slow download" and it finishes on its own. If you use Vortex or Mod Organizer, turning this off hands the links back to them.	Necesario en cuentas gratis: la app abre la página del mod, haces clic en "Slow download" y termina sola. Si usas Vortex o Mod Organizer, desactivar esto les devuelve los enlaces.	無料アカウントで必要です。アプリが MOD のページを開くので「Slow download」をクリックすれば、あとは自動で完了します。Vortex や Mod Organizer を使っている場合、これをオフにするとリンクがそちらに戻ります。	免费账号需要开启：应用会打开模组页面，你点击“Slow download”后它会自动完成。如果你使用 Vortex 或 Mod Organizer，关闭此项会把链接交还给它们。
+Nenhum	None	Ninguno	なし	无
+Nenhum jogo aberto	No game open	Ningún juego abierto	ゲームが開いていません	未打开游戏
+Nenhum mod	No mod	Ningún mod	MOD なし	无模组
+Nenhum mod instalado por aqui ainda.	No mods installed from here yet.	Todavía no hay mods instalados desde aquí.	ここからインストールした MOD はまだありません。	还没有从这里安装的模组。
+Neve	Snow	Nieve	雪	雪地
+No site do Nexus: seu perfil, Site preferences, aba API Keys, "Personal API Key" no fim da página.	On the Nexus site: your profile, Site preferences, API Keys tab, "Personal API Key" at the bottom of the page.	En el sitio de Nexus: tu perfil, Site preferences, pestaña API Keys, "Personal API Key" al final de la página.	Nexus のサイトで: プロフィール → Site preferences → API Keys タブ → ページ下部の「Personal API Key」。	在 Nexus 网站上：你的个人资料 → Site preferences → API Keys 标签 → 页面底部的“Personal API Key”。
+Normal	Normal	Normal	通常	正常
+Não achei a pasta do jogo. Informe a pasta acima e tente de novo.	I couldn't find the game folder. Set the folder above and try again.	No encontré la carpeta del juego. Indica la carpeta arriba e inténtalo de nuevo.	ゲームフォルダーが見つかりませんでした。上でフォルダーを指定して再試行してください。	找不到游戏文件夹。请在上方指定文件夹后重试。
+Não consegui descobrir de qual jogo é este mod. Escolha o jogo abaixo.	I couldn't figure out which game this mod is for. Choose the game below.	No pude averiguar de qué juego es este mod. Elige el juego abajo.	この MOD がどのゲーム用か判別できませんでした。下でゲームを選んでください。	无法判断此模组属于哪个游戏。请在下方选择游戏。
+Não consegui extrair este arquivo (.7z/.rar). Extraia manualmente pela pasta de downloads.	I couldn't extract this file (.7z/.rar). Extract it manually from the downloads folder.	No pude extraer este archivo (.7z/.rar). Extráelo manualmente desde la carpeta de descargas.	このファイル（.7z/.rar）を展開できませんでした。ダウンロードフォルダーから手動で展開してください。	无法解压此文件（.7z/.rar）。请从下载文件夹手动解压。
+Não consegui pesquisar {0}; usando o padrão do tipo	I couldn't research {0}; using the type's default	No pude investigar {0}; usando el predeterminado del tipo	{0} を調べられませんでした。種類の既定値を使います	无法查询 {0}；使用该类型的默认设置
+Não consigo abrir este formato. Extraia o arquivo manualmente.	I can't open this format. Extract the file manually.	No puedo abrir este formato. Extrae el archivo manualmente.	この形式は開けません。手動で展開してください。	无法打开此格式。请手动解压文件。
+Não deu certo	It didn't work	No funcionó	うまくいきませんでした	没有成功
+Não há plano pronto para instalar	There's no plan ready to install	No hay un plan listo para instalar	インストールできる計画がありません	没有可安装的方案
+Não identificado	Not identified	No identificado	不明	未识别
+Não reconheci como este mod deve ser instalado.	I didn't recognize how this mod should be installed.	No reconocí cómo debe instalarse este mod.	この MOD のインストール方法がわかりませんでした。	无法识别此模组的安装方式。
+O DualSense Auto foi desligado. Para abrir de novo, use o iniciar.bat.	DualSense Auto was turned off. To open it again, use the Arcade Hub settings.	DualSense Auto se apagó. Para abrirlo de nuevo, usa los ajustes de Arcade Hub.	DualSense Auto を終了しました。もう一度開くには Arcade Hub の設定を使ってください。	DualSense Auto 已关闭。要重新打开，请使用 Arcade Hub 的设置。
+O Nexus não devolveu link de download	Nexus didn't return a download link	Nexus no devolvió un enlace de descarga	Nexus からダウンロードリンクが返ってきませんでした	Nexus 没有返回下载链接
+O app encontrou um erro:	The app ran into an error:	La app encontró un error:	アプリでエラーが発生しました:	应用遇到错误：
+O app lembra a escolha da próxima vez que você abrir o jogo.	The app remembers the choice the next time you open the game.	La app recuerda la elección la próxima vez que abras el juego.	次にゲームを開いたとき、アプリはこの選択を覚えています。	下次打开该游戏时，应用会记住此选择。
+O app não respondeu. Ele ainda está aberto?	The app didn't respond. Is it still open?	La app no respondió. ¿Sigue abierta?	アプリが応答しませんでした。まだ起動していますか？	应用没有响应。它还开着吗？
+O arquivo está vazio	The file is empty	El archivo está vacío	ファイルが空です	文件为空
+O instalador FOMOD deste mod não pôde ser lido.	This mod's FOMOD installer couldn't be read.	No se pudo leer el instalador FOMOD de este mod.	この MOD の FOMOD インストーラーを読み込めませんでした。	无法读取此模组的 FOMOD 安装程序。
+O mod já vem com a pasta Data.	The mod already comes with the Data folder.	El mod ya viene con la carpeta Data.	MOD には Data フォルダーが含まれています。	模组已自带 Data 文件夹。
+O mod já vem na estrutura do jogo (bin, r6, archive...).	The mod already comes in the game's structure (bin, r6, archive...).	El mod ya viene con la estructura del juego (bin, r6, archive...).	MOD はゲームと同じ構成（bin、r6、archive…）になっています。	模组已按游戏结构排列（bin、r6、archive…）。
+O mod traz programas (.exe/.bat). Eles serão só copiados, nunca executados pelo app.	The mod includes programs (.exe/.bat). They'll only be copied, never run by the app.	El mod trae programas (.exe/.bat). Solo se copiarán, la app nunca los ejecuta.	MOD にプログラム（.exe/.bat）が含まれています。コピーするだけで、アプリが実行することはありません。	模组包含程序（.exe/.bat）。它们只会被复制，应用绝不会运行它们。
+O plano da IA não tinha nenhuma cópia válida	The AI's plan had no valid copy	El plan de la IA no tenía ninguna copia válida	AI の計画に有効なコピーがありませんでした	AI 方案中没有有效的复制操作
+O que o controle está sentindo agora	What the controller is feeling right now	Lo que el mando está sintiendo ahora	コントローラーがいま感じていること	手柄当前的反馈
+Opção	Option	Opción	オプション	选项
+Outra pasta	Another folder	Otra carpeta	別のフォルダー	其他文件夹
+Para a pasta do jogo	To the game folder	A la carpeta del juego	ゲームフォルダーへ	到游戏文件夹
+Para o jogo não ver dois controles, esconda o DualSense com o HidHide e libere nele o programa .venv\Scripts\pythonw.exe desta pasta. Na Steam, desative o Steam Input do jogo.	So the game doesn't see two controllers, hide the DualSense with HidHide and allow DualSenseAuto.exe in it. On Steam, turn off Steam Input for the game.	Para que el juego no vea dos mandos, oculta el DualSense con HidHide y permite en él el DualSenseAuto.exe. En Steam, desactiva el Steam Input del juego.	ゲームにコントローラーが 2 台見えないよう、HidHide で DualSense を隠し、DualSenseAuto.exe を許可してください。Steam ではそのゲームの Steam Input をオフにします。	为避免游戏识别到两个手柄，请用 HidHide 隐藏 DualSense 并放行 DualSenseAuto.exe。在 Steam 中关闭该游戏的 Steam Input。
+Pasta do jogo não encontrada	Game folder not found	Carpeta del juego no encontrada	ゲームフォルダーが見つかりません	找不到游戏文件夹
+Pasta não encontrada	Folder not found	Carpeta no encontrada	フォルダーが見つかりません	找不到文件夹
+Pasta salva	Folder saved	Carpeta guardada	フォルダーを保存しました	文件夹已保存
+Pasta: <code>{0}</code>	Folder: <code>{0}</code>	Carpeta: <code>{0}</code>	フォルダー: <code>{0}</code>	文件夹：<code>{0}</code>
+Pedido inválido	Invalid request	Solicitud no válida	無効なリクエスト	请求无效
+Pela direita	From the right	Por la derecha	右から	来自右侧
+Pela esquerda	From the left	Por la izquierda	左から	来自左侧
+Pela frente	From the front	Por delante	正面から	来自前方
+Pesquisa falhou ({0}), tentando de novo...	Research failed ({0}), trying again...	La investigación falló ({0}), intentando de nuevo...	調査に失敗しました（{0}）。再試行しています...	查询失败（{0}），正在重试...
+Pesquisando: {0} ({1})...	Researching: {0} ({1})...	Investigando: {0} ({1})...	調査中: {0}（{1}）...	正在查询：{0}（{1}）...
+Pesquisar cada arma nova na web	Research each new weapon on the web	Investigar cada arma nueva en la web	新しい武器をウェブで調べる	在网上查询每把新武器
+Pistola	Pistol	Pistola	ピストル	手枪
+Plano feito por	Plan made by	Plan hecho por	計画の作成元	方案来源
+Plugin .asi/scripts: vai para a pasta do jogo, onde fica o executável.	.asi plugin/scripts: goes to the game folder, where the executable is.	Plugin .asi/scripts: va a la carpeta del juego, donde está el ejecutable.	.asi プラグイン／スクリプト: 実行ファイルのあるゲームフォルダーに入ります。	.asi 插件/脚本：放入可执行文件所在的游戏文件夹。
+Plugin solto: vai para BepInEx/plugins.	Loose plugin: goes to BepInEx/plugins.	Plugin suelto: va a BepInEx/plugins.	単体のプラグイン: BepInEx/plugins に入ります。	独立插件：放入 BepInEx/plugins。
+Precisa também	Also requires	También necesita	あわせて必要	还需要
+Procurando o DualSense	Looking for the DualSense	Buscando el DualSense	DualSense を探しています	正在查找 DualSense
+Procurando o controle	Looking for the controller	Buscando el mando	コントローラーを探しています	正在查找手柄
+Página do driver aberta no navegador	Driver page opened in the browser	Página del controlador abierta en el navegador	ブラウザーでドライバーのページを開きました	已在浏览器中打开驱动页面
+Receber os links "Mod Manager Download" do site	Receive the site's "Mod Manager Download" links	Recibir los enlaces "Mod Manager Download" del sitio	サイトの「Mod Manager Download」リンクを受け取る	接收网站的“Mod Manager Download”链接
+Recebido do site	Received from the site	Recibido del sitio	サイトから受信	从网站接收
+Receptor de mods (protocolo DSX) ouvindo na porta {0}	Mod receiver (DSX protocol) listening on port {0}	Receptor de mods (protocolo DSX) escuchando en el puerto {0}	MOD 受信（DSX プロトコル）: ポート {0} で待機中	模组接收器（DSX 协议）正在监听端口 {0}
+Receptor de mods do DSX	DSX mod receiver	Receptor de mods de DSX	DSX の MOD 受信	DSX 模组接收器
+Receptor de mods: iniciando	Mod receiver: starting	Receptor de mods: iniciando	MOD 受信: 起動中	模组接收器：正在启动
+Receptor de mods: porta {0} ocupada ({1}). Feche o DSX se estiver aberto.	Mod receiver: port {0} is busy ({1}). Close DSX if it's open.	Receptor de mods: puerto {0} ocupado ({1}). Cierra DSX si está abierto.	MOD 受信: ポート {0} は使用中です（{1}）。DSX が起動していれば閉じてください。	模组接收器：端口 {0} 已被占用（{1}）。如果 DSX 正在运行，请关闭它。
+Refazendo o plano para	Redoing the plan for	Rehaciendo el plan para	計画を作り直しています:	正在重新制定方案：
+Remover este mod? Os arquivos originais do jogo voltam para o lugar.	Remove this mod? The game's original files go back in place.	¿Quitar este mod? Los archivos originales del juego vuelven a su lugar.	この MOD を削除しますか？ ゲームの元のファイルが元に戻ります。	移除此模组？游戏的原始文件将恢复原位。
+Resistência	Resistance	Resistencia	抵抗	阻力
+Resistência muda com a arma equipada.	Resistance changes with the equipped weapon.	La resistencia cambia con el arma equipada.	装備中の武器で抵抗が変わります。	阻力随所装备的武器变化。
+Revólver	Revolver	Revólver	リボルバー	左轮手枪
+Rifle de precisão	Sniper rifle	Rifle de precisión	スナイパーライフル	狙击步枪
+Salvar para este jogo	Save for this game	Guardar para este juego	このゲーム用に保存	为此游戏保存
+Salvo para {0}	Saved for {0}	Guardado para {0}	{0} 用に保存しました	已为 {0} 保存
+Script para o iw7-mod: arma, cadência real, cada tiro e direção exata do dano. Precisa do iw7-mod instalado na pasta do jogo.	Script for iw7-mod: weapon, real fire rate, every shot and exact damage direction. Requires iw7-mod installed in the game folder.	Script para iw7-mod: arma, cadencia real, cada disparo y dirección exacta del daño. Necesita iw7-mod instalado en la carpeta del juego.	iw7-mod 用スクリプト: 武器、実際の連射速度、すべての射撃、正確なダメージ方向。ゲームフォルダーに iw7-mod が必要です。	iw7-mod 脚本：武器、真实射速、每次射击及精确的伤害方向。需要在游戏文件夹中安装 iw7-mod。
+Scripts GSC vão para iw7-mod/custom_scripts.	GSC scripts go to iw7-mod/custom_scripts.	Los scripts GSC van a iw7-mod/custom_scripts.	GSC スクリプトは iw7-mod/custom_scripts に入ります。	GSC 脚本放入 iw7-mod/custom_scripts。
+Seguindo o instalador FOMOD do mod, dentro da pasta Data.	Following the mod's FOMOD installer, inside the Data folder.	Siguiendo el instalador FOMOD del mod, dentro de la carpeta Data.	MOD の FOMOD インストーラーに従い、Data フォルダー内に。	按照模组的 FOMOD 安装程序，放入 Data 文件夹。
+Sem arma na mão	No weapon in hand	Sin arma en la mano	武器なし	手中无武器
+Sem chave, o app funciona só com mods e com a vibração do jogo.	Without a key, the app works only with mods and the game's vibration.	Sin clave, la app funciona solo con mods y con la vibración del juego.	キーがなくても、MOD とゲームの振動だけで動作します。	没有密钥时，应用仅依靠模组和游戏自身的振动工作。
+Sem chuva	No rain	Sin lluvia	雨なし	无雨
+Sem conexão com o Nexus ({0})	No connection to Nexus ({0})	Sin conexión con Nexus ({0})	Nexus に接続できません（{0}）	无法连接 Nexus（{0}）
+Setup do gatilho: {0}.	Trigger setup: {0}.	Configuración del gatillo: {0}.	トリガー設定: {0}。	扳机设置：{0}。
+Simulado	Simulated	Simulado	シミュレーション	模拟
+Solte aqui o arquivo do mod	Drop the mod file here	Suelta aquí el archivo del mod	MOD ファイルをここにドロップ	将模组文件拖放到这里
+Solte um mod primeiro	Drop a mod first	Suelta un mod primero	先に MOD をドロップしてください	请先拖入一个模组
+Sua chave do Nexus Mods	Your Nexus Mods key	Tu clave de Nexus Mods	あなたの Nexus Mods キー	你的 Nexus Mods 密钥
+Submetralhadora	SMG	Subfusil	サブマシンガン	冲锋枪
+Só funciona no Windows	Only works on Windows	Solo funciona en Windows	Windows でのみ動作します	仅支持 Windows
+Também instala: {0}.	Also installs: {0}.	También instala: {0}.	あわせてインストール: {0}。	同时安装：{0}。
+Tempo esgotado esperando o clique em 'Slow download'	Timed out waiting for the 'Slow download' click	Se agotó el tiempo esperando el clic en 'Slow download'	「Slow download」のクリック待ちがタイムアウトしました	等待点击“Slow download”超时
+Terra	Dirt	Tierra	土	泥土
+Terreno	Terrain	Terreno	地形	地形
+Tipo de jogo	Game type	Tipo de juego	ゲームの種類	游戏类型
+Tipo de mod	Mod type	Tipo de mod	MOD の種類	模组类型
+Tipo para salvar	Type to save	Tipo para guardar	保存する種類	要保存的类型
+Tiro	Shooter	Disparos	シューター	射击
+Trabalhando	Working	Trabajando	処理中	处理中
+Trocar	Change	Cambiar	変更	更改
+Um ajuste para cada forma da Service Weapon.	A setting for each form of the Service Weapon.	Un ajuste para cada forma de la Service Weapon.	サービスウェポンの各形態ごとの設定。	为 Service Weapon 的每种形态单独设置。
+Usado quando não há mod nem visão IA para este jogo.	Used when there's no mod or AI vision for this game.	Se usa cuando no hay mod ni visión IA para este juego.	このゲームに MOD も AI ビジョンもないときに使います。	当此游戏没有模组或 AI 视觉时使用。
+Veja as instruções abaixo e instale manualmente.	See the instructions below and install manually.	Mira las instrucciones abajo e instala manualmente.	下の説明を見て手動でインストールしてください。	请查看下方说明并手动安装。
+Ver página	View page	Ver página	ページを見る	查看页面
+Verificando a chave...	Checking the key...	Verificando la clave...	キーを確認しています...	正在验证密钥...
+Versão legítima do autor para RE Requiem.	The author's official version for RE Requiem.	Versión legítima del autor para RE Requiem.	作者による RE Requiem 用の正式版。	作者为 RE Requiem 发布的正版。
+Vibração	Vibration	Vibración	振動	振动
+Vibração pedida pelo jogo	Vibration requested by the game	Vibración pedida por el juego	ゲームが要求した振動	游戏请求的振动
+Vida	Health	Vida	体力	生命值
+Visão IA	AI vision	Visión IA	AI ビジョン	AI 视觉
+Visão IA com erro	AI vision error	Visión IA con error	AI ビジョンでエラー	AI 视觉出错
+Visão IA desligada	AI vision off	Visión IA desactivada	AI ビジョン オフ	AI 视觉已关闭
+Visão IA ligada	AI vision on	Visión IA activada	AI ビジョン オン	AI 视觉已开启
+Visão IA pausada (mod)	AI vision paused (mod)	Visión IA en pausa (mod)	AI ビジョン 一時停止（MOD）	AI 视觉已暂停（模组）
+Visão IA sem chave	AI vision without key	Visión IA sin clave	AI ビジョン キーなし	AI 视觉缺少密钥
+Visão IA: aguardando	AI vision: waiting	Visión IA: esperando	AI ビジョン: 待機中	AI 视觉：等待中
+Visão IA: desligada	AI vision: off	Visión IA: desactivada	AI ビジョン: オフ	AI 视觉：已关闭
+Visão IA: erro - {0}	AI vision: error - {0}	Visión IA: error - {0}	AI ビジョン: エラー - {0}	AI 视觉：错误 - {0}
+Visão IA: esperando um jogo em primeiro plano	AI vision: waiting for a game in the foreground	Visión IA: esperando un juego en primer plano	AI ビジョン: 前面にゲームが来るのを待っています	AI 视觉：等待游戏切换到前台
+Visão IA: ok ({0} s por leitura)	AI vision: ok ({0} s per reading)	Visión IA: ok ({0} s por lectura)	AI ビジョン: OK（1 回 {0} 秒）	AI 视觉：正常（每次读取 {0} 秒）
+Visão IA: pausada — este jogo está mandando dados exatos pelo mod	AI vision: paused — this game is sending exact data through the mod	Visión IA: en pausa: este juego está enviando datos exactos por el mod	AI ビジョン: 一時停止中 — このゲームは MOD から正確なデータを送っています	AI 视觉：已暂停——此游戏正通过模组发送精确数据
+Xbox virtual desligado	Virtual Xbox off	Xbox virtual desactivado	仮想 Xbox オフ	虚拟 Xbox 已关闭
+Xbox virtual sem driver	Virtual Xbox without driver	Xbox virtual sin controlador	仮想 Xbox ドライバーなし	虚拟 Xbox 缺少驱动
+Zebra	Curb	Piano	縁石	路肩
+a estrutura do mod	the mod's structure	la estructura del mod	MOD の構成	模组结构
+a página do Nexus	the Nexus page	la página de Nexus	Nexus のページ	Nexus 页面
+a pé	on foot	a pie	徒歩	步行
+a {0} Hz	at {0} Hz	a {0} Hz	{0} Hz	{0} Hz
+conhecimento da IA	AI knowledge	conocimiento de la IA	AI の知識	AI 知识
+e mais {0} arquivos.	and {0} more files.	y {0} archivos más.	ほか {0} ファイル。	以及另外 {0} 个文件。
+em cena	in a cutscene	en una escena	ムービー中	过场动画中
+erro de escrita {0}	write error {0}	error de escritura {0}	書き込みエラー {0}	写入错误 {0}
+erro de leitura {0}	read error {0}	error de lectura {0}	読み取りエラー {0}	读取错误 {0}
+erro no Xbox virtual: {0}	virtual Xbox error: {0}	error en el Xbox virtual: {0}	仮想 Xbox のエラー: {0}	虚拟 Xbox 错误：{0}
+escolhido por você	chosen by you	elegido por ti	あなたが選択	由你选择
+estrutura do mod	mod structure	estructura del mod	MOD の構成	模组结构
+estrutura do mod (há mais de um jogo compatível)	mod structure (more than one compatible game)	estructura del mod (hay más de un juego compatible)	MOD の構成（対応するゲームが複数あります）	模组结构（有多个兼容游戏）
+falha ao ler feature report	failed to read feature report	error al leer el feature report	feature report の読み取りに失敗しました	读取 feature report 失败
+grátis	free	gratis	無料	免费
+grátis: cada download pede um clique no site	free: each download needs a click on the site	gratis: cada descarga pide un clic en el sitio	無料: ダウンロードごとにサイトでクリックが必要	免费：每次下载都需要在网站上点击一次
+incluído no app	included in the app	incluido en la app	アプリに同梱	应用内置
+informada por você	set by you	indicada por ti	あなたが指定	由你指定
+instalador FOMOD do mod	the mod's FOMOD installer	instalador FOMOD del mod	MOD の FOMOD インストーラー	模组的 FOMOD 安装程序
+leia-me do mod	mod readme	léeme del mod	MOD の Readme	模组说明文件
+mod .pak de jogo Unreal	Unreal game .pak mod	mod .pak de juego Unreal	Unreal ゲームの .pak MOD	Unreal 游戏 .pak 模组
+mod de Cyberpunk 2077	Cyberpunk 2077 mod	mod de Cyberpunk 2077	Cyberpunk 2077 の MOD	Cyberpunk 2077 模组
+mod de Dying Light	Dying Light mod	mod de Dying Light	Dying Light の MOD	Dying Light 模组
+mod de Fallout 4	Fallout 4 mod	mod de Fallout 4	Fallout 4 の MOD	Fallout 4 模组
+mod de GTA V	GTA V mod	mod de GTA V	GTA V の MOD	GTA V 模组
+mod de Red Dead Redemption 2	Red Dead Redemption 2 mod	mod de Red Dead Redemption 2	Red Dead Redemption 2 の MOD	Red Dead Redemption 2 模组
+mod de Skyrim	Skyrim mod	mod de Skyrim	Skyrim の MOD	Skyrim 模组
+mod de Starfield	Starfield mod	mod de Starfield	Starfield の MOD	Starfield 模组
+mod de jogo da Bethesda	Bethesda game mod	mod de juego de Bethesda	Bethesda のゲームの MOD	Bethesda 游戏模组
+mod de jogo da Capcom (RE Engine)	Capcom game mod (RE Engine)	mod de juego de Capcom (RE Engine)	カプコンのゲームの MOD（RE Engine）	卡普空游戏模组（RE Engine）
+no menu	in a menu	en el menú	メニュー中	菜单中
+não consegui abrir o controle (erro {0})	couldn't open the controller (error {0})	no pude abrir el mando (error {0})	コントローラーを開けませんでした（エラー {0}）	无法打开手柄（错误 {0}）
+o leia-me	the readme	el léeme	Readme	说明文件
+padrão	default	predeterminado	既定	默认
+padrão do tipo	type default	predeterminado del tipo	種類の既定値	类型默认值
+palavra '{0}'	word '{0}'	palabra '{0}'	キーワード「{0}」	关键词“{0}”
+pesquisa na web	web research	investigación en la web	ウェブ検索	网络查询
+plugin BepInEx (jogo Unity)	BepInEx plugin (Unity game)	plugin BepInEx (juego Unity)	BepInEx プラグイン（Unity のゲーム）	BepInEx 插件（Unity 游戏）
+regras do app	app rules	reglas de la app	アプリのルール	应用规则
+resposta da IA sem JSON	AI response without JSON	respuesta de la IA sin JSON	AI の応答に JSON がありません	AI 响应中没有 JSON
+script do iw7-mod	iw7-mod script	script de iw7-mod	iw7-mod のスクリプト	iw7-mod 脚本
+sem dados	no data	sin datos	データなし	无数据
+vgamepad não instalado ({0})	vgamepad not installed ({0})	vgamepad no instalado ({0})	vgamepad がインストールされていません（{0}）	未安装 vgamepad（{0}）
+visão IA	AI vision	visión IA	AI ビジョン	AI 视觉
+{0} adicionado à lista	{0} added to the list	{0} agregado a la lista	{0} を一覧に追加しました	已将 {0} 添加到列表
+{0} armas com setup salvo.	{0} weapons with a saved setup.	{0} armas con configuración guardada.	設定を保存した武器 {0} 個。	已保存 {0} 把武器的设置。
+{0}: aguardando o mod ({1})	{0}: waiting for the mod ({1})	{0}: esperando el mod ({1})	{0}: MOD を待っています（{1}）	{0}：等待模组（{1}）
+{0}: recebendo dados do mod	{0}: receiving data from the mod	{0}: recibiendo datos del mod	{0}: MOD からデータを受信中	{0}：正在接收模组数据
+{1}, {2} arquivos, em {3}	{1}, {2} files, in {3}	{1}, {2} archivos, en {3}	{1}、{2} ファイル、{3}	{1}，{2} 个文件，位于 {3}
+{7} para copiar{8}	{7} to copy{8}	{7} para copiar{8}	コピー対象 {7}{8}	{7} 个待复制{8}
+Água	Water	Agua	水	水面
+Acao	Action	Acción	アクション	动作
+Tiro (FPS/TPS)	Shooter (FPS/TPS)	Disparos (FPS/TPS)	シューター（FPS/TPS）	射击（FPS/TPS）
+Corrida	Racing	Carreras	レース	竞速
+Ação / Aventura	Action / Adventure	Acción / Aventura	アクション／アドベンチャー	动作 / 冒险
+Gatilhos desligados	Triggers off	Gatillos desactivados	トリガー オフ	扳机已关闭
