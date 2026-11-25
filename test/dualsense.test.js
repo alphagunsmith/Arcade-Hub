@@ -36,9 +36,9 @@ function filhoFalso() {
     pular('auto-teste do DualSense Auto', 'sem Python com numpy/psutil');
   } else {
     const dados = tmp('ds-autoteste');
-    const r = spawnSync(py, ['-I', SCRIPT, '--teste'], { encoding: 'utf8', env: { ...ENV_PY, DUALSENSE_AUTO_DADOS: dados }, timeout: 180000 });
+    const r = spawnSync(py, ['-I', '-u', '-X', 'faulthandler', SCRIPT, '--teste'], { encoding: 'utf8', env: { ...ENV_PY, DUALSENSE_AUTO_DADOS: dados }, timeout: 180000 });
     await t('auto-teste do DualSense Auto (gatilhos, armas, terreno, mods DSX/CoD, Nexus, leitor de mods)', () => {
-      assert.ok((r.stdout || '').includes('AUTO-TESTE OK'), (r.stdout || '').slice(-800) + (r.stderr || '').slice(-1500));
+      assert.ok((r.stdout || '').includes('AUTO-TESTE OK'), (r.stdout || '').slice(-1500) + '\n[stderr] ' + (r.stderr || '').slice(-2500) + '\n[status] ' + r.status + ' ' + (r.signal || '') + ' ' + (r.error ? r.error.message : ''));
     });
     await t('o auto-teste não grava nada na pasta do programa', () => {
       const sobra = fs.readdirSync(path.join(ROOT, 'dualsense')).filter(f => /\.json$/.test(f) && f !== 'perfis.json' || /^(downloads|backup_mods|erro\.log|\.painel)/.test(f));
