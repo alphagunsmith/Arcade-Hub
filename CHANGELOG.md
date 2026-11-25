@@ -1,5 +1,13 @@
 # Novidades
 
+## 1.10.1
+
+- **Correção de tela preta ao abrir.** Em alguns PCs, a aceleração da placa de vídeo falha e a janela fica preta, sem nada para clicar. Isso acontece com driver de vídeo antigo, notebook com duas placas, máquina virtual ou área de trabalho remota.
+  - Agora o Arcade Hub percebe sozinho e abre de novo sem a aceleração.
+  - A janela também aparece mesmo se o Windows demorar para avisar que ela está pronta.
+  - Para religar a aceleração: Ajustes › Geral › **Usar a placa de vídeo**.
+  - Também dá para forçar pelo atalho, com `--sem-gpu` no fim do destino.
+
 ## 1.10.0
 
 - **DualSense Auto: mods novos para Titanfall 2, Doom e Black Ops II.** Nos três, o próprio jogo conta ao app a arma na mão, cada disparo, o pente, o dano e a vida, sem visão IA e sem custo. Cada arma tem a sua configuração.

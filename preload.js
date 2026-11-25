@@ -12,6 +12,9 @@ try { idiomaSistema = String(ipcRenderer.sendSync('idioma:sistema') || ''); } ca
 
 contextBridge.exposeInMainWorld('arcadeAPI', {
   idiomaSistema,      // idioma do Windows (para o modo "Automático")
+  pronto: () => ipcRenderer.send('app:pronto'),   // a primeira tela foi desenhada (vigia de tela preta)
+  semGpu: () => ipcRenderer.invoke('app:sem-gpu'),
+  usarGpu: v => ipcRenderer.invoke('app:usar-gpu', v),
   // estado
   getState: () => call('state:get'),
   scan: () => call('scan:run'),

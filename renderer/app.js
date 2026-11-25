@@ -2756,6 +2756,10 @@ function openSettings() {
   $('#opt-autoscan').checked = s.autoScan !== false;
   $('#opt-tray').checked = s.minimizarAoJogar !== false;
   $('#opt-tv').checked = !!s.abrirNoModoTV;
+  $('#opt-gpu').onchange = async e => {
+    const r = api.usarGpu ? await api.usarGpu(e.target.checked) : null;
+    if (r && r.ok) toast(e.target.checked ? 'Aceleração de vídeo ligada: vale quando o Arcade Hub abrir de novo' : 'Aceleração de vídeo desligada: vale quando o Arcade Hub abrir de novo', 'ok');
+  };
   $('#opt-fundo-animado').checked = s.fundoAnimado !== false;
   $('#opt-fundo-animado').onchange = async e => {
     const r = await api.saveSettings({ fundoAnimado: e.target.checked });
@@ -3915,6 +3919,8 @@ function conferirIdioma(s) {
 
 /* ---------- boot ---------- */
 (async function boot() {
+  // avisa o processo principal que a janela desenhou (o vigia de tela preta)
+  requestAnimationFrame(() => requestAnimationFrame(() => { try { if (window.arcadeAPI && window.arcadeAPI.pronto) window.arcadeAPI.pronto(); } catch { /* prévia */ } }));
   wire();
   ligarCasca();
   startGamepadLoop();
@@ -3934,6 +3940,18 @@ function conferirIdioma(s) {
   ui.groupBy = (ui.state.settings && ui.state.settings.groupBy) || 'none';
   ui.jogando = new Set((ui.state.sessoes || []).map(x => x.id));
   aplicarTamanhoCards(ui.state.settings && ui.state.settings.cardSize);
+  // abriu sem aceleração de vídeo (a tela tinha ficado preta): avisa uma vez e mostra a opção
+  if (window.arcadeAPI && window.arcadeAPI.semGpu) {
+    window.arcadeAPI.semGpu().then(r => {
+      const sem = !!(r && r.ok && r.data && r.data.sem);
+      const box = $('#opt-gpu');
+      if (box) box.checked = !sem;
+      if (sem && r.data.automatico && !localStorage.getItem('arcade-aviso-sem-gpu')) {
+        try { localStorage.setItem('arcade-aviso-sem-gpu', '1'); } catch { /* sem armazenamento */ }
+        toast('A tela tinha ficado preta: o Arcade Hub abriu sem a aceleração da placa de vídeo. Para religar: Ajustes › Geral', 'ok');
+      }
+    }).catch(() => {});
+  }
   // Modo Console (aberto pelo Windows) ou "abrir no Modo TV": vai direto para a TV
   const comoConsole = ui.state.modoConsole && ui.state.modoConsole.abertoPeloWindows;
   let voltarParaTV = false;

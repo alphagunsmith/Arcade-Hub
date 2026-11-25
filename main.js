@@ -24,6 +24,29 @@ app.on('second-instance', (_e, argv) => {
 
 if (process.platform === 'win32') app.setAppUserModelId('com.arcadehub.launcher');
 
+/* ---------------------------------------------------------------------------
+ * Tela preta: em alguns PCs (driver de vídeo antigo, placa híbrida, máquina
+ * virtual, área de trabalho remota) a aceleração de vídeo do Chromium falha e a
+ * janela fica preta, sem nada para clicar. Quando isso acontece (o processo da
+ * placa de vídeo cai, ou a interface não avisa que desenhou), o app reabre sozinho
+ * sem a aceleração e lembra disso. Também dá para forçar com --sem-gpu.
+ * ------------------------------------------------------------------------- */
+const fs = require('fs');
+const ARQ_SEM_GPU = path.join(app.getPath('userData'), 'sem-gpu.flag');
+const semGpu = process.argv.includes('--sem-gpu') || process.argv.includes('--disable-gpu') || fs.existsSync(ARQ_SEM_GPU);
+if (semGpu) app.disableHardwareAcceleration();
+function reabrirSemGpu(motivo) {
+  if (semGpu) return false;
+  try { fs.mkdirSync(path.dirname(ARQ_SEM_GPU), { recursive: true }); fs.writeFileSync(ARQ_SEM_GPU, `${new Date().toISOString()} ${motivo}\n`); } catch { /* sem gravar: tenta mesmo assim */ }
+  console.warn('[arcade-hub] reabrindo sem aceleração de vídeo:', motivo);
+  app.relaunch({ args: process.argv.slice(1).filter(a => a !== '--sem-gpu').concat('--sem-gpu') });
+  app.exit(0);
+  return true;
+}
+app.on('child-process-gone', (_e, d) => {
+  if (d && d.type === 'GPU' && d.reason !== 'clean-exit') reabrirSemGpu('processo de vídeo caiu (' + d.reason + ')');
+});
+
 let win = null;
 let hub = null;                 // o que o lib.register devolve (estado, sessões, varredura)
 const store = new lib.Store(app.getPath('userData'));
@@ -80,6 +103,29 @@ function createWindow() {
   trackBounds(win);
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
   win.once('ready-to-show', () => win.show());
+  // a janela aparece mesmo se o Chromium nunca disser que está pronto
+  const mostrarMesmoAssim = setTimeout(() => { if (win && !win.isDestroyed() && !win.isVisible()) win.show(); }, 8000);
+  // a interface avisa quando desenhou a primeira tela; sem o aviso, a tela está preta
+  let pronto = false;
+  let recarregou = false;
+  ipcMain.removeAllListeners('app:pronto');
+  ipcMain.on('app:pronto', () => { pronto = true; clearTimeout(mostrarMesmoAssim); });
+  const vigia = setInterval(() => {
+    if (!win || win.isDestroyed() || pronto) { clearInterval(vigia); return; }
+    clearInterval(vigia);
+    if (!reabrirSemGpu('a interface não desenhou em 25 s')) {
+      if (!recarregou) { recarregou = true; win.reload(); }
+    }
+  }, 25000);
+  // a página da interface caiu: recarrega uma vez; se cair de novo, reabre sem aceleração
+  let quedas = 0;
+  win.webContents.on('render-process-gone', (_e, d) => {
+    if (!d || d.reason === 'clean-exit') return;
+    quedas++;
+    console.warn('[arcade-hub] a interface caiu:', d.reason);
+    if (quedas >= 2 && reabrirSemGpu('a interface caiu duas vezes')) return;
+    if (!win.isDestroyed()) win.reload();
+  });
 
   // links externos abrem no navegador; nada de navegar fora do app
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -125,6 +171,16 @@ app.whenReady().then(() => {
   if (linkInicial) hub.abrirLinkOnline(linkInicial);
   ligarBandejaDuranteOJogo();
   registrarIpcDeAtualizacao();
+
+  // aceleração de vídeo (vigia de tela preta)
+  ipcMain.handle('app:sem-gpu', () => ({ ok: true, data: { sem: semGpu, automatico: fs.existsSync(ARQ_SEM_GPU) && !process.argv.includes('--disable-gpu') } }));
+  ipcMain.handle('app:usar-gpu', (_e, usar) => {
+    try {
+      if (usar) fs.rmSync(ARQ_SEM_GPU, { force: true });
+      else fs.writeFileSync(ARQ_SEM_GPU, `${new Date().toISOString()} desligado nos Ajustes\n`);
+      return { ok: true };
+    } catch (e) { return { ok: false, error: e.message }; }
+  });
 
   // atalhos de janela vindos do renderer
   ipcMain.handle('win:action', (e, action) => {
