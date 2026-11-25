@@ -53,7 +53,7 @@ function arquivos(dic) {
     out[path.join('dualsense', 'i18n', id + '.json')] = json + '\n';
   }
   // o painel do DualSense Auto usa a mesma camada de tradução
-  out[path.join('dualsense', 'i18n', 'runtime.js')] = fs.readFileSync(path.join(RAIZ, 'renderer', 'i18n.js'), 'utf8');
+  out[path.join('dualsense', 'i18n', 'runtime.js')] = fs.readFileSync(path.join(RAIZ, 'renderer', 'i18n.js'), 'utf8').replace(/\r\n/g, '\n');
   return out;
 }
 
