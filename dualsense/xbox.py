@@ -24,6 +24,20 @@ def _axis(v, invert=False):
     return int(clamp(a, -32768, 32767))
 
 
+ZONA_MORTA = 0.10     # analógico parado com um pouco de folga não mexe nada (nem setas no Windows)
+
+
+def _stick(x, y, zona=ZONA_MORTA):
+    """Zona morta radial: abaixo dela, centro exato; acima, reescala para não perder o curso."""
+    fx, fy = (x - 128) / 127.5, (y - 128) / 127.5
+    mag = (fx * fx + fy * fy) ** 0.5
+    if mag < zona:
+        return 128, 128
+    k = ((mag - zona) / (1 - zona)) / mag
+    return (max(0, min(255, int(round(128 + fx * k * 127.5)))),
+            max(0, min(255, int(round(128 + fy * k * 127.5)))))
+
+
 def to_xusb(st):
     """PadState do DualSense -> (botões, LT, RT, LX, LY, RX, RY) do Xbox."""
     b0, b1, b2 = st.b0, st.b1, st.b2
@@ -40,7 +54,9 @@ def to_xusb(st):
     if b1 & 0x80: w |= RTHUMB
     if b2 & 0x01: w |= GUIDE   # PS
     if b2 & 0x02: w |= BACK    # touchpad
-    return (w, st.l2, st.r2, _axis(st.lx), _axis(st.ly, True), _axis(st.rx), _axis(st.ry, True))
+    lx, ly = _stick(st.lx, st.ly)
+    rx, ry = _stick(st.rx, st.ry)
+    return (w, st.l2, st.r2, _axis(lx), _axis(ly, True), _axis(rx), _axis(ry, True))
 
 
 def vigem_installer():

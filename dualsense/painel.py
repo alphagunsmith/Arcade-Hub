@@ -86,9 +86,108 @@ def estado_ui(eng):
                     "perfil": eng.settings["perfil"]},
         "config": {"visao_ativa": bool(cfg.get("visao_ativa")), "pesquisar_web": bool(cfg.get("pesquisar_web")),
                    "emular_xbox": bool(cfg.get("emular_xbox")),
+                   "xbox_so_no_jogo": bool(cfg.get("xbox_so_no_jogo", True)),
                    "intervalo_visao_s": cfg.get("intervalo_visao_s", 4)},
     }
 
+
+
+# ---------- aba Armas: cada arma com a sua configuração
+EFEITOS_GATILHO = ("arma", "resistencia", "rampa", "vibracao", "nenhum")
+
+
+def _int(v, lo, hi, padrao):
+    try:
+        return max(lo, min(hi, int(round(float(v)))))
+    except (TypeError, ValueError):
+        return padrao
+
+
+def limpar_gatilho(g):
+    g = g if isinstance(g, dict) else {}
+    ef = g.get("efeito") if g.get("efeito") in EFEITOS_GATILHO else "nenhum"
+    d = {"efeito": ef, "inicio": _int(g.get("inicio"), 0, 9, 0), "fim": _int(g.get("fim"), 0, 9, 9),
+         "forca": _int(g.get("forca"), 0, 8, 0), "frequencia": _int(g.get("frequencia"), 0, 40, 0)}
+    if d["fim"] < d["inicio"]:
+        d["fim"] = d["inicio"]
+    if g.get("forca_fim") is not None:
+        d["forca_fim"] = _int(g.get("forca_fim"), 0, 8, d["forca"])
+    return d
+
+
+def limpar_perfil(antigo, novo):
+    """Mistura a edição do painel com o perfil salvo, só com campos e faixas válidos."""
+    from cerebro import TIPOS_ARMA
+    p = dict(antigo or {})
+    n = novo if isinstance(novo, dict) else {}
+    if n.get("tipo") in TIPOS_ARMA:
+        p["tipo"] = n["tipo"]
+    for k in ("r2", "l2"):
+        if k in n:
+            p[k] = limpar_gatilho(n[k])
+    if "automatica" in n:
+        p["automatica"] = bool(n["automatica"])
+    if "cadencia_rpm" in n:
+        p["cadencia_rpm"] = _int(n["cadencia_rpm"], 0, 2000, 0)
+    if "vibra_gatilho" in n:
+        p["vibra_gatilho"] = _int(n["vibra_gatilho"], 0, 8, 0)
+    if "coice" in n:
+        try:
+            p["coice"] = round(max(0.0, min(1.0, float(n["coice"]))), 2)
+        except (TypeError, ValueError):
+            pass
+    p["editado"] = True
+    return p
+
+
+def lista_armas(eng):
+    out = []
+    with eng.cerebro.lock:
+        itens = list(eng.cerebro.armas.items())
+    for k, p in itens:
+        if not isinstance(p, dict):
+            continue
+        jogo, _, arma = k.partition("|")
+        out.append({"chave": k, "jogo": p.get("jogo") or jogo, "arma": arma, "nome": p.get("nome") or arma,
+                    "tipo": p.get("tipo", "fuzil"), "resumo": p.get("resumo", ""), "fonte": p.get("fonte", ""),
+                    "editado": bool(p.get("editado")), "automatico": bool(p.get("dados_jogo")),
+                    "perfil": {c: p.get(c) for c in ("tipo", "r2", "l2", "automatica", "cadencia_rpm",
+                                                     "vibra_gatilho", "coice")}})
+    out.sort(key=lambda a: (a["jogo"], a["nome"].lower()))
+    return out
+
+
+def salvar_arma_painel(eng, chave, novo):
+    with eng.cerebro.lock:
+        antigo = eng.cerebro.armas.get(chave)
+    if not isinstance(antigo, dict):
+        return False
+    jogo, _, arma = chave.partition("|")
+    eng.cerebro.salvar_arma(jogo, arma, limpar_perfil(antigo, novo))
+    eng._arma_cache = (None, None)
+    return True
+
+
+def restaurar_arma(eng, chave):
+    """Volta a arma para a configuração automática (dados do jogo) ou tira do banco."""
+    import armas_iw7
+    from cerebro import save_json, ARMAS_FILE
+    with eng.cerebro.lock:
+        antigo = eng.cerebro.armas.get(chave)
+        if not isinstance(antigo, dict):
+            return False
+        dados = antigo.get("dados_jogo")
+        if isinstance(dados, list) and len(dados) == 4:
+            novo = armas_iw7.perfil(*dados)
+            if antigo.get("jogo"):
+                novo["jogo"] = antigo["jogo"]
+            eng.cerebro.armas[chave] = novo
+        else:
+            eng.cerebro.armas.pop(chave, None)
+            eng.cerebro.pendentes.discard(chave)
+        save_json(ARMAS_FILE, eng.cerebro.armas)
+    eng._arma_cache = (None, None)
+    return True
 
 def make_handler(eng, token, desligar):
     class H(BaseHTTPRequestHandler):
@@ -139,6 +238,11 @@ def make_handler(eng, token, desligar):
                     self.send_error(403)
                     return
                 self._json(eng.mods.estado())
+            elif path == "/api/armas":
+                if not self._ok_token():
+                    self.send_error(403)
+                    return
+                self._json({"armas": lista_armas(eng)})
             elif path == "/api/estado":
                 if not self._ok_token():
                     self.send_error(403)
@@ -221,7 +325,7 @@ def make_handler(eng, token, desligar):
                     eng.settings[k] = max(0.0, min(2.0, float(v)))
                 elif k == "perfil":
                     eng.settings["perfil"] = str(v)
-                elif k in ("visao_ativa", "pesquisar_web", "emular_xbox"):
+                elif k in ("visao_ativa", "pesquisar_web", "emular_xbox", "xbox_so_no_jogo"):
                     cfg[k] = bool(v)
                     eng.salvar_config()
                 elif k == "intervalo_visao_s":
@@ -231,6 +335,12 @@ def make_handler(eng, token, desligar):
                     self._json({"ok": False, "msg": "Ajuste desconhecido"}, 400)
                     return
                 self._json({"ok": True})
+            elif path == "/api/armas/salvar":
+                ok = salvar_arma_painel(eng, str(dados.get("chave", "")), dados.get("perfil"))
+                self._json({"ok": ok, "msg": "Arma salva" if ok else "Arma não encontrada"})
+            elif path == "/api/armas/restaurar":
+                ok = restaurar_arma(eng, str(dados.get("chave", "")))
+                self._json({"ok": ok, "msg": "Configuração automática restaurada" if ok else "Arma não encontrada"})
             elif path == "/api/chave":
                 cfg["api_key"] = str(dados.get("chave", "")).strip()
                 eng.salvar_config()

@@ -5,6 +5,7 @@
 //   <pasta do jogo>\dualsense\eventos.txt
 // e o app DualSense Auto transforma isso em gatilhos e vibração:
 //   arma na mão (nome, classe, cadência real, pente), cada disparo, recarga,
+//   balas no pente (pente vazio = gatilho leve, sem tranco),
 //   dano com a DIREÇÃO exata (frente / trás / esquerda / direita), vida e mira.
 //
 // IMPORTANTE: inicie o iw7-mod com o parâmetro  -allow_root_io
@@ -46,6 +47,7 @@ dsa_procura_jogador()
             p thread dsa_recarga();
             p thread dsa_granada();
             p thread dsa_morte();
+            p thread dsa_municao();
         }
         wait 0.5;
     }
@@ -179,5 +181,25 @@ dsa_morte()
     {
         self waittill("death");
         dsa_escreve("morte");
+    }
+}
+
+// balas no pente, só quando muda
+dsa_municao()
+{
+    self endon("disconnect");
+    ultimo = "";
+    for (;;)
+    {
+        w = self getcurrentweapon();
+        txt = "-1";
+        if (isdefined(w) && getweaponbasename(w) != "none")
+            txt = "" + self getweaponammoclip(w);
+        if (txt != ultimo)
+        {
+            ultimo = txt;
+            dsa_escreve("municao|" + txt);
+        }
+        wait 0.1;
     }
 }

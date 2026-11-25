@@ -1,5 +1,19 @@
 # Novidades
 
+## 1.7.0
+
+- **DualSense Auto: fim das teclas apertando sozinhas.** O controle de Xbox virtual agora só existe enquanto um jogo está na frente. Fora do jogo, o Steam e outros programas transformavam esse controle em setas, Enter e cliques do mouse. A opção fica em IA e Xbox › **Só enquanto um jogo estiver na frente** (ligada por padrão).
+  - **Zona morta nos analógicos:** um analógico com um pouco de folga não mexe mais nada sozinho.
+- **CoD: Infinite Warfare: cada arma com a sua configuração.**
+  - A configuração sai dos dados reais da arma, que o próprio jogo informa: cadência, pente e classe.
+  - O app também conhece o jeito de cada arma: energia ou balística, rajada (R-VN), ferrolho (KBS Longbow), peso e recuo. Exemplos: KBAR-32, Volk, Type-2, FHR-40, Erad, Atlas, Reaver, EBR-800.
+  - **Pente vazio:** o R2 fica solto e para de dar tranco.
+  - Para receber essa parte, instale de novo o mod do CoD pelo painel do DualSense Auto.
+- **Nova aba Armas no painel do DualSense Auto.** Ela lista todas as armas que o app já conhece, de qualquer jogo. Em cada uma, você ajusta:
+  - os gatilhos R2 e L2: efeito, força, onde começa e onde termina;
+  - os tiros por minuto, a vibração do disparo e o tranco.
+  - O que você salvar vale sempre para aquela arma. **Voltar ao automático** desfaz.
+
 ## 1.6.0
 
 - **Jogo online sem o Discord (P2P).** Na ficha de uma ROM, **Jogar online** abre a partida no RetroArch e cria um **código de convite**.

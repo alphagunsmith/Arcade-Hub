@@ -50,6 +50,7 @@ from xbox import XboxVirtual, to_xusb  # noqa: E402
 from cerebro import (Cerebro, load_config, save_config, template, extract_json,  # noqa: E402
                      png_encode)
 from fontes import FonteDSX, FonteArquivo, evento_iw7, perfil_iw7  # noqa: E402
+import armas_iw7  # noqa: E402
 from efeitos import (Terreno, Pulsos, Chuva, coracao, padrao_dano, padrao_coice,  # noqa: E402
                      spec_to_trig)
 
@@ -175,6 +176,7 @@ class Engine:
         self.game_exe = None
         self.game_title = ""
         self.fg_jogo = False
+        self.jogo_visto = 0.0
         self.perfil_auto = self.profiles["padrao"]
         self.motivo = ""
         self.status = "Iniciando..."
@@ -233,7 +235,20 @@ class Engine:
         elif ev == "arma" and len(a) >= 4:
             nome = None if a[0] in ("none", "") else a[0]
             tipo, rpm, auto = perfil_iw7(a[0], a[1], a[2], a[3])
-            e.update(arma=nome, tipo=tipo if nome else "nenhuma", rpm=rpm, automatica=auto, classe=a[1])
+            e.update(arma=nome, tipo=tipo if nome else "nenhuma", rpm=rpm, automatica=auto, classe=a[1], municao=-1)
+            if nome:   # cada arma com a sua configuração, salva no banco de armas
+                p = armas_iw7.perfil(a[0], a[1], a[2], a[3])
+                e["tipo"] = p["tipo"]
+                jogo = self.ext_fonte.jogo if self.ext_fonte else "Call of Duty: Infinite Warfare"
+                salvo = self.cerebro.armas.get(self.cerebro.chave(jogo, nome))
+                if armas_iw7.precisa_refazer(salvo):
+                    p["jogo"] = jogo
+                    self.cerebro.salvar_arma(jogo, nome, p)
+        elif ev == "municao" and a:
+            try:
+                e["municao"] = int(float(a[0]))
+            except ValueError:
+                e["municao"] = -1
         elif ev == "tiro":
             self.last_shot = now
             coice = float(self.info.get("coice", 0.5))
@@ -288,10 +303,22 @@ class Engine:
             self.fg_jogo = False
             return
         self.fg_jogo = True
+        self.jogo_visto = time.time()
         self.game_dir = pasta
         if exe != self.game_exe or title != self.game_title:
             self.game_exe, self.game_title = exe, title
             self.perfil_auto, self.motivo = classify(exe, title, self.profiles)
+
+    def precisa_xbox(self, now):
+        """O controle de Xbox virtual só existe enquanto um jogo está na frente.
+        No desktop, o Steam (configuração de área de trabalho) e alguns programas transformam
+        qualquer controle em setas, Enter e cliques: com o Xbox virtual sempre ligado, os botões
+        do DualSense viravam teclas apertando "sozinhas" no Windows."""
+        if not (self.cfg.get("emular_xbox") and self.dev.connected):
+            return False
+        if not self.cfg.get("xbox_so_no_jogo", True):
+            return True
+        return now - self.jogo_visto < 4.0      # tolerância: alt-tab rápido e telas de carregamento
 
     def salvar_jogo(self, perfil):
         if not self.game_exe:
@@ -363,7 +390,7 @@ class Engine:
         else:
             arma, tipo = None, TIPO_POR_GENERO.get(genero, "nenhuma")
         pa = self._perfil_arma(jogo, arma, tipo)
-        if ext is not None:   # dados exatos do jogo valem mais que pesquisa/padrão
+        if ext is not None and not pa.get("editado"):   # dados exatos do jogo valem mais que pesquisa/padrão
             pa = dict(pa)
             if ext.get("rpm"):
                 pa["cadencia_rpm"] = ext["rpm"]
@@ -421,6 +448,9 @@ class Engine:
             right = spec_to_trig(pa.get("r2"), G)
             vib = float(pa.get("vibra_gatilho", 0) or 0)
             desde_tiro = now - self.last_shot
+            if ext is not None and ext.get("municao") == 0:   # pente vazio: gatilho solto, sem tranco
+                right = spec_to_trig({"efeito": "resistencia", "inicio": 0, "forca": 1}, G)
+                vib = 0
             if pa.get("automatica") and r2 > 150 and desde_tiro < 0.25 and vib > 0:
                 hz = clamp(float(pa.get("cadencia_rpm", 600) or 600) / 60.0, 4, 40)
                 ini = int((pa.get("r2") or {}).get("inicio", 0) or 0)
@@ -472,12 +502,15 @@ class Engine:
         last_game = last_try = last_xbox = 0.0
         while not self.stop.is_set():
             now = time.time()
-            if self.cfg.get("emular_xbox") and self.dev.connected:
-                if not self.xbox.pad and now - last_xbox > 5:
+            if self.precisa_xbox(now):
+                if not self.xbox.pad and now - last_xbox > 2:
                     last_xbox = now
                     self.xbox.start()
             elif self.xbox.pad:
+                self.xbox.update(PadState())    # solta tudo antes de sumir (nada fica "apertado")
                 self.xbox.stop()
+                if self.cfg.get("emular_xbox") and self.dev.connected:
+                    self.xbox.status = 'esperando um jogo na frente'
             if not self.dev.connected:
                 self.status = "Controle não encontrado - conecte o DualSense (USB ou Bluetooth)"
                 if self.xbox.pad:
@@ -544,6 +577,10 @@ def self_test():
     w, lt, rt, lx, ly, rx, ry = to_xusb(st)
     assert w == (0x1000 | 0x0008 | 0x0200 | 0x0010), hex(w)
     assert lx == 32512 and ly == 32767 and rt == 250
+    from xbox import _stick
+    assert _stick(133, 122) == (128, 128) and _stick(128, 255) == (128, 255) and _stick(0, 128)[0] == 0
+    st.lx, st.ly = 131, 125                     # analógico com folga: Xbox recebe centro exato
+    assert to_xusb(st)[3] == 0 and to_xusb(st)[4] == -1
     bt_r = [0] * 78
     bt_r[0] = 0x31
     bt_r[6], bt_r[7], bt_r[9] = 33, 44, 0x80
@@ -692,6 +729,55 @@ def self_test():
     eng.last_shot = 0
     _, _, _, right, _ = eng.compute(t + 75.1, 0, 0)
     assert right[0] == 0x25, right   # escopeta: gatilho de arma duro
+    jogo_iw = "Call of Duty: Infinite Warfare"
+    pk = eng.cerebro.armas.get(eng.cerebro.chave(jogo_iw, "iw7_ar57"))
+    assert pk and pk["nome"] == "KBAR-32" and pk["cadencia_rpm"] == 800 and pk["gerador"] == armas_iw7.GERADOR, pk
+    with open(arq, "a") as f:
+        f.write("510|arma|iw7_rvn_mp|rifle|0.06|36\n520|arma|iw7_kbs_mp|sniper|1.1|5\n")
+    eng.ler_fontes_arquivo(t + 76)
+    rv = eng.cerebro.armas[eng.cerebro.chave(jogo_iw, "iw7_rvn_mp")]
+    kb = eng.cerebro.armas[eng.cerebro.chave(jogo_iw, "iw7_kbs_mp")]
+    assert rv["energia"] and rv["rajada"] == 2 and kb["ferrolho"] and kb["r2"]["efeito"] == "arma", (rv, kb)
+    assert kb["r2"]["inicio"] > pk["r2"]["inicio"] and kb["vibra_gatilho"] > rv["vibra_gatilho"]
+    # o que o usuário editou não é sobrescrito, nem pelos dados do jogo
+    ed = dict(kb, editado=True, automatica=True, cadencia_rpm=300)
+    eng.cerebro.salvar_arma(jogo_iw, "iw7_kbs_mp", ed)
+    with open(arq, "a") as f:
+        f.write("530|arma|none|none|0|0\n540|arma|iw7_kbs_mp|sniper|1.1|5\n")
+    eng.ler_fontes_arquivo(t + 77)
+    assert eng.cerebro.armas[eng.cerebro.chave(jogo_iw, "iw7_kbs_mp")]["cadencia_rpm"] == 300
+    assert eng._perfil_arma(jogo_iw, "iw7_kbs_mp", "sniper")["automatica"] is True
+    # pente vazio: gatilho leve e sem tranco
+    with open(arq, "a") as f:
+        f.write("550|municao|0\n560|tiro\n")
+    eng.ler_fontes_arquivo(t + 78)
+    _, _, _, right, _ = eng.compute(t + 78.01, 0, 0)
+    assert right[0] == 0x21 and eng.ext.get("municao") == 0, right
+    assert armas_iw7.identificar("alt_iw7_fmg_mp+akimbo")[0] == "Type-2" and armas_iw7.identificar("iw7_zzz") is None
+    # teclado "apertando sozinho": o Xbox virtual só existe com um jogo na frente
+    dev_real = eng.dev
+    eng.dev = type("D", (), {"connected": True})()
+    eng.cfg["emular_xbox"], eng.cfg["xbox_so_no_jogo"] = True, True
+    eng.jogo_visto = 100.0
+    assert eng.precisa_xbox(102.0) and not eng.precisa_xbox(105.0)
+    eng.cfg["xbox_so_no_jogo"] = False
+    assert eng.precisa_xbox(500.0)
+    eng.cfg["emular_xbox"] = False
+    assert not eng.precisa_xbox(100.5)
+    eng.dev = dev_real
+    # aba Armas do painel: editar, validar faixas e voltar ao automático
+    import painel as _painel
+    ch = eng.cerebro.chave(jogo_iw, "iw7_ar57")
+    assert any(a["chave"] == ch and a["nome"] == "KBAR-32" for a in _painel.lista_armas(eng))
+    assert _painel.salvar_arma_painel(eng, ch, {"cadencia_rpm": 99999, "r2": {"efeito": "x", "forca": 20, "inicio": 7, "fim": 2},
+                                                "automatica": False, "tipo": "inventado"})
+    sv = eng.cerebro.armas[ch]
+    assert sv["editado"] and sv["cadencia_rpm"] == 2000 and sv["r2"] == {"efeito": "nenhum", "inicio": 7, "fim": 7, "forca": 8, "frequencia": 0}
+    assert sv["tipo"] == "fuzil" and sv["automatica"] is False
+    assert _painel.restaurar_arma(eng, ch) and not eng.cerebro.armas[ch].get("editado")
+    assert eng.cerebro.armas[ch]["cadencia_rpm"] == 800
+    assert not _painel.salvar_arma_painel(eng, "nada|nada", {})
+    print("CoD IW: cada arma com a sua configuração (KBAR-32, R-VN, KBS, editada, pente vazio): ok")
     print("mod do CoD Infinite Warfare (arma, cadência, dano nas costas): ok")
     teste_mods()
     teste_leitor()
