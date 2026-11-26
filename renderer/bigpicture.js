@@ -1198,6 +1198,7 @@ const ModoTV = (() => {
   function lerControle() {
     rafPad = requestAnimationFrame(lerControle);
     if (!ativo || document.hidden || !document.hasFocus() || document.querySelector('.intro')) return;
+    if (typeof controleLiberado === 'function' && !controleLiberado()) return;   // o controle é do jogo aberto
     let gp = null;
     try { gp = [...(navigator.getGamepads ? navigator.getGamepads() : [])].find(p => p && p.connected); } catch { /* noop */ }
     if (!gp) return;

@@ -1,5 +1,12 @@
 # Novidades
 
+## 1.11.1
+
+- **O X do controle não reabre mais o jogo no meio da partida.**
+  - Muitos jogos abrem sem tirar o foco do Arcade Hub. Como no launcher o X serve para abrir o jogo, cada aperto mandava a loja abrir o jogo de novo, e a Steam e o Discord mostravam os overlays deles.
+  - Agora, depois de abrir um jogo, o Arcade Hub só volta a ouvir o controle quando você voltar para ele (Alt+Tab ou clique) ou quando o jogo fechar.
+  - O app também não abre de novo um jogo que já está aberto.
+
 ## 1.11.0
 
 - **Desinstalar jogos pelo app** (botão direito no jogo › Desinstalar do PC):

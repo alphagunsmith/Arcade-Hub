@@ -1052,13 +1052,16 @@ function cliqueComShift(game, ev) {
 }
 
 async function launch(game) {
+  if (ui.jogando && ui.jogando.has(game.id)) { toast(`${game.title} já está aberto`, 'ok'); return; }
   if (game.kind === 'rom' && !hasEmulator(game)) {
     openDetail(game);
     toast(`Configure o emulador de ${game.platform} em Ajustes › Emuladores`, 'err');
     return;
   }
+  ui.lancadoEm = Date.now();
   const r = await api.launch(game.id);
   if (!r.ok) {
+    ui.lancadoEm = 0;
     toast(r.error || 'Não consegui abrir esse jogo', 'err');
     return;
   }
@@ -3566,11 +3569,25 @@ function jogoFocado() {
   return (ui.state && ui.state.games.find(g => g.id === id)) || null;
 }
 
+/* O controle é do jogo. Muitos jogos abrem sem tirar o foco do Arcade Hub, e aí o X
+ * (que no launcher abre o jogo) reabria o jogo pela loja a cada aperto — e a Steam e o
+ * Discord mostravam o overlay. Depois de abrir um jogo, o launcher só volta a ouvir o
+ * controle quando a janela dele ganhar foco de novo (Alt+Tab, clique) ou o jogo fechar. */
+ui.lancadoEm = 0;
+ui.focoEm = Date.now();
+window.addEventListener('focus', () => { ui.focoEm = Date.now(); });
+function controleLiberado() {
+  if (!document.hasFocus() || document.hidden) return false;
+  const jogando = !!(ui.jogando && ui.jogando.size);
+  if ((jogando || Date.now() - ui.lancadoEm < 60000) && ui.focoEm <= ui.lancadoEm) return false;
+  return true;
+}
+
 function pollGamepad() {
   if (!navigator.getGamepads) return;
   if (typeof ModoTV !== 'undefined' && ModoTV.ativo) return;   // o Modo TV lê o controle sozinho
   // com um jogo aberto por cima, o controle é do jogo: o launcher não reage
-  if (!document.hasFocus() || document.hidden) return;
+  if (!controleLiberado()) return;
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   const gp = [...pads].find(p => p && p.connected);
   if (!gp) return;
@@ -4029,6 +4046,7 @@ function conferirIdioma(s) {
   if (api.onSessionEnd) {
     api.onSessionEnd(({ id, title, session, playtime }) => {
       ui.jogando.delete(id);
+      if (!ui.jogando.size) ui.lancadoEm = 0;       // o jogo fechou: o controle volta para o launcher
       const g = ui.state.games.find(x => x.id === id);
       if (g && playtime) g.playtime = playtime;
       if (g && session) {

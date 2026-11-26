@@ -1646,7 +1646,7 @@
 "{0} jogos na biblioteca":"ライブラリに {0} 本",
 "{0} jogos novos: {1}{2}":"新しいゲーム {0} 本: {1}{2}",
 "{0} jogos · saíram {1} que não estão mais no PC ({2}{3})":"{0} 本 · PC にない {1} 本を外しました（{2}{3}）",
-"{0} já está aberto":"{0} はすでに開いています",
+"{0} já está aberto":"{0} はすでに起動しています",
 "{0} pediu para entrar (pedidos estão desligados em Ajustes › Discord)":"{0} が参加を希望しています（リクエストは設定 › Discord でオフになっています）",
 "{0} pts · {1}/{2} conquistas":"{0} pt · 実績 {1}/{2}",
 "{0} saiu da biblioteca":"{0} がライブラリから外れました",

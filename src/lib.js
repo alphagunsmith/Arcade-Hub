@@ -2979,6 +2979,8 @@ function register(ipcMain, deps) {
     try {
       const game = store.games.find(g => g.id === id);
       if (!game) throw new Error('Jogo não encontrado');
+      // já está aberto: não abre de novo (um botão apertado sem querer reabria o jogo pela loja)
+      if (sessoesAtivas.has(id) && !o.online && !o.conectar) throw new Error(`${game.title} já está aberto`);
       const dsc = store.settings.discord || {};
       const nick = (perfisDe(store.settings).find(p => p.id === perfilAtivoDe(store.settings)) || {}).nome;
       const on = store.settings.online || {};
