@@ -1,0 +1,55 @@
+Botões	Buttons	Botones	ボタン	按键
+Teclas apertando sozinhas e overlays abrindo	Keys pressing by themselves and overlays opening	Teclas pulsándose solas y overlays abriéndose	キーが勝手に押される・オーバーレイが開く	按键自己按下和叠加层弹出
+A Steam também lê o DualSense direto e, fora dos jogos dela, transforma os botões em teclas, Enter, cliques e atalhos (o overlay da Steam e o do Discord). A solução é esconder o DualSense dos outros programas: aí eles só veem o controle de Xbox do DualSense Auto.	Steam also reads the DualSense directly and, outside its own games, turns the buttons into keys, Enter, clicks and shortcuts (the Steam and Discord overlays). The fix is to hide the DualSense from other programs: then they only see DualSense Auto's Xbox controller.	Steam también lee el DualSense directamente y, fuera de sus juegos, convierte los botones en teclas, Enter, clics y atajos (el overlay de Steam y el de Discord). La solución es ocultar el DualSense de los otros programas: así solo ven el mando de Xbox de DualSense Auto.	Steam も DualSense を直接読み取り、Steam 以外のゲームではボタンをキー、Enter、クリック、ショートカット（Steam や Discord のオーバーレイ）に変えてしまいます。他のプログラムから DualSense を隠すと、DualSense Auto の Xbox コントローラーだけが見えるようになります。	Steam 也会直接读取 DualSense，并在它自己的游戏之外把按键变成键盘按键、回车、点击和快捷键（Steam 和 Discord 的叠加层）。解决办法是对其他程序隐藏 DualSense：这样它们只会看到 DualSense Auto 的 Xbox 手柄。
+Esconder o DualSense dos outros programas (HidHide)	Hide the DualSense from other programs (HidHide)	Ocultar el DualSense de los otros programas (HidHide)	他のプログラムから DualSense を隠す（HidHide）	对其他程序隐藏 DualSense（HidHide）
+Baixar o HidHide	Download HidHide	Descargar HidHide	HidHide をダウンロード	下载 HidHide
+Instale, reinicie o PC e volte aqui.	Install it, restart the PC and come back here.	Instálalo, reinicia el PC y vuelve aquí.	インストールして PC を再起動し、ここに戻ってください。	安装后重启电脑，再回到这里。
+Ao fechar o DualSense Auto, o DualSense volta a aparecer para todos. Jogos com suporte próprio ao DualSense veem um controle de Xbox enquanto isto estiver ligado.	When DualSense Auto closes, the DualSense shows up for everyone again. Games with their own DualSense support see an Xbox controller while this is on.	Al cerrar DualSense Auto, el DualSense vuelve a aparecer para todos. Los juegos con soporte propio del DualSense ven un mando de Xbox mientras esto esté activado.	DualSense Auto を閉じると、DualSense はまたすべてのプログラムから見えるようになります。オンの間、DualSense に対応したゲームには Xbox コントローラーとして見えます。	关闭 DualSense Auto 后，DualSense 会重新对所有程序可见。开启期间，原生支持 DualSense 的游戏会看到一个 Xbox 手柄。
+Aperte um botão no controle para ver o que o app manda para o jogo.	Press a button on the controller to see what the app sends to the game.	Pulsa un botón del mando para ver qué envía la app al juego.	コントローラーのボタンを押すと、アプリがゲームに送る内容が表示されます。	按下手柄上的按键，查看应用发送给游戏的内容。
+Trocar os botões	Remap the buttons	Cambiar los botones	ボタンの割り当てを変更	重新映射按键
+Valer para	Apply to	Aplicar a	適用先	应用于
+Só neste jogo	Only this game	Solo en este juego	このゲームだけ	仅此游戏
+Vira no jogo (Xbox)	Becomes in game (Xbox)	Se convierte en el juego (Xbox)	ゲームでの割り当て（Xbox）	游戏中变为（Xbox）
+Trocar o analógico esquerdo pelo direito	Swap the left stick with the right	Intercambiar el analógico izquierdo por el derecho	左スティックと右スティックを入れ替える	交换左右摇杆
+Inverter o eixo vertical do analógico esquerdo	Invert the left stick's vertical axis	Invertir el eje vertical del analógico izquierdo	左スティックの上下を反転	反转左摇杆垂直轴
+Inverter o eixo vertical do analógico direito	Invert the right stick's vertical axis	Invertir el eje vertical del analógico derecho	右スティックの上下を反転	反转右摇杆垂直轴
+Salvar botões	Save buttons	Guardar botones	ボタンを保存	保存按键
+Voltar ao padrão	Back to default	Volver al predeterminado	初期設定に戻す	恢复默认
+Controle desconectado.	Controller disconnected.	Mando desconectado.	コントローラーが接続されていません。	手柄已断开。
+O controle de Xbox virtual está desligado agora (ele liga com um jogo na frente).	The virtual Xbox controller is off right now (it turns on with a game in front).	El mando de Xbox virtual está apagado ahora (se enciende con un juego al frente).	仮想 Xbox コントローラーは今オフです（ゲームが前面にあるとオンになります）。	虚拟 Xbox 手柄目前已关闭（游戏位于前台时会开启）。
+O controle de Xbox virtual está desligado agora (ele liga com um jogo na frente). Você está apertando: <b>{0}</b>.	The virtual Xbox controller is off right now (it turns on with a game in front). You're pressing: <b>{0}</b>.	El mando de Xbox virtual está apagado ahora (se enciende con un juego al frente). Estás pulsando: <b>{0}</b>.	仮想 Xbox コントローラーは今オフです（ゲームが前面にあるとオンになります）。押しているボタン：<b>{0}</b>。	虚拟 Xbox 手柄目前已关闭（游戏位于前台时会开启）。你正在按：<b>{0}</b>。
+Você aperta <b>{0}</b> → o jogo recebe <b>{1}</b>	You press <b>{0}</b> → the game gets <b>{1}</b>	Pulsas <b>{0}</b> → el juego recibe <b>{1}</b>	押したボタン <b>{0}</b> → ゲームが受け取る <b>{1}</b>	你按下 <b>{0}</b> → 游戏收到 <b>{1}</b>
+✕ Cruz	✕ Cross	✕ Cruz	✕ バツ	✕ 叉
+○ Círculo	○ Circle	○ Círculo	○ マル	○ 圆圈
+□ Quadrado	□ Square	□ Cuadrado	□ シカク	□ 方块
+△ Triângulo	△ Triangle	△ Triángulo	△ サンカク	△ 三角
+L2 (gatilho)	L2 (trigger)	L2 (gatillo)	L2（トリガー）	L2（扳机）
+R2 (gatilho)	R2 (trigger)	R2 (gatillo)	R2（トリガー）	R2（扳机）
+L3 (analógico esquerdo)	L3 (left stick)	L3 (analógico izquierdo)	L3（左スティック）	L3（左摇杆）
+R3 (analógico direito)	R3 (right stick)	R3 (analógico derecho)	R3（右スティック）	R3（右摇杆）
+Touchpad (clique)	Touchpad (click)	Touchpad (clic)	タッチパッド（押し込み）	触摸板（按下）
+Botão de microfone	Mic button	Botón de micrófono	マイクボタン	麦克风按钮
+Direcional ↑	D-pad ↑	Cruceta ↑	方向キー ↑	方向键 ↑
+Direcional ↓	D-pad ↓	Cruceta ↓	方向キー ↓	方向键 ↓
+Direcional ←	D-pad ←	Cruceta ←	方向キー ←	方向键 ←
+Direcional →	D-pad →	Cruceta →	方向キー →	方向键 →
+LT (gatilho)	LT (trigger)	LT (gatillo)	LT（トリガー）	LT（扳机）
+RT (gatilho)	RT (trigger)	RT (gatillo)	RT（トリガー）	RT（扳机）
+LS (clique do analógico esquerdo)	LS (left stick click)	LS (clic del analógico izquierdo)	LS（左スティック押し込み）	LS（左摇杆按下）
+RS (clique do analógico direito)	RS (right stick click)	RS (clic del analógico derecho)	RS（右スティック押し込み）	RS（右摇杆按下）
+Guide (abre overlays)	Guide (opens overlays)	Guide (abre overlays)	ガイド（オーバーレイを開く）	指南键（打开叠加层）
+Nada	Nothing	Nada	なし	无
+HidHide não instalado	HidHide not installed	HidHide no instalado	HidHide がインストールされていません	未安装 HidHide
+DualSense escondido de outros programas ({0} controle(s))	DualSense hidden from other programs ({0} controller(s))	DualSense oculto para otros programas ({0} mando(s))	DualSense を他のプログラムから隠しました（{0} 台）	已对其他程序隐藏 DualSense（{0} 个手柄）
+Esconderijo ligado (nenhum DualSense conectado agora)	Hiding on (no DualSense connected right now)	Ocultación activada (ningún DualSense conectado ahora)	隠す設定オン（今は DualSense が接続されていません）	隐藏已开启（目前没有连接 DualSense）
+o HidHide recusou	HidHide refused	HidHide lo rechazó	HidHide が拒否しました	HidHide 拒绝了
+DualSense visível para todos os programas	DualSense visible to all programs	DualSense visible para todos los programas	DualSense はすべてのプログラムから見えます	DualSense 对所有程序可见
+HidHide: {0}	HidHide: {0}	HidHide: {0}	HidHide：{0}	HidHide：{0}
+O HidHide não está instalado neste PC.	HidHide isn't installed on this PC.	HidHide no está instalado en este PC.	この PC に HidHide がインストールされていません。	这台电脑没有安装 HidHide。
+Também está aberto: {0}. Esse programa também transforma o controle em teclas ou em outro controle; feche-o enquanto usa o DualSense Auto.	Also open: {0}. That program also turns the controller into keys or another controller; close it while using DualSense Auto.	También está abierto: {0}. Ese programa también convierte el mando en teclas o en otro mando; ciérralo mientras usas DualSense Auto.	同時に起動中：{0}。このプログラムもコントローラーをキーや別のコントローラーに変えます。DualSense Auto を使う間は閉じてください。	同时打开的还有：{0}。该程序也会把手柄变成按键或其他手柄；使用 DualSense Auto 时请关闭它。
+Jogo na frente: {0}	Game in front: {0}	Juego al frente: {0}	前面のゲーム：{0}	前台游戏：{0}
+Jogo na frente: {0} (tem botões só dele)	Game in front: {0} (has its own buttons)	Juego al frente: {0} (tiene botones propios)	前面のゲーム：{0}（専用のボタン設定あり）	前台游戏：{0}（有专属按键设置）
+Abra um jogo para trocar os botões só nele.	Open a game to remap buttons just for it.	Abre un juego para cambiar los botones solo en él.	ゲームを開くと、そのゲームだけのボタン設定ができます。	打开一个游戏即可只为它重新映射按键。
+Botões salvos	Buttons saved	Botones guardados	ボタンを保存しました	按键已保存
+Abra um jogo para salvar só para ele	Open a game to save just for it	Abre un juego para guardar solo para él	そのゲーム用に保存するにはゲームを開いてください	请先打开游戏才能只为它保存
+Botões no padrão	Buttons back to default	Botones en el predeterminado	ボタンを初期設定に戻しました	按键已恢复默认

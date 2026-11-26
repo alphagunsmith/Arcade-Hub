@@ -268,6 +268,19 @@
   .armas-editor legend { font-weight: 600; padding: 0 6px; }
   .armas-editor .duas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
   .armas-editor .duas label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--apagado); }
+  .botoes-grade { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(320px, 1.2fr); gap: 24px; align-items: start; }
+  @media (max-width: 820px) { .botoes-grade { grid-template-columns: 1fr; } }
+  .mapa { width: 100%; border-collapse: collapse; }
+  .mapa th { text-align: left; font-size: 12px; color: var(--apagado); font-weight: 600; padding: 4px 6px; }
+  .mapa td { padding: 3px 6px; border-top: 1px solid var(--linha); }
+  .mapa td:first-child { white-space: nowrap; }
+  .mapa tr.apertado td:first-child { color: rgb(var(--luz)); font-weight: 700; }
+  .mapa tr.trocado td:last-child select { border-color: rgb(var(--luz) / .7); }
+  .mapa select { width: 100%; }
+  .ao-vivo { margin-top: 8px; padding: 10px 12px; border-radius: 10px; border: 1px dashed var(--linha); font-size: 13px; min-height: 40px; }
+  .ao-vivo b { color: rgb(var(--luz)); }
+  a.botao { color: inherit; text-decoration: none; display: inline-flex; align-items: center; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>
 <script src="/i18n.js"></script>
 </head>
@@ -359,6 +372,7 @@
 <nav class="abas" role="tablist" aria-label="Configurações">
   <button role="tab" aria-selected="true" aria-controls="aba-ajustes" id="tab-ajustes">Ajustes</button>
   <button role="tab" aria-selected="false" aria-controls="aba-ia" id="tab-ia">IA e Xbox</button>
+  <button role="tab" aria-selected="false" aria-controls="aba-botoes" id="tab-botoes">Botões</button>
   <button role="tab" aria-selected="false" aria-controls="aba-armas" id="tab-armas">Armas</button>
   <button role="tab" aria-selected="false" aria-controls="aba-baixar" id="tab-baixar">Baixar mods</button>
   <button role="tab" aria-selected="false" aria-controls="aba-leitor" id="tab-leitor">Instalar mod</button>
@@ -425,17 +439,46 @@
     <label class="chave"><input type="checkbox" id="emular_xbox"><span class="trilho-chave"></span>Emular controle de Xbox</label>
     <label class="chave"><input type="checkbox" id="xbox_so_no_jogo"><span class="trilho-chave"></span>Só enquanto um jogo estiver na frente</label>
     <small>Evita teclas apertando sozinhas no Windows: fora do jogo, o Steam e outros programas transformam o controle em setas, Enter e cliques.</small>
-    <label for="botao_ps">Botão PS</label>
-    <select id="botao_ps">
-      <option value="segurar">Segurar 0,8 s para abrir o overlay (recomendado)</option>
-      <option value="guide">Abre o overlay na hora (Guide do Xbox)</option>
-      <option value="nada">Não faz nada</option>
-    </select>
-    <small>Um toque no PS abria o overlay da Steam, a Xbox Game Bar e o do Discord no meio do jogo.</small>
     <small id="xbox-estado"></small>
     <div class="linha-campo"><button class="botao" id="b-driver">Instalar driver do Xbox</button></div>
-    <p class="aviso">Se a Steam ainda abrir o overlay ou apertar teclas sozinha: ela também está lendo o DualSense direto. Na Steam, vá em Configurações › Controle e desligue o suporte a controle PlayStation, ou esconda o DualSense com o HidHide (abaixo).</p>
     <p class="aviso">Para o jogo não ver dois controles, esconda o DualSense com o HidHide e libere nele o DualSenseAuto.exe (na pasta do Arcade Hub, em resources\dualsense). Na Steam, desative o Steam Input do jogo.</p>
+  </div>
+</section>
+
+<section class="painel" id="aba-botoes" role="tabpanel" aria-labelledby="tab-botoes">
+  <div class="botoes-grade">
+    <div class="campo">
+      <div class="titulo">Teclas apertando sozinhas e overlays abrindo</div>
+      <small>A Steam também lê o DualSense direto e, fora dos jogos dela, transforma os botões em teclas, Enter, cliques e atalhos (o overlay da Steam e o do Discord). A solução é esconder o DualSense dos outros programas: aí eles só veem o controle de Xbox do DualSense Auto.</small>
+      <label class="chave"><input type="checkbox" id="esconder_dualsense"><span class="trilho-chave"></span>Esconder o DualSense dos outros programas (HidHide)</label>
+      <small id="hh-estado"></small>
+      <div class="linha-campo" id="hh-instalar" hidden><a class="botao" href="https://github.com/nefarius/HidHide/releases/latest" target="_blank" rel="noopener">Baixar o HidHide</a><small>Instale, reinicie o PC e volte aqui.</small></div>
+      <small>Ao fechar o DualSense Auto, o DualSense volta a aparecer para todos. Jogos com suporte próprio ao DualSense veem um controle de Xbox enquanto isto estiver ligado.</small>
+      <p class="aviso" id="conflitos" hidden></p>
+      <label for="botao_ps">Botão PS</label>
+      <select id="botao_ps">
+        <option value="segurar">Segurar 0,8 s para abrir o overlay (recomendado)</option>
+        <option value="guide">Abre o overlay na hora (Guide do Xbox)</option>
+        <option value="nada">Não faz nada</option>
+      </select>
+      <div class="ao-vivo" id="ao-vivo">Aperte um botão no controle para ver o que o app manda para o jogo.</div>
+    </div>
+    <div class="campo">
+      <div class="titulo">Trocar os botões</div>
+      <div class="linha-campo">
+        <label for="mapa-escopo" class="sr">Valer para</label>
+        <select id="mapa-escopo"><option value="todos">Todos os jogos</option><option value="jogo">Só neste jogo</option></select>
+        <small id="mapa-jogo"></small>
+      </div>
+      <table class="mapa"><thead><tr><th>DualSense</th><th>Vira no jogo (Xbox)</th></tr></thead><tbody id="mapa-linhas"></tbody></table>
+      <label class="chave"><input type="checkbox" id="op-trocar_analogicos"><span class="trilho-chave"></span>Trocar o analógico esquerdo pelo direito</label>
+      <label class="chave"><input type="checkbox" id="op-inverter_y_esq"><span class="trilho-chave"></span>Inverter o eixo vertical do analógico esquerdo</label>
+      <label class="chave"><input type="checkbox" id="op-inverter_y_dir"><span class="trilho-chave"></span>Inverter o eixo vertical do analógico direito</label>
+      <div class="linha-campo">
+        <button class="botao principal" id="b-mapa-salvar">Salvar botões</button>
+        <button class="botao" id="b-mapa-padrao">Voltar ao padrão</button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -663,7 +706,6 @@ function render(s) {
     $("rumble").value = s.ajustes.rumble; $("gatilhos").value = s.ajustes.gatilhos;
     $("perfil").value = s.ajustes.perfil;
     for (const k of ["visao_ativa", "pesquisar_web", "emular_xbox", "xbox_so_no_jogo"]) $(k).checked = cf[k];
-    if (document.activeElement !== $("botao_ps")) $("botao_ps").value = cf.botao_ps || "segurar";
     $("intervalo_visao_s").value = cf.intervalo_visao_s;
     primeiro = false;
   }
@@ -711,7 +753,6 @@ $("rumble").addEventListener("input", e => ajuste("rumble", +e.target.value));
 $("gatilhos").addEventListener("input", e => ajuste("gatilhos", +e.target.value));
 $("perfil").addEventListener("change", e => ajuste("perfil", e.target.value));
 for (const k of ["visao_ativa", "pesquisar_web", "emular_xbox", "xbox_so_no_jogo"]) $(k).addEventListener("change", e => ajuste(k, e.target.checked));
-$("botao_ps").addEventListener("change", e => ajuste("botao_ps", e.target.value));
 $("intervalo_visao_s").addEventListener("change", e => ajuste("intervalo_visao_s", +e.target.value));
 $("b-chave").addEventListener("click", async () => { await enviar("/api/chave", { chave: $("chave").value }); $("chave").value = ""; });
 $("b-ensinar").addEventListener("click", () => enviar("/api/ensinar", { perfil: $("ensinar").value }));
@@ -975,6 +1016,74 @@ $("armas-editor").addEventListener("click", async e => {
   }
 });
 
+// ---------- aba Botões
+let ctl = null, mapaEdit = null, opEdit = null, timerCtl = 0;
+const nomeE = id => (ctl.entradas.find(e => e.id === id) || {}).nome || id;
+const nomeS = id => (ctl.saidas.find(e => e.id === id) || {}).nome || id;
+async function lerControle() {
+  try {
+    const r = await fetch("/api/controle", { headers: { "X-Token": TOKEN }, cache: "no-store" });
+    if (!r.ok) return;
+    const novo = await r.json();
+    const primeira = !ctl;
+    ctl = novo;
+    if (primeira) {
+      if (ctl.tem_mapa_jogo && !mapaEdit) $("mapa-escopo").value = "jogo";
+      carregarMapa();
+    }
+    desenharControle();
+  } catch (e) { }
+}
+function carregarMapa() {
+  const porJogo = $("mapa-escopo").value === "jogo";
+  mapaEdit = { ...(porJogo && ctl.tem_mapa_jogo ? ctl.mapa : porJogo ? ctl.mapa_todos : ctl.mapa_todos) };
+  opEdit = { ...(porJogo && ctl.tem_mapa_jogo ? ctl.opcoes : ctl.opcoes_todos) };
+  const ops = ctl.saidas.map(s => `<option value="${s.id}">${esc(s.nome)}</option>`).join("");
+  $("mapa-linhas").innerHTML = ctl.entradas.map(e =>
+    `<tr data-e="${e.id}"><td>${esc(e.nome)}</td><td><select data-e="${e.id}" aria-label="${esc(e.nome)}">${ops}</select></td></tr>`).join("");
+  for (const sel of $("mapa-linhas").querySelectorAll("select")) sel.value = mapaEdit[sel.dataset.e] || "nada";
+  for (const k of ["trocar_analogicos", "inverter_y_esq", "inverter_y_dir"]) $("op-" + k).checked = !!opEdit[k];
+  marcarTrocados();
+}
+function marcarTrocados() {
+  const padrao = { cruz: "a", circulo: "b", quadrado: "x", triangulo: "y", l1: "lb", r1: "rb", l2: "lt", r2: "rt", create: "back", options: "start",
+    l3: "ls", r3: "rs", ps: "guide", touchpad: "back", mute: "nada", cima: "cima", baixo: "baixo", esquerda: "esquerda", direita: "direita" };
+  for (const tr of $("mapa-linhas").querySelectorAll("tr")) tr.classList.toggle("trocado", mapaEdit[tr.dataset.e] !== padrao[tr.dataset.e]);
+}
+function desenharControle() {
+  if (!ctl) return;
+  const v = ctl.ao_vivo || { entrada: [], saida: [] };
+  for (const tr of $("mapa-linhas").querySelectorAll("tr")) tr.classList.toggle("apertado", v.entrada.includes(tr.dataset.e));
+  $("ao-vivo").innerHTML = !ctl.conectado ? "Controle desconectado."
+    : !ctl.xbox_ativo ? "O controle de Xbox virtual está desligado agora (ele liga com um jogo na frente)." + (v.entrada.length ? ` Você está apertando: <b>${v.entrada.map(nomeE).map(esc).join(", ")}</b>.` : "")
+    : v.entrada.length ? `Você aperta <b>${v.entrada.map(nomeE).map(esc).join(", ")}</b> → o jogo recebe <b>${v.saida.length ? v.saida.map(nomeS).map(esc).join(", ") : "nada"}</b>`
+    : "Aperte um botão no controle para ver o que o app manda para o jogo.";
+  if (document.activeElement !== $("esconder_dualsense")) $("esconder_dualsense").checked = ctl.esconder;
+  if (document.activeElement !== $("botao_ps")) $("botao_ps").value = ctl.botao_ps;
+  $("hh-estado").textContent = ctl.hidhide.instalado ? ctl.hidhide.status : "O HidHide não está instalado neste PC.";
+  $("hh-instalar").hidden = ctl.hidhide.instalado;
+  $("conflitos").hidden = !ctl.conflitos.length;
+  $("conflitos").textContent = ctl.conflitos.length ? `Também está aberto: ${ctl.conflitos.join(", ")}. Esse programa também transforma o controle em teclas ou em outro controle; feche-o enquanto usa o DualSense Auto.` : "";
+  $("mapa-jogo").textContent = ctl.jogo ? `Jogo na frente: ${ctl.jogo}${ctl.tem_mapa_jogo ? " (tem botões só dele)" : ""}` : "Abra um jogo para trocar os botões só nele.";
+}
+$("mapa-escopo").addEventListener("change", () => ctl && carregarMapa());
+$("mapa-linhas").addEventListener("change", e => { if (e.target.dataset.e) { mapaEdit[e.target.dataset.e] = e.target.value; marcarTrocados(); } });
+for (const k of ["trocar_analogicos", "inverter_y_esq", "inverter_y_dir"]) $("op-" + k).addEventListener("change", e => { opEdit[k] = e.target.checked; });
+$("b-mapa-salvar").addEventListener("click", async () => {
+  await enviar("/api/controle/salvar", { escopo: $("mapa-escopo").value, mapa: mapaEdit, opcoes: opEdit });
+  ctl = null; lerControle();
+});
+$("b-mapa-padrao").addEventListener("click", async () => {
+  await enviar("/api/controle/restaurar", { escopo: $("mapa-escopo").value });
+  ctl = null; lerControle();
+});
+$("esconder_dualsense").addEventListener("change", e => ajuste("esconder_dualsense", e.target.checked));
+$("botao_ps").addEventListener("change", e => ajuste("botao_ps", e.target.value));
+function vigiarControle(ligar) {
+  clearInterval(timerCtl);
+  if (ligar) { lerControle(); timerCtl = setInterval(lerControle, 150); }
+}
+
 // abas com teclado
 const abas = [...document.querySelectorAll('[role="tab"]')];
 function abrirAba(btn) {
@@ -986,6 +1095,7 @@ function abrirAba(btn) {
   });
   if (btn.id === "tab-baixar") atualizarMods();
   if (btn.id === "tab-armas") atualizarArmas();
+  vigiarControle(btn.id === "tab-botoes");
   if (btn.id === "tab-leitor") { leitorFase = null; atualizarLeitor(); }
 }
 abas.forEach((b, i) => {

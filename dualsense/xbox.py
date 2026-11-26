@@ -105,6 +105,7 @@ class XboxVirtual:
         self.pad = None
         self.status = "desligado"
         self.filtro_ps = FiltroBotaoPS()
+        self.converter = None  # controle.Mapeador.converter (botões trocáveis); sem ele, o mapa padrão
         self.big = 0      # motor pesado pedido pelo jogo (0-255)
         self.small = 0    # motor leve pedido pelo jogo
         self.rumble_t = 0.0
@@ -156,8 +157,11 @@ class XboxVirtual:
         p = self.pad
         if not p:
             return
-        w, lt, rt, lx, ly, rx, ry = to_xusb(st)
-        w = self.filtro_ps.filtrar(w, time.time())
+        if self.converter:
+            w, lt, rt, lx, ly, rx, ry = self.converter(st, time.time())
+        else:
+            w, lt, rt, lx, ly, rx, ry = to_xusb(st)
+            w = self.filtro_ps.filtrar(w, time.time())
         r = p.report
         r.wButtons = w
         r.bLeftTrigger = lt - 256 if lt > 127 else lt   # campo é c_byte (com sinal)

@@ -52,6 +52,8 @@ from cerebro import (Cerebro, load_config, save_config, template, extract_json, 
 from fontes import FonteDSX, FonteArquivo, FonteEstado, evento_iw7, perfil_iw7  # noqa: E402
 import armas_iw7  # noqa: E402
 import armas_jogos  # noqa: E402
+from controle import Mapeador  # noqa: E402
+from hidhide import Esconderijo, conflitos  # noqa: E402
 from efeitos import (Terreno, Pulsos, Chuva, coracao, padrao_dano, padrao_coice,  # noqa: E402
                      spec_to_trig)
 
@@ -157,7 +159,13 @@ class Engine:
         self.stop = threading.Event()
         self.profiles = load_profiles()
         self.xbox = XboxVirtual()
-        self.xbox.filtro_ps.modo = self.cfg.get("botao_ps", "segurar")
+        self.mapeador = Mapeador()
+        self.xbox.converter = self.mapeador.converter
+        self.esconderijo = Esconderijo()
+        self.esconder_tentado = 0.0
+        self.conflitos = []
+        self.conflitos_t = 0.0
+        self.aplicar_mapa()
         self.cerebro = Cerebro(self.cfg, self.hint)
         from nexus_mods import GerenciadorMods
         self.mods = GerenciadorMods(self.cfg, self.salvar_config)
@@ -320,6 +328,31 @@ class Engine:
     def salvar_config(self):
         save_config(self.cfg)
 
+    def aplicar_mapa(self):
+        """Mapa de botões: o do jogo na frente (se você fez um só para ele) ou o de todos os jogos."""
+        jogo = (self.cfg.get("mapas_jogos") or {}).get((self.game_exe or "").lower()) if getattr(self, "game_exe", None) else None
+        if jogo:
+            self.mapeador.configurar(jogo.get("mapa"), jogo.get("opcoes"), self.cfg.get("botao_ps", "segurar"))
+        else:
+            self.mapeador.configurar(self.cfg.get("mapa_botoes"), self.cfg.get("mapa_opcoes"), self.cfg.get("botao_ps", "segurar"))
+
+    def cuidar_esconderijo(self, now):
+        """HidHide: esconde o DualSense dos outros programas enquanto o Xbox virtual estiver ligado."""
+        quer = bool(self.cfg.get("esconder_dualsense", True) and self.cfg.get("emular_xbox"))
+        if quer and not self.esconderijo.ativo and now - self.esconder_tentado > 60:
+            self.esconder_tentado = now
+            if self.esconderijo.instalado():
+                self.esconderijo.esconder()
+        elif not quer and self.esconderijo.ativo:
+            self.esconderijo.mostrar()
+        if now - self.conflitos_t > 5:
+            self.conflitos_t = now
+            try:
+                import psutil
+                self.conflitos = conflitos(p.info.get("name") for p in psutil.process_iter(["name"]))
+            except Exception:
+                self.conflitos = []
+
     def perfil_atual(self):
         p = self.settings["perfil"]
         return self.perfil_auto if p == "auto" else p
@@ -335,8 +368,11 @@ class Engine:
         self.jogo_visto = time.time()
         self.game_dir = pasta
         if exe != self.game_exe or title != self.game_title:
+            mudou_exe = exe != self.game_exe
             self.game_exe, self.game_title = exe, title
             self.perfil_auto, self.motivo = classify(exe, title, self.profiles)
+            if mudou_exe:
+                self.aplicar_mapa()
         jid = armas_jogos.jogo_por_exe(exe)
         if jid and jid not in self.semeados:      # todas as armas do jogo aparecem na aba Armas
             self.semeados.add(jid)
@@ -562,6 +598,7 @@ class Engine:
                 time.sleep(0.1)
                 continue
             self.desconectou = now
+            self.cuidar_esconderijo(now)
             self.status = f"{self.dev.name} conectado via {'Bluetooth' if self.dev.bt else 'USB'}"
             if now - last_game > 1.0:
                 last_game = now
@@ -577,6 +614,8 @@ class Engine:
         except Exception:
             pass
         self.xbox.stop()
+        if self.esconderijo.ativo:          # ao fechar, o DualSense volta a aparecer para todos
+            self.esconderijo.mostrar()
 
     def input_loop(self):
         while not self.stop.is_set():
@@ -823,10 +862,85 @@ def self_test():
     assert not _painel.salvar_arma_painel(eng, "nada|nada", {})
     print("CoD IW: cada arma com a sua configuração (KBAR-32, R-VN, KBS, editada, pente vazio): ok")
     print("mod do CoD Infinite Warfare (arma, cadência, dano nas costas): ok")
+    teste_botoes(eng)
     teste_mods_novos(eng, t)
     teste_mods()
     teste_leitor()
     print("AUTO-TESTE OK")
+
+
+def teste_botoes(eng):
+    """Trocar botões, botão PS, analógicos, HidHide e programas que brigam pelo controle."""
+    import controle as C
+    import hidhide as H
+    from xbox import A, B, X, Y, GUIDE, BACK, to_xusb
+    st = PadState()
+    m = C.Mapeador()
+    # mapa padrão = o mesmo de sempre
+    st.b0 = 0x08 | 0x20 | 0x80          # ✕ e △
+    st.b1 = 0x10
+    st.lx, st.ly, st.rx, st.ry, st.l2, st.r2 = 200, 60, 128, 128, 255, 10
+    w, lt, rt, lx, ly, rx, ry = m.converter(st, 1.0)
+    assert w == to_xusb(st)[0] and (lt, rt) == (255, 10) and (lx, ly) == to_xusb(st)[3:5], (w, to_xusb(st))
+    assert set(m.ultimo["entrada"]) >= {"cruz", "triangulo", "create", "l2"} and "a" in m.ultimo["saida"]
+    # trocas: ✕ vira B, △ vira nada, R2 vira o botão A, L2 vira RT
+    m.configurar({"cruz": "b", "triangulo": "nada", "r2": "a", "l2": "rt", "inventado": "x", "circulo": "???"},
+                 {"trocar_analogicos": True, "inverter_y_esq": True})
+    assert m.mapa["circulo"] == "b" and "inventado" not in m.mapa       # o que não existe fica no padrão
+    st.r2 = 200
+    w, lt, rt, lx, ly, rx, ry = m.converter(st, 2.0)
+    assert w & B and not w & Y and w & A and w & BACK and lt == 0 and rt == 255, hex(w)
+    assert lx == 0 and rx > 0 and ry > 0, (lx, ly, rx, ry)             # analógicos trocados: o 200/60 foi para o direito
+    m.configurar(None, {"inverter_y_esq": True})
+    st.ly = 60                                                          # analógico esquerdo para cima
+    assert m.converter(st, 3.0)[4] < 0 and C.Mapeador().converter(st, 3.0)[4] > 0
+    # botão PS: toque não manda Guide, segurar manda
+    st2 = PadState()
+    st2.b2 = 0x01
+    m2 = C.Mapeador()
+    assert not m2.converter(st2, 10.0)[0] & GUIDE and not m2.converter(st2, 10.5)[0] & GUIDE
+    assert m2.converter(st2, 10.9)[0] & GUIDE
+    st2.b2 = 0
+    m2.converter(st2, 11.5)
+    st2.b2 = 0x01
+    assert not m2.converter(st2, 11.6)[0] & GUIDE                       # soltou e apertou de novo: conta do zero
+    m2.configurar({"ps": "a"}, None)                                    # PS trocado por A: sem espera
+    assert m2.converter(st2, 12.0)[0] & A
+    # mute vira um botão de verdade se você quiser
+    st3 = PadState()
+    st3.b2 = 0x04
+    m3 = C.Mapeador()
+    assert m3.converter(st3, 1)[0] == 0
+    m3.configurar({"mute": "y"}, None)
+    assert m3.converter(st3, 1)[0] & Y
+    # HidHide: acha os DualSense na lista dele
+    lista = json.dumps([{"friendlyName": "DualSense Wireless Controller", "devices": [
+        {"deviceInstancePath": "HID\\VID_054C&PID_0CE6&MI_03\\7&1A2B&0&0000", "gamingDevice": True},
+        {"deviceInstancePath": "HID\\VID_045E&PID_028E\\1", "gamingDevice": True}]},
+        {"friendlyName": "Edge", "devices": [{"deviceInstancePath": "HID\\{00001124}_VID&0002054C_PID&0DF2\\8&1"}]}])
+    ids = H.dualsenses(lista)
+    assert len(ids) == 1 and "0CE6" in ids[0], ids
+    assert H.dualsenses("isso não é json") == []
+    assert H.conflitos(["chrome.exe", "DS4Windows.exe", "JoyToKey.exe", "ds4windows.exe"]) == ["DS4Windows", "JoyToKey"]
+    # painel: salvar só para um jogo e para todos
+    import painel as _p
+    antes_exe, antes_titulo = eng.game_exe, eng.game_title
+    eng.game_exe, eng.game_title = "Jogo.exe", "Jogo"
+    assert _p.salvar_mapa(eng, "jogo", {"cruz": "y"}, {"trocar_analogicos": True})
+    assert eng.mapeador.mapa["cruz"] == "y" and eng.mapeador.opcoes["trocar_analogicos"]
+    e = _p.estado_controle(eng)
+    assert e["tem_mapa_jogo"] and e["mapa_todos"]["cruz"] == "a" and len(e["entradas"]) == len(C.ENTRADAS)
+    eng.game_exe = "Outro.exe"
+    eng.aplicar_mapa()
+    assert eng.mapeador.mapa["cruz"] == "a"                              # outro jogo: o mapa de todos
+    assert _p.salvar_mapa(eng, "todos", {"quadrado": "a"}, None) and eng.mapeador.mapa["quadrado"] == "a"
+    _p.salvar_mapa(eng, "todos", None, None, apagar=True)
+    eng.game_exe = "Jogo.exe"
+    _p.salvar_mapa(eng, "jogo", None, None, apagar=True)
+    assert eng.mapeador.mapa == C.PADRAO
+    eng.game_exe, eng.game_title = antes_exe, antes_titulo
+    eng.aplicar_mapa()
+    print("botões trocáveis (todos os jogos / só um jogo), PS segurando, mute, HidHide e conflitos: ok")
 
 
 def teste_mods_novos(eng, t):

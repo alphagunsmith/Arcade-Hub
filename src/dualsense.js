@@ -149,6 +149,7 @@ class DualSenseAuto extends EventEmitter {
           DUALSENSE_AUTO_DADOS: this.dados,
           DSA_TOKEN: this.token,
           DSA_IGNORAR: this.ignorar.join('|'),
+          DSA_ARCADE_EXE: process.execPath,        // o Arcade Hub continua vendo o DualSense quando ele é escondido (HidHide)
           DSA_IDIOMA: this.idioma || 'pt-BR',
           PYTHONIOENCODING: 'utf-8'
         },

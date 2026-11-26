@@ -1,5 +1,20 @@
 # Novidades
 
+## 1.12.0
+
+- **DualSense Auto: a parte do controle foi refeita.**
+  - **Causa encontrada das teclas sozinhas e dos overlays:** a Steam também lê o DualSense direto. Fora dos jogos dela, ela transforma os botões em teclas, Enter, cliques e atalhos, e é isso que abria o overlay da Steam e o do Discord.
+  - **Agora o DualSense Auto esconde o DualSense dos outros programas** enquanto está aberto, com o HidHide. A Steam, o Discord e os jogos passam a ver só o controle de Xbox que o DualSense Auto controla. O Arcade Hub continua vendo o DualSense para navegar.
+  - Ao fechar o DualSense Auto, o DualSense volta ao normal.
+  - Se o HidHide não estiver instalado, o painel mostra o botão para baixar.
+  - O painel também avisa se outro programa que mexe no controle estiver aberto: DS4Windows, DSX, reWASD, JoyToKey e outros.
+- **Nova aba Botões: troque qualquer botão do controle.**
+  - Vale para todos os jogos ou só para o jogo aberto.
+  - Inclui o botão de microfone, o touchpad e os gatilhos (o R2 pode virar o A, por exemplo).
+  - Dá para trocar o analógico esquerdo pelo direito e inverter o eixo vertical.
+  - **Teste ao vivo:** você aperta um botão e vê na hora o que o jogo recebe.
+  - O ajuste do botão PS mudou para esta aba.
+
 ## 1.11.1
 
 - **O X do controle não reabre mais o jogo no meio da partida.**

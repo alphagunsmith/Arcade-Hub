@@ -194,6 +194,46 @@ def restaurar_arma(eng, chave):
     eng._arma_cache = (None, None)
     return True
 
+
+# ---------- aba Botões: trocar botões, ver o que chega e o que sai, e o que atrapalha
+def estado_controle(eng):
+    import controle as C
+    exe = (eng.game_exe or "").lower()
+    por_jogo = (eng.cfg.get("mapas_jogos") or {}).get(exe) if exe else None
+    hh = eng.esconderijo
+    return {
+        "entradas": [{"id": k, "nome": v[0]} for k, v in C.ENTRADAS.items()],
+        "saidas": [{"id": k, "nome": v[0]} for k, v in C.SAIDAS.items()],
+        "mapa": eng.mapeador.mapa, "opcoes": eng.mapeador.opcoes,
+        "mapa_todos": C.limpar_mapa(eng.cfg.get("mapa_botoes")), "opcoes_todos": C.limpar_opcoes(eng.cfg.get("mapa_opcoes")),
+        "jogo": eng.game_title or eng.game_exe or "", "exe": exe, "tem_mapa_jogo": bool(por_jogo),
+        "ao_vivo": eng.mapeador.ultimo, "conectado": bool(eng.dev.connected),
+        "xbox": eng.xbox.status, "xbox_ativo": bool(eng.xbox.pad), "botao_ps": eng.cfg.get("botao_ps", "segurar"),
+        "esconder": bool(eng.cfg.get("esconder_dualsense", True)),
+        "hidhide": {"instalado": hh.instalado(), "ativo": hh.ativo, "status": hh.status},
+        "conflitos": eng.conflitos,
+    }
+
+
+def salvar_mapa(eng, escopo, mapa, opcoes, apagar=False):
+    import controle as C
+    if escopo == "jogo":
+        exe = (eng.game_exe or "").lower()
+        if not exe:
+            return False
+        jogos = dict(eng.cfg.get("mapas_jogos") or {})
+        if apagar:
+            jogos.pop(exe, None)
+        else:
+            jogos[exe] = {"mapa": C.limpar_mapa(mapa), "opcoes": C.limpar_opcoes(opcoes), "nome": eng.game_title or exe}
+        eng.cfg["mapas_jogos"] = jogos
+    else:
+        eng.cfg["mapa_botoes"] = {} if apagar else C.limpar_mapa(mapa)
+        eng.cfg["mapa_opcoes"] = {} if apagar else C.limpar_opcoes(opcoes)
+    eng.salvar_config()
+    eng.aplicar_mapa()
+    return True
+
 def make_handler(eng, token, desligar):
     class H(BaseHTTPRequestHandler):
         def log_message(self, *a):
@@ -243,6 +283,11 @@ def make_handler(eng, token, desligar):
                     self.send_error(403)
                     return
                 self._json(eng.mods.estado())
+            elif path == "/api/controle":
+                if not self._ok_token():
+                    self.send_error(403)
+                    return
+                self._json(estado_controle(eng))
             elif path == "/api/armas":
                 if not self._ok_token():
                     self.send_error(403)
@@ -335,8 +380,14 @@ def make_handler(eng, token, desligar):
                     eng.salvar_config()
                 elif k == "botao_ps" and v in ("segurar", "guide", "nada"):
                     cfg[k] = v
-                    eng.xbox.filtro_ps.modo = v
+                    eng.mapeador.filtro_ps.modo = v
                     eng.salvar_config()
+                elif k == "esconder_dualsense":
+                    cfg[k] = bool(v)
+                    eng.salvar_config()
+                    eng.esconder_tentado = 0.0
+                    if not v and eng.esconderijo.ativo:
+                        eng.esconderijo.mostrar()
                 elif k == "intervalo_visao_s":
                     cfg[k] = max(2, min(30, int(v)))
                     eng.salvar_config()
@@ -344,6 +395,12 @@ def make_handler(eng, token, desligar):
                     self._json({"ok": False, "msg": "Ajuste desconhecido"}, 400)
                     return
                 self._json({"ok": True})
+            elif path == "/api/controle/salvar":
+                ok = salvar_mapa(eng, dados.get("escopo"), dados.get("mapa"), dados.get("opcoes"))
+                self._json({"ok": ok, "msg": "Botões salvos" if ok else "Abra um jogo para salvar só para ele"})
+            elif path == "/api/controle/restaurar":
+                salvar_mapa(eng, dados.get("escopo"), None, None, apagar=True)
+                self._json({"ok": True, "msg": "Botões no padrão"})
             elif path == "/api/armas/salvar":
                 ok = salvar_arma_painel(eng, str(dados.get("chave", "")), dados.get("perfil"))
                 self._json({"ok": ok, "msg": "Arma salva" if ok else "Arma não encontrada"})

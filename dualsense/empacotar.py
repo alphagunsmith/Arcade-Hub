@@ -72,7 +72,8 @@ def main():
            "--distpath", SAIDA, "--workpath", os.path.join(BUILD, "pyinstaller"), "--specpath", BUILD,
            "--paths", FONTE, "--collect-submodules", "vgamepad",
            "--hidden-import", "psutil", "--hidden-import", "mss",
-           "--hidden-import", "armas_iw7", "--hidden-import", "armas_jogos"]
+           "--hidden-import", "armas_iw7", "--hidden-import", "armas_jogos",
+           "--hidden-import", "controle", "--hidden-import", "hidhide"]
     for origem, destino in dados:
         cmd += ["--add-data", f"{origem}{sep}{destino}"]
     cmd.append(os.path.join(FONTE, "dualsense_auto.py"))

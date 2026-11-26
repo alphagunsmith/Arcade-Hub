@@ -29,7 +29,11 @@ CONFIG_PADRAO = {
     "pesquisar_web": True,
     "emular_xbox": True,
     "xbox_so_no_jogo": True,
-    "botao_ps": "segurar",       # PS -> Guide do Xbox: "segurar" (0,8 s), "guide" (sempre) ou "nada"     # o Xbox virtual só existe com um jogo na frente (no Windows ele vira setas/Enter)
+    "botao_ps": "segurar",
+    "esconder_dualsense": True,  # HidHide: só o DualSense Auto (e o Arcade Hub) veem o DualSense; a Steam vê o Xbox virtual
+    "mapa_botoes": {},           # trocas de botões para todos os jogos (controle.PADRAO para o resto)
+    "mapa_opcoes": {},           # trocar analógicos, inverter eixo Y
+    "mapas_jogos": {},           # exe -> {"mapa": {...}, "opcoes": {...}} (trocas só naquele jogo)       # PS -> Guide do Xbox: "segurar" (0,8 s), "guide" (sempre) ou "nada"     # o Xbox virtual só existe com um jogo na frente (no Windows ele vira setas/Enter)
     "porta_mods": 6969,
 }
 
