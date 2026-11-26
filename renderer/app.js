@@ -3259,6 +3259,29 @@ async function limparJogosSumidos() {
   toast(`${x.data.removidos.length} ${x.data.removidos.length === 1 ? 'jogo saiu' : 'jogos saíram'} da biblioteca`, 'ok');
 }
 
+/** Desinstalar de verdade (Steam, Epic, desinstalador do jogo, ou Lixeira). */
+async function confirmarDesinstalar(game) {
+  if (ui.jogando && ui.jogando.has(game.id)) { toast('Feche o jogo antes de desinstalar', 'err'); return; }
+  const p = await api.planoDesinstalar(game.id);
+  if (!p.ok) { toast(p.error || 'Não consegui preparar a desinstalação', 'err'); return; }
+  if (p.data.metodo === 'nenhum') {
+    await pedirConfirmacao({ titulo: 'Não dá para desinstalar daqui', texto: p.data.texto, soAviso: true });
+    return;
+  }
+  const ok = await pedirConfirmacao({
+    titulo: `Desinstalar "${game.title}"?`,
+    texto: p.data.texto,
+    acao: 'Desinstalar'
+  });
+  if (!ok) return;
+  toast(p.data.metodo === 'steam' ? 'Abrindo a Steam…' : p.data.metodo === 'epic' ? 'Abrindo a Epic…' : p.data.metodo === 'desinstalador' ? 'Desinstalador aberto: siga as instruções dele' : 'Desinstalando…', 'ok');
+  const r = await api.desinstalar(game.id);
+  if (!r.ok) { toast(r.error || 'Não consegui desinstalar', 'err'); return; }
+  if (r.data.state) { ui.state = r.data.state; render(); }
+  if (r.data.estado === 'feito') toast(`"${game.title}" foi desinstalado`, 'ok');
+  else if (r.data.texto) toast(r.data.texto, 'ok');
+}
+
 async function confirmarRemocao(game) {
   const ok = await pedirConfirmacao({
     titulo: 'Remover da biblioteca?',
@@ -3351,6 +3374,7 @@ function menuDoJogo(game) {
       onClick: () => { api.openPath ? api.openPath(game.installDir || game.launch.exe) : toast('Indisponível nesta versão', 'err'); }
     } : null,
     { sep: true },
+    game.installed !== false && api.desinstalar ? { label: 'Desinstalar do PC…', icon: ICO.lixo, danger: true, onClick: () => confirmarDesinstalar(game) } : null,
     { label: 'Remover da biblioteca', icon: ICO.lixo, danger: true, hint: 'Del', onClick: () => confirmarRemocao(game) }
   ];
 }
@@ -4017,7 +4041,7 @@ function conferirIdioma(s) {
   }
   // varredura automática achou algo: atualiza a tela sem perguntar
   if (api.onLibraryChanged) {
-    api.onLibraryChanged(({ novos, removidos, state }) => {
+    api.onLibraryChanged(({ novos, removidos, state, desinstalado }) => {
       if (!state) return;
       ui.state = state;
       ui.jogando = new Set((state.sessoes || []).map(x => x.id));
@@ -4027,6 +4051,8 @@ function conferirIdioma(s) {
         toast(novos.length === 1 ? `Jogo novo na biblioteca: ${novos[0]}`
           : `${novos.length} jogos novos: ${novos.slice(0, 3).join(', ')}${novos.length > 3 ? '…' : ''}`, 'ok');
         enriquecerAutomatico();
+      } else if (desinstalado) {
+        toast(`"${desinstalado}" foi desinstalado`, 'ok');
       } else if (removidos) {
         toast(`${removidos} jogo(s) saíram da biblioteca (desinstalados)`, 'ok');
       }

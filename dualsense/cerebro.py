@@ -28,7 +28,8 @@ CONFIG_PADRAO = {
     "visao_ativa": True,
     "pesquisar_web": True,
     "emular_xbox": True,
-    "xbox_so_no_jogo": True,     # o Xbox virtual só existe com um jogo na frente (no Windows ele vira setas/Enter)
+    "xbox_so_no_jogo": True,
+    "botao_ps": "segurar",       # PS -> Guide do Xbox: "segurar" (0,8 s), "guide" (sempre) ou "nada"     # o Xbox virtual só existe com um jogo na frente (no Windows ele vira setas/Enter)
     "porta_mods": 6969,
 }
 

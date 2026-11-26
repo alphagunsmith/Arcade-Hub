@@ -1,5 +1,19 @@
 # Novidades
 
+## 1.11.0
+
+- **Desinstalar jogos pelo app** (botão direito no jogo › Desinstalar do PC):
+  - **Steam:** a Steam abre e pede a confirmação.
+  - **Epic:** o Epic Games Launcher abre, porque a Epic não deixa outros programas desinstalarem.
+  - **GOG e jogos de pasta:** abre o desinstalador do próprio jogo, o mesmo das Configurações do Windows.
+  - **Jogo sem desinstalador:** a pasta vai para a Lixeira, de onde dá para recuperar. O app nunca manda para a Lixeira a raiz do disco, uma pasta da sua biblioteca, uma pasta do sistema ou uma pasta com outro jogo dentro.
+  - **ROMs:** o arquivo vai para a Lixeira, junto com as faixas de um .cue ou .m3u.
+  - O jogo sai da lista sozinho quando a desinstalação termina.
+- **DualSense Auto: o botão PS não abre mais o overlay da Steam, a Xbox Game Bar ou o do Discord sem querer.**
+  - Agora um toque rápido no PS não faz nada. Segurando 0,8 s, ele abre o overlay.
+  - Dá para mudar no painel, em IA e Xbox › Botão PS.
+  - Se a Steam ainda abrir o overlay, é porque ela também lê o DualSense direto. O painel explica como desligar isso.
+
 ## 1.10.1
 
 - **Correção de tela preta ao abrir.** Em alguns PCs, a aceleração da placa de vídeo falha e a janela fica preta, sem nada para clicar. Isso acontece com driver de vídeo antigo, notebook com duas placas, máquina virtual ou área de trabalho remota.

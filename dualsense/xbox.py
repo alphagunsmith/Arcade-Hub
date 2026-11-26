@@ -59,6 +59,37 @@ def to_xusb(st):
     return (w, st.l2, st.r2, _axis(lx), _axis(ly, True), _axis(rx), _axis(ry, True))
 
 
+class FiltroBotaoPS:
+    """O botão PS vira o Guide do Xbox, e o Guide abre o overlay da Steam, a Xbox Game Bar e
+    (pelos atalhos da Steam) o do Discord. Para isso não acontecer sem querer:
+      "segurar" (padrão): toque rápido no PS não faz nada; segurando 0,8 s vira um Guide;
+      "guide":  sempre manda o Guide;
+      "nada":   nunca manda."""
+    SEGURAR_S = 0.8
+    PULSO_S = 0.25
+
+    def __init__(self, modo="segurar"):
+        self.modo = modo
+        self.desde = None
+        self.enviado_em = None
+
+    def filtrar(self, w, now):
+        apertado = bool(w & GUIDE)
+        w &= ~GUIDE
+        if self.modo == "guide":
+            return w | GUIDE if apertado else w
+        if self.modo != "segurar" or not apertado:
+            self.desde = self.enviado_em = None
+            return w
+        if self.desde is None:
+            self.desde = now
+        if self.enviado_em is None and now - self.desde >= self.SEGURAR_S:
+            self.enviado_em = now
+        if self.enviado_em is not None and now - self.enviado_em < self.PULSO_S:
+            return w | GUIDE
+        return w
+
+
 def vigem_installer():
     try:
         import vgamepad
@@ -73,6 +104,7 @@ class XboxVirtual:
     def __init__(self):
         self.pad = None
         self.status = "desligado"
+        self.filtro_ps = FiltroBotaoPS()
         self.big = 0      # motor pesado pedido pelo jogo (0-255)
         self.small = 0    # motor leve pedido pelo jogo
         self.rumble_t = 0.0
@@ -125,6 +157,7 @@ class XboxVirtual:
         if not p:
             return
         w, lt, rt, lx, ly, rx, ry = to_xusb(st)
+        w = self.filtro_ps.filtrar(w, time.time())
         r = p.report
         r.wButtons = w
         r.bLeftTrigger = lt - 256 if lt > 127 else lt   # campo é c_byte (com sinal)

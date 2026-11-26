@@ -425,8 +425,16 @@
     <label class="chave"><input type="checkbox" id="emular_xbox"><span class="trilho-chave"></span>Emular controle de Xbox</label>
     <label class="chave"><input type="checkbox" id="xbox_so_no_jogo"><span class="trilho-chave"></span>Só enquanto um jogo estiver na frente</label>
     <small>Evita teclas apertando sozinhas no Windows: fora do jogo, o Steam e outros programas transformam o controle em setas, Enter e cliques.</small>
+    <label for="botao_ps">Botão PS</label>
+    <select id="botao_ps">
+      <option value="segurar">Segurar 0,8 s para abrir o overlay (recomendado)</option>
+      <option value="guide">Abre o overlay na hora (Guide do Xbox)</option>
+      <option value="nada">Não faz nada</option>
+    </select>
+    <small>Um toque no PS abria o overlay da Steam, a Xbox Game Bar e o do Discord no meio do jogo.</small>
     <small id="xbox-estado"></small>
     <div class="linha-campo"><button class="botao" id="b-driver">Instalar driver do Xbox</button></div>
+    <p class="aviso">Se a Steam ainda abrir o overlay ou apertar teclas sozinha: ela também está lendo o DualSense direto. Na Steam, vá em Configurações › Controle e desligue o suporte a controle PlayStation, ou esconda o DualSense com o HidHide (abaixo).</p>
     <p class="aviso">Para o jogo não ver dois controles, esconda o DualSense com o HidHide e libere nele o DualSenseAuto.exe (na pasta do Arcade Hub, em resources\dualsense). Na Steam, desative o Steam Input do jogo.</p>
   </div>
 </section>
@@ -655,6 +663,7 @@ function render(s) {
     $("rumble").value = s.ajustes.rumble; $("gatilhos").value = s.ajustes.gatilhos;
     $("perfil").value = s.ajustes.perfil;
     for (const k of ["visao_ativa", "pesquisar_web", "emular_xbox", "xbox_so_no_jogo"]) $(k).checked = cf[k];
+    if (document.activeElement !== $("botao_ps")) $("botao_ps").value = cf.botao_ps || "segurar";
     $("intervalo_visao_s").value = cf.intervalo_visao_s;
     primeiro = false;
   }
@@ -702,6 +711,7 @@ $("rumble").addEventListener("input", e => ajuste("rumble", +e.target.value));
 $("gatilhos").addEventListener("input", e => ajuste("gatilhos", +e.target.value));
 $("perfil").addEventListener("change", e => ajuste("perfil", e.target.value));
 for (const k of ["visao_ativa", "pesquisar_web", "emular_xbox", "xbox_so_no_jogo"]) $(k).addEventListener("change", e => ajuste(k, e.target.checked));
+$("botao_ps").addEventListener("change", e => ajuste("botao_ps", e.target.value));
 $("intervalo_visao_s").addEventListener("change", e => ajuste("intervalo_visao_s", +e.target.value));
 $("b-chave").addEventListener("click", async () => { await enviar("/api/chave", { chave: $("chave").value }); $("chave").value = ""; });
 $("b-ensinar").addEventListener("click", () => enviar("/api/ensinar", { perfil: $("ensinar").value }));

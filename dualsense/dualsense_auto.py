@@ -157,6 +157,7 @@ class Engine:
         self.stop = threading.Event()
         self.profiles = load_profiles()
         self.xbox = XboxVirtual()
+        self.xbox.filtro_ps.modo = self.cfg.get("botao_ps", "segurar")
         self.cerebro = Cerebro(self.cfg, self.hint)
         from nexus_mods import GerenciadorMods
         self.mods = GerenciadorMods(self.cfg, self.salvar_config)
@@ -612,7 +613,15 @@ def self_test():
     w, lt, rt, lx, ly, rx, ry = to_xusb(st)
     assert w == (0x1000 | 0x0008 | 0x0200 | 0x0010), hex(w)
     assert lx == 32512 and ly == 32767 and rt == 250
-    from xbox import _stick
+    from xbox import _stick, FiltroBotaoPS, GUIDE as _G, A as _A
+    fp = FiltroBotaoPS()                       # toque rápido no PS não abre overlay; segurando, abre
+    assert fp.filtrar(_G | _A, 10.0) == _A and fp.filtrar(_G, 10.5) == 0
+    assert fp.filtrar(_G, 10.85) == _G and fp.filtrar(_G, 11.0) == _G and fp.filtrar(_G, 11.2) == 0
+    assert fp.filtrar(0, 11.3) == 0 and fp.filtrar(_G, 11.4) == 0
+    fp.modo = "guide"
+    assert fp.filtrar(_G, 0) == _G
+    fp.modo = "nada"
+    assert fp.filtrar(_G | _A, 0) == _A
     assert _stick(133, 122) == (128, 128) and _stick(128, 255) == (128, 255) and _stick(0, 128)[0] == 0
     st.lx, st.ly = 131, 125                     # analógico com folga: Xbox recebe centro exato
     assert to_xusb(st)[3] == 0 and to_xusb(st)[4] == -1

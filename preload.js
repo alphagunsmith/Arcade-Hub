@@ -23,6 +23,8 @@ contextBridge.exposeInMainWorld('arcadeAPI', {
   addGame: game => call('game:add', game),
   updateGame: payload => call('game:update', payload),
   removeGame: id => call('game:remove', id),
+  planoDesinstalar: id => call('game:planoDesinstalar', id),
+  desinstalar: id => call('game:desinstalar', id),
   toggleFavorite: id => call('game:favorite', id),
   toggleHidden: id => call('game:hide', id),
   // o segundo argumento (online, conectar) precisa ir junto: o call() só leva um

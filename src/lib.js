@@ -22,6 +22,7 @@ const fontesVideo = require('./fontes-video');
 const conquistas = require('./conquistas');
 const consoleMod = require('./console');
 const visual = require('./skins-personalizadas');
+const desinstalar = require('./desinstalar');
 const discord = require('./discord');
 const dualsenseMod = require('./dualsense');
 const p2p = require('./p2p');
@@ -2767,6 +2768,75 @@ function register(ipcMain, deps) {
 
   ipcMain.handle('game:remove', (_e, id) => {
     try { return ok(store.removeGame(id)); } catch (e) { return fail(e); }
+  });
+
+  /* ---------------- desinstalar ---------------- */
+  const contextoDesinstalar = g => ({
+    pastasBiblioteca: [...(store.settings.folders || []), ...(store.settings.romFolders || [])],
+    outrosJogos: store.games.filter(o => o.id !== g.id).map(o => o.installDir).filter(Boolean)
+  });
+  const tirarDaBiblioteca = (id, motivo) => {
+    const g = store.games.find(x => x.id === id);
+    if (!g) return;
+    store.removeGame(id);
+    enviar('library:changed', { motivo, novos: [], removidos: 1, desinstalado: g.title, state: state() });
+  };
+  const vigiasDesinstalar = new Map();
+  /** Steam/Epic desinstalam por conta própria: o jogo sai da lista quando a pasta sumir. */
+  const vigiarDesinstalacao = (g, minutos = 30) => {
+    if (!g.installDir || vigiasDesinstalar.has(g.id)) return;
+    const fim = Date.now() + minutos * 60000;
+    const t = setInterval(() => {
+      if (!fs.existsSync(g.installDir)) { clearInterval(t); vigiasDesinstalar.delete(g.id); tirarDaBiblioteca(g.id, 'desinstalado'); }
+      else if (Date.now() > fim) { clearInterval(t); vigiasDesinstalar.delete(g.id); }
+    }, 4000);
+    vigiasDesinstalar.set(g.id, t);
+  };
+  ipcMain.handle('game:planoDesinstalar', async (_e, id) => {
+    try {
+      const g = store.games.find(x => x.id === id);
+      if (!g) throw new Error('Jogo não encontrado');
+      const p = await desinstalar.planejar(g, contextoDesinstalar(g));
+      return ok({ metodo: p.metodo, texto: p.texto, arquivos: p.arquivos ? p.arquivos.length : 0 });
+    } catch (e) { return fail(e); }
+  });
+  ipcMain.handle('game:desinstalar', async (_e, id) => {
+    try {
+      const g = store.games.find(x => x.id === id);
+      if (!g) throw new Error('Jogo não encontrado');
+      if (sessoesAtivas.has(id)) throw new Error('Feche o jogo antes de desinstalar');
+      const p = await desinstalar.planejar(g, contextoDesinstalar(g));
+      if (p.metodo === 'steam') {
+        await shell.openExternal(`steam://uninstall/${p.appId}`);
+        vigiarDesinstalacao(g);
+        return ok({ estado: 'aguardando', texto: 'Confirme na Steam. O jogo sai da lista quando a Steam terminar.' });
+      }
+      if (p.metodo === 'epic') {
+        await shell.openExternal('com.epicgames.launcher://');
+        vigiarDesinstalacao(g);
+        return ok({ estado: 'aguardando', texto: 'Na Biblioteca da Epic: três pontinhos do jogo › Desinstalar. O jogo sai da lista quando a Epic terminar.' });
+      }
+      if (p.metodo === 'desinstalador') {
+        const r = await desinstalar.rodarDesinstalador(p.arquivo, p.args);
+        if (!r.ok) throw new Error('O desinstalador não abriu: ' + r.erro);
+        const exe = g.launch && g.launch.exe;
+        const saiu = (p.pasta && !fs.existsSync(p.pasta)) || (exe && !fs.existsSync(exe));
+        if (saiu) { tirarDaBiblioteca(id, 'desinstalado'); return ok({ estado: 'feito', state: state() }); }
+        vigiarDesinstalacao(g, 5);           // alguns desinstaladores terminam o serviço depois de fechar
+        return ok({ estado: 'cancelado', texto: 'O jogo continua instalado (o desinstalador foi cancelado ou ainda está terminando).' });
+      }
+      if (p.metodo === 'lixeira') {
+        await shell.trashItem(p.pasta);
+        tirarDaBiblioteca(id, 'desinstalado');
+        return ok({ estado: 'feito', state: state() });
+      }
+      if (p.metodo === 'rom') {
+        for (const f of p.arquivos) await shell.trashItem(f);
+        tirarDaBiblioteca(id, 'desinstalado');
+        return ok({ estado: 'feito', state: state() });
+      }
+      throw new Error(p.texto);
+    } catch (e) { return fail(e); }
   });
 
   /** Jogos que não estão mais no PC (arquivo sumido ou desinstalado da loja). */

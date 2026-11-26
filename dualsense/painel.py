@@ -87,6 +87,7 @@ def estado_ui(eng):
         "config": {"visao_ativa": bool(cfg.get("visao_ativa")), "pesquisar_web": bool(cfg.get("pesquisar_web")),
                    "emular_xbox": bool(cfg.get("emular_xbox")),
                    "xbox_so_no_jogo": bool(cfg.get("xbox_so_no_jogo", True)),
+                   "botao_ps": cfg.get("botao_ps", "segurar"),
                    "intervalo_visao_s": cfg.get("intervalo_visao_s", 4)},
     }
 
@@ -331,6 +332,10 @@ def make_handler(eng, token, desligar):
                     eng.settings["perfil"] = str(v)
                 elif k in ("visao_ativa", "pesquisar_web", "emular_xbox", "xbox_so_no_jogo"):
                     cfg[k] = bool(v)
+                    eng.salvar_config()
+                elif k == "botao_ps" and v in ("segurar", "guide", "nada"):
+                    cfg[k] = v
+                    eng.xbox.filtro_ps.modo = v
                     eng.salvar_config()
                 elif k == "intervalo_visao_s":
                     cfg[k] = max(2, min(30, int(v)))
