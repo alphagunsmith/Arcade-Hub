@@ -18,7 +18,7 @@ usa a classe e a cadência que o próprio jogo informou.
 import json
 import re
 
-GERADOR = 2          # sobe quando a tabela mudar: perfis automáticos antigos são refeitos
+GERADOR = 3          # sobe quando a tabela mudar: perfis automáticos antigos são refeitos
 
 # apelidos (nome interno sem "iw7_" e "_mp") -> (nome na tela, tipo, traços)
 #   peso: 0..1 (gatilho mais duro), recuo: 0..1 (tranco no disparo), energia, rajada, ferrolho
@@ -148,8 +148,10 @@ def perfil(nome, classe, firetime, clip):
             r2 = _e("resistencia", 2 if energia else 3, forca=max(1, forca - (3 if energia else 2)))
     else:
         # semiautomática: "ponto" de disparo; ferrolho/escopeta mais fundo e duro
-        ini = 5 if (ferrolho or tipo in ("sniper", "lancador")) else 4 if tipo in ("escopeta", "revolver") else 3
-        fim = min(9, ini + (3 if ferrolho or tipo == "lancador" else 2))
+        # a resistência começa logo no início do curso (zona 2, o mínimo do DualSense) e o clique
+        # vem mais fundo nas armas pesadas; o jogo só recebe o tiro depois do clique (controle.py)
+        ini = 2
+        fim = 6 if (ferrolho or tipo in ("sniper", "lancador")) else 5 if tipo in ("escopeta", "revolver") else 4
         r2 = _e("arma", ini, fim, min(8, forca + (1 if ferrolho else 0)))
     if energia and not automatica:
         r2["forca"] = max(2, r2["forca"] - 1)        # energia: estalo mais leve

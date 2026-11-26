@@ -461,6 +461,8 @@
         <option value="guide">Abre o overlay na hora (Guide do Xbox)</option>
         <option value="nada">Não faz nada</option>
       </select>
+      <label class="chave"><input type="checkbox" id="tiro_no_clique"><span class="trilho-chave"></span>Tiro único só depois do clique do gatilho</label>
+      <small>Nas armas de tiro único, o R2 resiste desde o começo e o jogo só recebe o tiro quando o gatilho passa do clique. Antes disso, apertar de leve não atira.</small>
       <div class="ao-vivo" id="ao-vivo">Aperte um botão no controle para ver o que o app manda para o jogo.</div>
     </div>
     <div class="campo">
@@ -1059,6 +1061,7 @@ function desenharControle() {
     : v.entrada.length ? `Você aperta <b>${v.entrada.map(nomeE).map(esc).join(", ")}</b> → o jogo recebe <b>${v.saida.length ? v.saida.map(nomeS).map(esc).join(", ") : "nada"}</b>`
     : "Aperte um botão no controle para ver o que o app manda para o jogo.";
   if (document.activeElement !== $("esconder_dualsense")) $("esconder_dualsense").checked = ctl.esconder;
+  if (document.activeElement !== $("tiro_no_clique")) $("tiro_no_clique").checked = ctl.tiro_no_clique;
   if (document.activeElement !== $("botao_ps")) $("botao_ps").value = ctl.botao_ps;
   $("hh-estado").textContent = ctl.hidhide.instalado ? ctl.hidhide.status : "O HidHide não está instalado neste PC.";
   $("hh-instalar").hidden = ctl.hidhide.instalado;
@@ -1078,6 +1081,7 @@ $("b-mapa-padrao").addEventListener("click", async () => {
   ctl = null; lerControle();
 });
 $("esconder_dualsense").addEventListener("change", e => ajuste("esconder_dualsense", e.target.checked));
+$("tiro_no_clique").addEventListener("change", e => ajuste("tiro_no_clique", e.target.checked));
 $("botao_ps").addEventListener("change", e => ajuste("botao_ps", e.target.value));
 function vigiarControle(ligar) {
   clearInterval(timerCtl);

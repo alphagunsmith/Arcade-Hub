@@ -509,6 +509,7 @@ class Engine:
         motor_r = int(clamp(max(Rr) * R, 0, 1) * 255)
 
         # ---- gatilhos
+        base_l = base_r = None        # efeito "de repouso" (sem o tranco do disparo), para a trava do tiro
         if genero == "desligado" or G <= 0.01 or menu or menu_morte:
             left = right = Trig.off()
         elif veic:
@@ -523,6 +524,7 @@ class Engine:
             if ext is not None and ext.get("municao") == 0:   # pente vazio: gatilho solto, sem tranco
                 right = spec_to_trig({"efeito": "resistencia", "inicio": 0, "forca": 1}, G)
                 vib = 0
+            base_l, base_r = left, right
             if pa.get("automatica") and r2 > 150 and desde_tiro < 0.25 and vib > 0:
                 hz = clamp(float(pa.get("cadencia_rpm", 600) or 600) / 60.0, 4, 40)
                 ini = int((pa.get("r2") or {}).get("inicio", 0) or 0)
@@ -555,6 +557,10 @@ class Engine:
                     left = d.left
                 if d.right is not None:
                     right = d.right
+                    if right[0] == 0x25 or base_r is None:
+                        base_r = right
+                if d.left is not None and (d.left[0] == 0x25 or base_l is None):
+                    base_l = d.left
                 if d.rgb is not None:
                     rgb = d.rgb
                 if now - d.t_rumble < 5:
@@ -562,6 +568,9 @@ class Engine:
                     motor_r = max(motor_r, int(d.rumble[1] * R))
             fonte = "mod (protocolo DSX)"
 
+        clique = bool(self.cfg.get("tiro_no_clique", True))
+        self.mapeador.travar("l2", base_l if clique else None)
+        self.mapeador.travar("r2", base_r if clique else None)
         self.info = {"fonte_dados": fonte, "jogo": jogo, "situacao": situacao, "arma": arma, "tipo": pa.get("tipo", tipo),
                      "fonte": pa.get("fonte", ""), "resumo": pa.get("resumo", ""), "coice": pa.get("coice", 0.5),
                      "automatica": pa.get("automatica"), "cadencia": pa.get("cadencia_rpm"),
@@ -812,6 +821,7 @@ def self_test():
     eng.last_shot = 0
     _, _, _, right, _ = eng.compute(t + 75.1, 0, 0)
     assert right[0] == 0x25, right   # escopeta: gatilho de arma duro
+    assert eng.mapeador.trava["r2"] and eng.mapeador.trava["l2"] is None, eng.mapeador.trava
     jogo_iw = "Call of Duty: Infinite Warfare"
     pk = eng.cerebro.armas.get(eng.cerebro.chave(jogo_iw, "iw7_ar57"))
     assert pk and pk["nome"] == "KBAR-32" and pk["cadencia_rpm"] == 800 and pk["gerador"] == armas_iw7.GERADOR, pk
@@ -821,7 +831,7 @@ def self_test():
     rv = eng.cerebro.armas[eng.cerebro.chave(jogo_iw, "iw7_rvn_mp")]
     kb = eng.cerebro.armas[eng.cerebro.chave(jogo_iw, "iw7_kbs_mp")]
     assert rv["energia"] and rv["rajada"] == 2 and kb["ferrolho"] and kb["r2"]["efeito"] == "arma", (rv, kb)
-    assert kb["r2"]["inicio"] > pk["r2"]["inicio"] and kb["vibra_gatilho"] > rv["vibra_gatilho"]
+    assert kb["r2"]["inicio"] == 2 and kb["r2"]["fim"] >= 6 and kb["vibra_gatilho"] > rv["vibra_gatilho"]
     # o que o usuário editou não é sobrescrito, nem pelos dados do jogo
     ed = dict(kb, editado=True, automatica=True, cadencia_rpm=300)
     eng.cerebro.salvar_arma(jogo_iw, "iw7_kbs_mp", ed)
@@ -882,6 +892,19 @@ def teste_botoes(eng):
     st.lx, st.ly, st.rx, st.ry, st.l2, st.r2 = 200, 60, 128, 128, 255, 10
     w, lt, rt, lx, ly, rx, ry = m.converter(st, 1.0)
     assert w == to_xusb(st)[0] and (lt, rt) == (255, 10) and (lx, ly) == to_xusb(st)[3:5], (w, to_xusb(st))
+    # tiro único: o jogo só recebe o R2 depois do clique do gatilho (e não antes, no começo do curso)
+    assert C.trava_do_efeito(Trig.weapon(2, 4, 5)) == (127, 77) and C.trava_do_efeito(Trig.feedback(2, 3)) is None
+    mt = C.Mapeador()
+    mt.travar("r2", Trig.weapon(2, 4, 5))
+    st2 = PadState()
+    saidas = []
+    for v in (15, 60, 120, 130, 255, 100, 70, 100, 140, 0):
+        st2.r2 = v
+        saidas.append(mt.converter(st2, 2.0)[2])
+    assert saidas == [0, 0, 0, 255, 255, 255, 0, 0, 255, 0], saidas
+    mt.travar("r2", None)
+    st2.r2 = 15
+    assert mt.converter(st2, 2.0)[2] == 15
     assert set(m.ultimo["entrada"]) >= {"cruz", "triangulo", "create", "l2"} and "a" in m.ultimo["saida"]
     # trocas: ✕ vira B, △ vira nada, R2 vira o botão A, L2 vira RT
     m.configurar({"cruz": "b", "triangulo": "nada", "r2": "a", "l2": "rt", "inventado": "x", "circulo": "???"},

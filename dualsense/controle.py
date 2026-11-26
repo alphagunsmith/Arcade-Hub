@@ -38,6 +38,22 @@ OPCOES_PADRAO = {"trocar_analogicos": False, "inverter_y_esq": False, "inverter_
 _DIR_HAT = {UP: "cima", DOWN: "baixo", LEFT: "esquerda", RIGHT: "direita"}
 
 
+def trava_do_efeito(efeito):
+    """Efeito de arma do DualSense (0x25, zonas início/fim) -> (abre, fecha) no curso 0-255.
+    O clique acontece na zona `fim`; o tiro sai logo depois dele e volta a armar quando o dedo
+    sobe de novo para dentro da resistência."""
+    if not efeito or efeito[0] != 0x25:
+        return None
+    zonas = efeito[1] | (efeito[2] << 8)
+    if not zonas:
+        return None
+    ini = (zonas & -zonas).bit_length() - 1
+    fim = zonas.bit_length() - 1
+    abre = min(240, int((fim + 1) * 25.5))
+    fecha = max(int(ini * 25.5), abre - 50, 20)
+    return abre, fecha
+
+
 def limpar_mapa(m):
     """Só entradas e saídas conhecidas; o que faltar fica no padrão."""
     m = m if isinstance(m, dict) else {}
@@ -78,6 +94,9 @@ class Mapeador:
         self.opcoes = dict(OPCOES_PADRAO)
         self.filtro_ps = FiltroBotaoPS()
         self.ultimo = {"entrada": [], "saida": []}
+        # gatilho com efeito de arma (tiro único): (abre, fecha) no curso 0-255, ou None
+        self.trava = {"l2": None, "r2": None}
+        self._aberto = {"l2": False, "r2": False}
 
     def configurar(self, mapa=None, opcoes=None, modo_ps=None):
         self.mapa = limpar_mapa(mapa)
@@ -85,12 +104,31 @@ class Mapeador:
         if modo_ps:
             self.filtro_ps.modo = modo_ps
 
+    def travar(self, e, efeito):
+        """Recebe o efeito de 11 bytes do gatilho `e`. Se for o de arma (clique), o jogo só recebe o
+        gatilho depois do clique: antes disso, por mais que o dedo desça, vai 0."""
+        self.trava[e] = trava_do_efeito(efeito)
+
+    def _gatilho(self, e, valor):
+        t = self.trava.get(e)
+        if not t:
+            self._aberto[e] = valor >= 40
+            return valor
+        abre, fecha = t
+        if self._aberto[e]:
+            if valor < fecha:
+                self._aberto[e] = False
+        elif valor >= abre:
+            self._aberto[e] = True
+        return 255 if self._aberto[e] else 0
+
     def converter(self, st, now):
         """-> (botões, LT, RT, LX, LY, RX, RY) do Xbox."""
         entradas = apertados(st)
         w, lt, rt = 0, 0, 0
         # gatilhos: o curso inteiro passa (sem zona morta), virem eles LT/RT ou um botão
         for e, valor in (("l2", st.l2), ("r2", st.r2)):
+            valor = self._gatilho(e, valor)
             alvo = SAIDAS[self.mapa.get(e, "nada")][1]
             if alvo == "lt":
                 lt = max(lt, valor)

@@ -210,6 +210,7 @@ def estado_controle(eng):
         "ao_vivo": eng.mapeador.ultimo, "conectado": bool(eng.dev.connected),
         "xbox": eng.xbox.status, "xbox_ativo": bool(eng.xbox.pad), "botao_ps": eng.cfg.get("botao_ps", "segurar"),
         "esconder": bool(eng.cfg.get("esconder_dualsense", True)),
+        "tiro_no_clique": bool(eng.cfg.get("tiro_no_clique", True)),
         "hidhide": {"instalado": hh.instalado(), "ativo": hh.ativo, "status": hh.status},
         "conflitos": eng.conflitos,
     }
@@ -375,7 +376,7 @@ def make_handler(eng, token, desligar):
                     eng.settings[k] = max(0.0, min(2.0, float(v)))
                 elif k == "perfil":
                     eng.settings["perfil"] = str(v)
-                elif k in ("visao_ativa", "pesquisar_web", "emular_xbox", "xbox_so_no_jogo"):
+                elif k in ("visao_ativa", "pesquisar_web", "emular_xbox", "xbox_so_no_jogo", "tiro_no_clique"):
                     cfg[k] = bool(v)
                     eng.salvar_config()
                 elif k == "botao_ps" and v in ("segurar", "guide", "nada"):

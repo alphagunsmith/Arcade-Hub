@@ -1,5 +1,15 @@
 # Novidades
 
+## 1.12.1
+
+- **DualSense Auto: gatilho das armas de tiro único.**
+  - O R2 agora resiste desde o começo do curso, e não mais no meio.
+  - O jogo só recebe o tiro depois que o gatilho passa do clique. Antes, apertar só um pouquinho já atirava.
+  - Para atirar de novo, basta subir o dedo até voltar para dentro da resistência, sem soltar o gatilho todo.
+  - O clique fica mais fundo nas armas pesadas: escopeta e revólver, e mais ainda sniper, lança-foguetes e armas de ferrolho.
+  - As armas que você ajustou à mão continuam do seu jeito, e também passam a atirar só depois do clique.
+  - Dá para desligar na aba Botões, em "Tiro único só depois do clique do gatilho".
+
 ## 1.12.0
 
 - **DualSense Auto: a parte do controle foi refeita.**

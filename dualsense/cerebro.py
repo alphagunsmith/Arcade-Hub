@@ -30,6 +30,7 @@ CONFIG_PADRAO = {
     "emular_xbox": True,
     "xbox_so_no_jogo": True,
     "botao_ps": "segurar",
+    "tiro_no_clique": True,      # arma de tiro único: o jogo só recebe o R2 depois do clique do gatilho
     "esconder_dualsense": True,  # HidHide: só o DualSense Auto (e o Arcade Hub) veem o DualSense; a Steam vê o Xbox virtual
     "mapa_botoes": {},           # trocas de botões para todos os jogos (controle.PADRAO para o resto)
     "mapa_opcoes": {},           # trocar analógicos, inverter eixo Y
@@ -54,15 +55,15 @@ def _e(efeito, inicio=0, fim=9, forca=0, forca_fim=None, frequencia=0):
 
 
 TEMPLATES = {
-    "pistola":       dict(r2=_e("arma", 4, 6, 5), l2=_e("resistencia", 2, forca=2), automatica=False, cadencia_rpm=350, coice=0.5, vibra_gatilho=3),
-    "revolver":      dict(r2=_e("arma", 5, 8, 7), l2=_e("resistencia", 2, forca=2), automatica=False, cadencia_rpm=120, coice=0.85, vibra_gatilho=5),
+    "pistola":       dict(r2=_e("arma", 2, 4, 5), l2=_e("resistencia", 2, forca=2), automatica=False, cadencia_rpm=350, coice=0.5, vibra_gatilho=3),
+    "revolver":      dict(r2=_e("arma", 2, 5, 7), l2=_e("resistencia", 2, forca=2), automatica=False, cadencia_rpm=120, coice=0.85, vibra_gatilho=5),
     "smg":           dict(r2=_e("resistencia", 3, forca=2), l2=_e("resistencia", 2, forca=1), automatica=True, cadencia_rpm=900, coice=0.3, vibra_gatilho=4),
-    "fuzil":         dict(r2=_e("arma", 4, 6, 4), l2=_e("resistencia", 2, forca=2), automatica=True, cadencia_rpm=700, coice=0.5, vibra_gatilho=5),
+    "fuzil":         dict(r2=_e("arma", 2, 4, 4), l2=_e("resistencia", 2, forca=2), automatica=True, cadencia_rpm=700, coice=0.5, vibra_gatilho=5),
     "metralhadora":  dict(r2=_e("rampa", 2, 9, 2, forca_fim=6), l2=_e("resistencia", 2, forca=3), automatica=True, cadencia_rpm=650, coice=0.65, vibra_gatilho=7),
-    "escopeta":      dict(r2=_e("arma", 3, 7, 8), l2=_e("resistencia", 2, forca=2), automatica=False, cadencia_rpm=70, coice=1.0, vibra_gatilho=8),
-    "sniper":        dict(r2=_e("arma", 5, 8, 8), l2=_e("resistencia", 2, forca=3), automatica=False, cadencia_rpm=45, coice=1.0, vibra_gatilho=8),
+    "escopeta":      dict(r2=_e("arma", 2, 5, 8), l2=_e("resistencia", 2, forca=2), automatica=False, cadencia_rpm=70, coice=1.0, vibra_gatilho=8),
+    "sniper":        dict(r2=_e("arma", 2, 6, 8), l2=_e("resistencia", 2, forca=3), automatica=False, cadencia_rpm=45, coice=1.0, vibra_gatilho=8),
     "arco":          dict(r2=_e("rampa", 0, 9, 1, forca_fim=8), l2=_e("resistencia", 3, forca=1), automatica=False, cadencia_rpm=40, coice=0.6, vibra_gatilho=0),
-    "lancador":      dict(r2=_e("arma", 4, 8, 8), l2=_e("resistencia", 2, forca=3), automatica=False, cadencia_rpm=30, coice=1.0, vibra_gatilho=8),
+    "lancador":      dict(r2=_e("arma", 2, 6, 8), l2=_e("resistencia", 2, forca=3), automatica=False, cadencia_rpm=30, coice=1.0, vibra_gatilho=8),
     "energia":       dict(r2=_e("resistencia", 2, forca=2), l2=_e("resistencia", 2, forca=1), automatica=True, cadencia_rpm=1500, coice=0.2, vibra_gatilho=4),
     "granada":       dict(r2=_e("resistencia", 6, forca=3), l2=_e("resistencia", 4, forca=1), automatica=False, cadencia_rpm=30, coice=0.2, vibra_gatilho=0),
     "corpo_a_corpo": dict(r2=_e("resistencia", 5, forca=3), l2=_e("resistencia", 4, forca=2), automatica=False, cadencia_rpm=90, coice=0.5, vibra_gatilho=0),
